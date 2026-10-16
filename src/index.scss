@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-@use '@carbon/ibm-products/css/index.min';
 @use '@carbon/react' with (
   $font-path: '@ibm/plex',
   $font-display: 'block'
@@ -14,10 +13,10 @@
 @use '@carbon/react/scss/theme' as *;
 @use '@carbon/react/scss/themes';
 @use '@carbon/react/scss/colors' as *;
-@use '@carbon-labs/react-theme-settings/scss/theme-settings';
 
 // Import auto-generated Carbon styles (run npm run scss:generate to update)
-@use './styles/carbon-generated';
+// NOTA: Tema incluído diretamente em src/index.scss para evitar conflitos de carregamento
+// @use './styles/carbon-generated';
 
 /* Importing the component styles here will load them
    before the JavaScript, which will make the page 
