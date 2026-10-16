@@ -1,0 +1,38 @@
+// ============================================================================
+// ARQUIVO GERADO AUTOMATICAMENTE POR scripts/generate-carbon-scss.js
+// Não edite manualmente. Execute: npm run scss:generate
+// ============================================================================
+
+@use '@carbon/react/scss/config' with (
+  $font-path: '@ibm/plex',
+  $use-flexbox-grid: false
+);
+
+@use '@carbon/feature-flags' with (
+  $feature-flags: (
+    'enable-v12-release': true,
+    'enable-v12-dynamic-floating-styles': true,
+    'enable-css-custom-properties': true
+  )
+);
+
+@use '@carbon/react/scss/themes';
+@use '@carbon/react/scss/theme' with (
+  $theme: themes.$g100
+);
+@use '@carbon/react';
+@use '@carbon/ibm-products/scss/index';
+
+// Suporte dinâmico aos 4 temas oficiais via atributo data-carbon-theme
+:root {
+  @include theme.theme(themes.$white);
+}
+[data-carbon-theme='g10'] {
+  @include theme.theme(themes.$g10);
+}
+[data-carbon-theme='g90'] {
+  @include theme.theme(themes.$g90);
+}
+[data-carbon-theme='g100'] {
+  @include theme.theme(themes.$g100);
+}

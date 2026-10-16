@@ -26,6 +26,7 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "prepare": "husky",
+    "scss:generate": "node scripts/generate-carbon-scss.js",
     "semantic-release": "semantic-release"
   },
   "dependencies": {
@@ -78,6 +79,7 @@
     "eslint-plugin-react-refresh": "^0.5.0",
     "globals": "^17.0.0",
     "husky": "^9.1.7",
+    "i18next-parser": "^9.0.2",
     "jsdom": "^30.0.0",
     "lint-staged": "^17.0.0",
     "msw": "^3.0.0",

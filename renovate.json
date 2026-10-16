@@ -7,6 +7,11 @@
       "matchUpdateTypes": ["minor", "patch"],
       "matchCurrentVersion": "!/^0/",
       "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["^@carbon/", "^@carbon-labs/", "^@ibm/"],
+      "groupName": "Carbon Design System ecosystem",
+      "schedule": ["before 6am on monday"]
     }
   ]
 }

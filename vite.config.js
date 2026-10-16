@@ -38,7 +38,7 @@ export default defineConfig({
   },
   ssr: {
     // Ensure proper handling of external dependencies in SSR
-    noExternal: [],
+    noExternal: [/^@carbon\//, /^@ibm\/plex/, /^@cestari\//],
   },
   test: {
     globals: true,

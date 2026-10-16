@@ -16,6 +16,9 @@
 @use '@carbon/react/scss/colors' as *;
 @use '@carbon-labs/react-theme-settings/scss/theme-settings';
 
+// Import auto-generated Carbon styles (run npm run scss:generate to update)
+@use './styles/carbon-generated';
+
 /* Importing the component styles here will load them
    before the JavaScript, which will make the page 
    not "flashing style" - everything will be at the right

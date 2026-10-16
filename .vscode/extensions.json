@@ -4,6 +4,8 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "stylelint.vscode-stylelint",
-    "lee-chase.carbon-token-snippets"
+    "lee-chase.carbon-token-snippets",
+    "lokalise.i18n-ally",
+    "mrmlnc.vscode-scss"
   ]
 }
