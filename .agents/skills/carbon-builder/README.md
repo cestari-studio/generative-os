@@ -11,6 +11,7 @@ Esta skill é importada oficialmente do [carbon-design-system/carbon-mcp](https:
 ## Instalação
 
 A skill oficial está localizada em:
+
 ```
 ~/.config/opencode/skills/carbon-builder/
 ```
@@ -22,25 +23,26 @@ https://github.com/carbon-design-system/carbon-mcp/releases
 
 Os seguintes arquivos de referência estão disponíveis e devem ser usados:
 
-| Arquivo | Descrição |
-|---------|-----------|
-| `data-model.md` | Schema completo para code_search, docs_search e get_charts |
-| `framework-rules.md` | React vs Web Components + regras IBM Plex |
-| `implementation-guardrails.md` | Stability, SSR, package, styling e layout guardrails |
-| `common-pitfalls.md` | SCSS, CDN, Web Components, Labs e query-routing |
-| `query-protocols.md` | Strategy Discover→Canonicalize→Target + special cases |
-| `ai-chat-protocols.md` | AI Chat file completeness + query patterns |
-| `charts-protocols.md` | Carbon Charts 2-call convention + assembly hints |
-| `code-audit-protocols.md` | code_audit params, response schema, category/severity |
-| `accessibility-rules.md` | WCAG 2.2 AA rules + Carbon a11y props |
-| `grid-system.md` | Carbon Grid variants + responsive spans |
-| `carbon-labs.md` | Carbon Labs package verification |
-| `result-validation.md` | Result reconciliation + complex queries |
-| `error-recovery.md` | Error recovery + performance checklist |
+| Arquivo                        | Descrição                                                  |
+| ------------------------------ | ---------------------------------------------------------- |
+| `data-model.md`                | Schema completo para code_search, docs_search e get_charts |
+| `framework-rules.md`           | React vs Web Components + regras IBM Plex                  |
+| `implementation-guardrails.md` | Stability, SSR, package, styling e layout guardrails       |
+| `common-pitfalls.md`           | SCSS, CDN, Web Components, Labs e query-routing            |
+| `query-protocols.md`           | Strategy Discover→Canonicalize→Target + special cases      |
+| `ai-chat-protocols.md`         | AI Chat file completeness + query patterns                 |
+| `charts-protocols.md`          | Carbon Charts 2-call convention + assembly hints           |
+| `code-audit-protocols.md`      | code_audit params, response schema, category/severity      |
+| `accessibility-rules.md`       | WCAG 2.2 AA rules + Carbon a11y props                      |
+| `grid-system.md`               | Carbon Grid variants + responsive spans                    |
+| `carbon-labs.md`               | Carbon Labs package verification                           |
+| `result-validation.md`         | Result reconciliation + complex queries                    |
+| `error-recovery.md`            | Error recovery + performance checklist                     |
 
 ## Uso no generative-os
 
 Esta skill é ativada automaticamente quando o agente de IA detecta:
+
 - Carbon components (Button, Modal, DataTable, etc.)
 - IBM Products UI
 - Carbon Charts
@@ -51,6 +53,7 @@ Esta skill é ativada automaticamente quando o agente de IA detecta:
 ## Versão Atual do Generative OS
 
 O generative-os está configurado com:
+
 - **Repository**: https://github.com/cestari-studio/generative-os
 - **Visibility**: Público
 - **Branch Protection**: Ativo (force push, deletions)
