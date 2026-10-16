@@ -1,8 +1,8 @@
-# carbon-react-starter
+# generative-os
 
 ![Screen capture of the app home screen](public/home-page.jpg)
 
-This project is intended as a guiding template to get you and your team started with a fresh project basing on the Carbon Design System.
+This project is a Private Generative OS template based on the Carbon Design System, maintained by cestari-studio.
 
 It is intended to be helping, not dictating. If you don't know exactly what to use, feel free to take this as a starting point. You can of course swap anything in this stack with your preferred tool if you want to.
 
@@ -11,10 +11,10 @@ It is intended to be helping, not dictating. If you don't know exactly what to u
 1. Instantiate this template locally without the git history, specifying the name of the folder for the repository.
 
    ```bash
-   npx degit https://github.com/carbon-design-system/carbon-react-router-starter new-folder
+   npx degit https://github.com/carbon-design-system/carbon-react-router-starter generative-os
    ```
 
-NOTE: In addition to starting with a clean history `degit` avoids the accidental creation of external repositories.
+   NOTE: In addition to starting with a clean history `degit` avoids the accidental creation of external repositories.
 
 2. Switch to the new folder
 
@@ -60,7 +60,7 @@ Create a production build with `npm run build`, but be aware that a server runti
    npm run preview:prod
    ```
 
-### Before connecting to github.ibm.com
+### Before connecting to GitHub
 
 If you are not familiar with and have never configured your device to work with git, npm, node, ssh etc. then you might want to find a friendly developer to help with your setup. You will at a minimum need:
 
@@ -70,11 +70,11 @@ If you are not familiar with and have never configured your device to work with 
 - NPM
 - Your command line connected to git via ssh.
 
-### Connecting to github.ibm.com
+### Connecting to GitHub
 
-1. Create a new repository on github.ibm.com/your-org.
+1. Create a new repository on github.com/cestari-studio/generative-os.
    1. Set the repository name
-   2. Choose the visibility
+   2. Choose the visibility (private recommended for commercial use)
    3. Click "Create repository".
 2. Connect your repository.
    1. Before the git instructions.
@@ -82,14 +82,13 @@ If you are not familiar with and have never configured your device to work with 
    ```bash
    git init
    git add .
-   git commit -m 'feat: first commit'
+   git commit -m 'feat: initial commit'
    ```
 
    2. Then the instructions to push and existing repository from the command line, which will look something like the following:
 
    ```bash
-   # Replace `your-ort` and `new-starter` with your own values
-   git remote add origin git@github.ibm.com:your-org/new-starter.git
+   git remote add origin git@github.com:cestari-studio/generative-os.git
    git branch -M main
    git push -u origin main
    ```
