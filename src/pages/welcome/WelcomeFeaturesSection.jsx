@@ -1,0 +1,28 @@
+/**
+ * Copyright IBM Corp. 2025, 2026
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import { useTranslation } from 'react-i18next';
+import { WelcomeCallout } from './WelcomeCallout';
+import { WelcomeFeatureTile } from './WelcomeFeatureTile';
+
+const features = [
+  { title: 'Flexibility', feature: 'React 19' },
+  { title: 'Feature 2', feature: 'Carbon Design v11' },
+  { title: 'Feature 3', feature: 'Vite 6.0' },
+];
+
+export const WelcomeFeaturesSection = () => {
+  const { t } = useTranslation();
+
+  return (
+    <WelcomeCallout className="cs--welcome__features" heading={t('welcome.features.heading', 'Features')}>
+      {features.map((item) => (
+        <WelcomeFeatureTile key={item.feature} {...item} />
+      ))}
+    </WelcomeCallout>
+  );
+};

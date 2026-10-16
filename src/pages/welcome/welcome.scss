@@ -1,0 +1,47 @@
+/**
+ * Copyright IBM Corp. 2025
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/type' as *;
+@use '@carbon/react/scss/breakpoint' as *;
+
+.cs--welcome__callout {
+  margin-block-start: $spacing-10;
+}
+
+.cs--welcome__about {
+  @include breakpoint-up(md) {
+    grid-auto-rows: 1fr;
+  }
+
+  @include breakpoint-up(xlg) {
+    grid-auto-rows: initial;
+  }
+
+  row-gap: $spacing-07;
+}
+
+.cs--welcome__features {
+  row-gap: $spacing-07;
+}
+
+:where(.cs--welcome__about, .cs--welcome__features) .cs--welcome__heading {
+  // reduce space between callout and first tile when row gap applies
+  margin-block-end: calc(-1 * #{$spacing-05});
+}
+
+.cs--welcome__highlight-tile {
+  block-size: 100%;
+  padding-block-end: $spacing-07;
+
+  /* stylelint-disable-next-line carbon/theme-use -- cs-brand color permitted in starter */
+  background-color: var(--cs-brand);
+}
+
+.cs--welcome__feature-tile {
+  block-size: 100%;
+}

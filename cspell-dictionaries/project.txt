@@ -1,0 +1,13 @@
+Descriptionless
+fouc
+languagedetector
+Lngs
+nojekyll
+nvmrc
+Pipeable
+Platzhalterseite
+plex
+Stephane
+Testbarkeit
+vite
+unlighthouse

@@ -1,0 +1,49 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "dictionaries": ["carbon", "project"],
+  "dictionaryDefinitions": [
+    {
+      "name": "carbon",
+      "path": "./cspell-dictionaries/carbon.txt"
+    },
+    {
+      "name": "project",
+      "path": "./cspell-dictionaries/project.txt"
+    }
+  ],
+  "import": ["@cspell/dict-de-de/cspell-ext.json"],
+  "overrides": [
+    {
+      "filename": "**/locales/*.json",
+      "language": "en,de"
+    }
+  ],
+  "enabledLanguageIds": [
+    "git-commit",
+    "graphql",
+    "html",
+    "javascript",
+    "javascriptreact",
+    "json",
+    "markdown",
+    "scss",
+    "text",
+    "typescript",
+    "typescriptreact",
+    "yaml",
+    "yml",
+    "mdx"
+  ],
+  "ignorePaths": [
+    ".github",
+    "node_modules",
+    "coverage",
+    "cspell-dictionaries",
+    "dist",
+    "package.json",
+    "*.snap",
+    "*.log"
+  ],
+  "words": ["unstub"]
+}
