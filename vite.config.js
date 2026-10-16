@@ -51,4 +51,11 @@ export default defineConfig({
       exclude: ['src/test/**', 'src/__tests__/**', 'src/**/*.scss', 'src/locales/**', 'src/stories/**'],
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        silenceDeprecations: ['if-function'],
+      },
+    },
+  },
 });
