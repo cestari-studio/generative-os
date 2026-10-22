@@ -7,34 +7,13 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { isAllowedRedirectUri } from '../_shared/pagbank-security.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
-
-function isAllowedRedirectUri(uri: string): boolean {
-  try {
-    const parsed = new URL(uri);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return false;
-    }
-    const hostname = parsed.hostname;
-    if (
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1' ||
-      hostname.endsWith('.vercel.app') ||
-      hostname === 'generative-os-bay.vercel.app'
-    ) {
-      return true;
-    }
-    const customOrigins = (Deno.env.get('ALLOWED_REDIRECT_ORIGINS') ?? '').split(',').map((s) => s.trim());
-    return customOrigins.includes(parsed.origin);
-  } catch {
-    return false;
-  }
-}
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -134,10 +113,11 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      const redirectUri =
-        body.redirectUri || `${req.headers.get('origin') || 'http://localhost:5173'}/payments?connect=callback`;
+      const defaultOrigin =
+        Deno.env.get('ENVIRONMENT') === 'local' ? 'http://localhost:5173' : 'https://generative-os-bay.vercel.app';
+      const redirectUri = body.redirectUri || `${req.headers.get('origin') || defaultOrigin}/payments?connect=callback`;
 
-      if (!isAllowedRedirectUri(redirectUri)) {
+      if (!isAllowedRedirectUri(redirectUri, Deno.env.get('ALLOWED_REDIRECT_ORIGINS'), Deno.env.get('ENVIRONMENT'))) {
         return new Response(
           JSON.stringify({ error: `Redirect URI is not in the approved allowlist: ${redirectUri}` }),
           {
@@ -261,7 +241,7 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      if (!isAllowedRedirectUri(redirectUri)) {
+      if (!isAllowedRedirectUri(redirectUri, Deno.env.get('ALLOWED_REDIRECT_ORIGINS'), Deno.env.get('ENVIRONMENT'))) {
         return new Response(
           JSON.stringify({ error: `Redirect URI is not in the approved allowlist: ${redirectUri}` }),
           {

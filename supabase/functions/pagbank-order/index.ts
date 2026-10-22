@@ -7,6 +7,7 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { validateOrderInput } from '../_shared/pagbank-security.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -106,15 +107,28 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // 4. Resolve or create Order in database via RPC
+    // 4. Strict input validation BEFORE any database write or RPC call
+    const validation = validateOrderInput({ amountCents, customer, items });
+    if (!validation.valid || !validation.cleanCustomer || !validation.cleanItems) {
+      return new Response(
+        JSON.stringify({
+          error: validation.error || 'Invalid order parameters.',
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const { cleanCustomer, cleanItems } = validation;
+
+    // 5. Create Order in database via RPC strictly with validated customer and items (no fallbacks)
     const { data: orderData, error: orderRpcError } = await supabaseAdmin.rpc('create_pagbank_order', {
       p_organization_id: organizationId,
       p_workspace_id: workspaceId || null,
       p_project_id: projectId || null,
       p_amount_cents: amountCents,
       p_reference_id: referenceId,
-      p_customer_snapshot: customer || { name: user.email, email: user.email },
-      p_items_snapshot: items.length > 0 ? items : [{ name: 'Default Item', quantity: 1, unit_amount: amountCents }],
+      p_customer_snapshot: cleanCustomer,
+      p_items_snapshot: cleanItems,
     });
 
     if (orderRpcError) {
@@ -126,43 +140,10 @@ Deno.serve(async (req: Request) => {
 
     const orderId = orderData.order_id;
 
-    // 5. Strict validation of customer and items: Never use synthetic placeholders ('00000000000' or synthetic items)
-    if (!customer || !customer.name || !customer.email || !customer.tax_id) {
-      return new Response(
-        JSON.stringify({
-          error: 'Customer details (name, email, tax_id) are required. Synthetic placeholders are not permitted.',
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    const cleanTaxId = String(customer.tax_id).replace(/\D/g, '');
-    if (cleanTaxId.length !== 11 && cleanTaxId.length !== 14) {
-      return new Response(
-        JSON.stringify({
-          error: 'Invalid tax_id: must be a valid CPF (11 digits) or CNPJ (14 digits).',
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    if (!Array.isArray(items) || items.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error: 'At least one item is required in the items array. Synthetic fallback items are not permitted.',
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
     const pagbankPayload: Record<string, unknown> = {
       reference_id: referenceId,
-      customer: {
-        name: customer.name,
-        email: customer.email,
-        tax_id: cleanTaxId,
-      },
-      items,
+      customer: cleanCustomer,
+      items: cleanItems,
       notification_urls: [`${supabaseUrl}/functions/v1/pagbank-webhook`],
     };
 
