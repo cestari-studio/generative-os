@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
 
 /**
@@ -22,6 +22,23 @@ import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
  * Content comes exclusively from the DB; the static genOsCatalog.js remains
  * the verified static taxonomy reference but is NOT a runtime fallback.
  */
+function classifyCatalogError(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const status = Number(error?.status || error?.statusCode || 0);
+  const message = String(error?.message || '');
+
+  if ([401, 403].includes(status) || ['42501', 'PGRST301'].includes(code)) {
+    return 'forbidden';
+  }
+  if (
+    ['42P01', 'PGRST205'].includes(code) ||
+    /relation .* does not exist|could not find the table .* schema cache/i.test(message)
+  ) {
+    return 'unprovisioned';
+  }
+  return 'error';
+}
+
 export function useNormativeCatalog() {
   const [state, setState] = useState({
     status: 'loading',
@@ -31,6 +48,8 @@ export function useNormativeCatalog() {
     platformServices: [],
     error: null,
   });
+  const [requestVersion, setRequestVersion] = useState(0);
+  const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,7 +68,11 @@ export function useNormativeCatalog() {
 
         const queryError = [productsRes, subsRes, capsRes, svcsRes].find((r) => r.error);
         if (queryError?.error) {
-          setState((s) => ({ ...s, status: 'unprovisioned', error: queryError.error.message }));
+          setState((s) => ({
+            ...s,
+            status: classifyCatalogError(queryError.error),
+            error: queryError.error.message,
+          }));
           return;
         }
 
@@ -57,7 +80,7 @@ export function useNormativeCatalog() {
         const subs = Array.isArray(subsRes.data) ? subsRes.data : [];
 
         if (products.length === 0) {
-          setState((s) => ({ ...s, status: 'unprovisioned' }));
+          setState((s) => ({ ...s, status: 'empty', error: null }));
           return;
         }
 
@@ -78,7 +101,7 @@ export function useNormativeCatalog() {
         if (!cancelled) {
           setState((s) => ({
             ...s,
-            status: 'unprovisioned',
+            status: classifyCatalogError(err),
             error: err instanceof Error ? err.message : 'catalog query failed',
           }));
         }
@@ -88,7 +111,7 @@ export function useNormativeCatalog() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [requestVersion]);
 
-  return state;
+  return { ...state, retry };
 }
