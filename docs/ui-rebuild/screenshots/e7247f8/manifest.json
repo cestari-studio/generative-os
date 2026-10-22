@@ -1,0 +1,174 @@
+{
+  "sha": "e7247f8",
+  "captured_at": "2026-10-22T21:40:04.244Z",
+  "routes": [
+    {
+      "route": "/",
+      "viewport": "desktop",
+      "http_status": 200,
+      "file": "home.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/",
+      "viewport": "tablet",
+      "http_status": 200,
+      "file": "home.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/",
+      "viewport": "mobile",
+      "http_status": 200,
+      "file": "home.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "desktop",
+      "http_status": 200,
+      "file": "dashboard.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "tablet",
+      "http_status": 200,
+      "file": "dashboard.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "mobile",
+      "http_status": 200,
+      "file": "dashboard.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "desktop",
+      "http_status": 200,
+      "file": "settings.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "tablet",
+      "http_status": 200,
+      "file": "settings.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "mobile",
+      "http_status": 200,
+      "file": "settings.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "desktop",
+      "http_status": 200,
+      "file": "knowledge.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "tablet",
+      "http_status": 200,
+      "file": "knowledge.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "mobile",
+      "http_status": 200,
+      "file": "knowledge.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "desktop",
+      "http_status": 200,
+      "file": "payments.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "tablet",
+      "http_status": 200,
+      "file": "payments.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "mobile",
+      "http_status": 200,
+      "file": "payments.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/onboarding",
+      "viewport": "desktop",
+      "http_status": 200,
+      "file": "onboarding.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/onboarding",
+      "viewport": "tablet",
+      "http_status": 200,
+      "file": "onboarding.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/onboarding",
+      "viewport": "mobile",
+      "http_status": 200,
+      "file": "onboarding.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "desktop",
+      "http_status": 200,
+      "file": "products.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "tablet",
+      "http_status": 200,
+      "file": "products.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "mobile",
+      "http_status": 200,
+      "file": "products.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/nonexistent-route",
+      "viewport": "desktop",
+      "http_status": 404,
+      "file": "nonexistent-route.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/nonexistent-route",
+      "viewport": "tablet",
+      "http_status": 404,
+      "file": "nonexistent-route.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/nonexistent-route",
+      "viewport": "mobile",
+      "http_status": 404,
+      "file": "nonexistent-route.mobile.png",
+      "result": "captured"
+    }
+  ]
+}
