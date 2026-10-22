@@ -114,6 +114,15 @@ jobs:
             sleep 1
           done
 
+          # Warm up every route once before asserting: the first SSR request on
+          # a cold runner triggers Vite dep optimization and lazy-bundle loads
+          # (the /settings and /dashboard chunks are the heaviest in the app),
+          # which can take tens of seconds on shared runners. Warmup is
+          # best-effort; the assertion below enforces the real contract.
+          for route in / /dashboard /settings /knowledge; do
+            curl -s -o /dev/null --max-time 60 -H 'Accept-Language: en' "http://localhost:5173${route}" || true
+          done
+
           check_route() {
             local route="$1"
             local expected="$2"
