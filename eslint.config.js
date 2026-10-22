@@ -70,6 +70,10 @@ export default [
       ...pluginJs.configs.recommended.rules,
       /* import named is off because @carbon/react uses default exports in some components April 10th 2025 */
       'import-x/named': 'off',
+      /* Build artifacts (dist/**) are produced by `npm run build` after
+         linting, so the dynamic SSR entry import in src/server.js cannot
+         resolve at lint time — ignore it explicitly. */
+      'import-x/no-unresolved': ['error', { ignore: ['^\\.\\./dist/'] }],
       /* no-unused-vars - ignore pattern for React component usage */
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
