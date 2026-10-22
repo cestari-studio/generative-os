@@ -1,0 +1,75 @@
+{
+  "manifest_version": "2.0",
+  "generated_at": "2026-10-22T00:00:00Z",
+  "source": "local-git",
+  "commit": "51a93719aa3a4a912169533a40832f93e5869c13",
+  "target_project_ref": "ldjfjmihdvdmltrptngf",
+  "target_project_url": "https://ldjfjmihdvdmltrptngf.supabase.co",
+  "warning": "Reconcile against live list_edge_functions versions/hashes ONLY after owner approval and against the correct project. The sibling project jkespoegdpkdcrxsxwry (genOS) is NOT the target. Hashes are sha256 over each function's source tree (local git), NOT comparable to ezbr_sha256 bundle hashes \u2014 different inputs and algorithms; reconcile by deploy + read-back, not by hash equality.",
+  "supabase_config_toml": {
+    "path": "supabase/config.toml",
+    "state": "versioned in repo; NOT yet deployed \u2014 remote verify_jwt is still false on all six functions",
+    "expected": {
+      "pagbank-connect": true,
+      "pagbank-order": true,
+      "pagbank-webhook": false,
+      "passkey-auth": true,
+      "settings-cascade": true,
+      "vector-rag": true
+    }
+  },
+  "shared_hash": "dd98355f71fee85e919e535cefb97639d8a5e5e00745596d445160f965436faf",
+  "functions_local": {
+    "pagbank-connect": "8809f6a5c5c70d26a82682d5ab64303e308b621e27ebb2f5850cf7f549672922",
+    "pagbank-order": "45e54cf18b7a58697d43357b247c209017c0cd9cd57a1c73afe237d6fe6ba2b9",
+    "pagbank-webhook": "7639dc42eacc63fcf0d084c26ff970bdf9ddf2b9d0b576c881b53077155a324d",
+    "passkey-auth": "177c68bfc428e8fe5681e3b80c84b6bb481675914c047d79dfd749776635f48a",
+    "settings-cascade": "d2d24fd302a055adb592fc5c36abf2c213658ca25baa5ce4eba227978f11e9b8",
+    "vector-rag": "9e96cc1807f193f4c4c64404a0fcd6ee3f61d93af25c35cd379363ccd4cbb5ac"
+  },
+  "remote_observed": {
+    "read_at": "2026-10-22",
+    "state": "PRE-74c3b87 \u2014 not reconciled; all six with verify_jwt=false",
+    "functions": {
+      "passkey-auth": {
+        "version": 6,
+        "verify_jwt": false,
+        "hash_prefix": "bb2692f7e92e0dc03af1"
+      },
+      "settings-cascade": {
+        "version": 4,
+        "verify_jwt": false,
+        "hash_prefix": "8fadba6a53908d248cf4"
+      },
+      "vector-rag": {
+        "version": 6,
+        "verify_jwt": false,
+        "hash_prefix": "194a42f8389efc9412f5"
+      },
+      "pagbank-connect": {
+        "version": 5,
+        "verify_jwt": false,
+        "hash_prefix": "5c6e5f71fabf5a1e0eda"
+      },
+      "pagbank-order": {
+        "version": 5,
+        "verify_jwt": false,
+        "hash_prefix": "e854d0216938cd3c23eb"
+      },
+      "pagbank-webhook": {
+        "version": 6,
+        "verify_jwt": false,
+        "hash_prefix": "9daef433267cd6bc3647"
+      }
+    }
+  },
+  "pending_migrations": [
+    {
+      "version": "20261022053203",
+      "name": "billing_pricebook_usage_metering",
+      "applied_remote": false,
+      "note": "additive; validated on disposable PostgreSQL 17.11 (44/44 assertions) but never applied to any remote environment"
+    }
+  ],
+  "gate": "BLOCKED \u2014 explicit owner authorization required before any non-prod deploy, migration apply, or config change. No deploy/db push/remote write performed by the agent."
+}

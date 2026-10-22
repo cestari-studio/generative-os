@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,13 +9,13 @@ import { findAvailablePort } from '../utils/port.js';
 
 // Server configuration constants
 // Extracted to avoid importing the full server during tests
-export const preferredPort = process.env.PORT || 5173;
+export const preferredPort = Number(process.env.PORT) || 5173;
 export const base = process.env.BASE || '/';
 
 // For backward compatibility with tests and synchronous code
 // These will use the preferred port, not the actual port if it changes
 export const port = preferredPort;
-export const baseUrl = `http://localhost:${port}`;
+export const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${port}`;
 
 /**
  * Get an available port for the server.
@@ -25,6 +25,9 @@ export const baseUrl = `http://localhost:${port}`;
  * @throws {Error} If no available port can be found
  */
 export async function getServerConfig() {
+  if (process.env.VERCEL) {
+    return { port: preferredPort, baseUrl };
+  }
   try {
     const actualPort = await findAvailablePort(preferredPort);
     const actualBaseUrl = `http://localhost:${actualPort}`;
