@@ -64,3 +64,21 @@ Atualizações de estado verificadas nesta rodada (evidência: testes automatiza
 | `/products`, `tab:dashboard-*` (overview/workspace/users/settings), `*` | Sem mudança funcional nesta rodada; dados passaram a vir vazios/erro real (sem fixtures)                     | **INVENTARIADO**               |
 
 **Pendente para `VALIDADO`/`E2E_VERIFIED` (Fase 7, fora do escopo desta rodada):** screenshots white/g100 por viewport, auditoria WCAG 2.2 AA com evidência, browser E2E por rota/locale/tema, e Preview Vercel reproduzível do SHA exato.
+
+---
+
+## 4. Log de Correções — Auditoria das PRs (22 de outubro de 2026)
+
+Correções aplicadas após a auditoria independente das PRs #1–#7:
+
+| Item auditado | Correção | Evidência |
+| :------------ | :------- | :-------- |
+| PR #1 "CI only" com 212 arquivos | PR #8 criada separando os 6 commits fundamentais de `ui-rebuild-carbon`; descrição da PR #1 corrigida com declaração de escopo | PR #8 (draft), PR #1 body atualizado |
+| Tiered pricing incorreto | Progressive per-bracket walk (`up_to`, null = unbounded) | Boundaries como `authenticated`: q5=1250, q10=2500, q11=2700, q50=10500, q51=10650, q100=18000 |
+| RLS sem modelo de escrita | RPCs `issue_quote`, `record_usage_event`, `issue_manual_quote`, `consume_quote` e helper `has_platform_role` → SECURITY DEFINER com justificativa documentada; GRANTs de tabela adicionados; sem INSERT policies de cliente | Como `SET ROLE authenticated` + RLS: INSERT direto negado, cross-tenant 42501, leitura cross-tenant 0 linhas, admin cross-tenant ok, auto-escalonamento negado, sem recursão |
+| `amountCents` do browser no PagBank | `pagbank-order` exige `quoteId` e consome via `consume_quote` (single-use, CAS `issued→accepted`); fee 3,99% e split 10 removidos (null até reconciliação/config explícita); `issue_manual_quote` para cobranças manuais auditadas | Fluxo: UI → `issue_manual_quote` → `pagbank-order(quoteId)`; segunda tentativa de consume falha |
+| `verify_jwt=false` global | `config.toml` por endpoint: 5 endpoints autenticados `verify_jwt = true`; só `pagbank-webhook` mantém `false` (PSP, ECDSA in-handler) | `supabase/functions/*/config.toml` |
+| Passkey challenge anônimo | `passkey-auth` `challenge` exige usuário autenticado (401), challenge vinculado ao usuário/cerimônia; `list` 401 | Código em `supabase/functions/passkey-auth/index.ts` |
+| Anti-contaminação | `AGENTS.md` criado no destino com as 10 regras duras e gaps conhecidos | `AGENTS.md` na raiz |
+
+**Continua pendente:** revisão humana independente nas PRs, deploy/reconciliação Supabase (gated), Vercel Git integration + Preview da Fase 7, evidência WCAG 2.2 AA, merge (ordem #8 → #1 → #2 → ... → #7, merge commit).
