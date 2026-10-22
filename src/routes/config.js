@@ -1,11 +1,11 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
 import { lazy } from 'react';
-import { MagicWand, LogoGithub } from '@carbon/icons-react';
+import { Analytics, Catalog, Folder, SettingsAdjust, UserFollow, Wallet } from '@carbon/icons-react';
 
 // This project splits the pages each in different JavaScript bundles.
 // You might also split part of the pages that incur significant
@@ -13,156 +13,309 @@ import { MagicWand, LogoGithub } from '@carbon/icons-react';
 // away when the page loads.
 const Dashboard = lazy(() => import('../pages/dashboard/Dashboard'));
 const NotFound = lazy(() => import('../pages/not-found/NotFound'));
-const Placeholder = lazy(() => import('../pages/placeholder/Placeholder'));
 const Welcome = lazy(() => import('../pages/welcome/Welcome'));
+const TenantCascadeSettings = lazy(() => import('../pages/settings/TenantCascadeSettings'));
+const KnowledgeVectorPage = lazy(() => import('../pages/knowledge/KnowledgeVectorPage'));
+const OnboardingPage = lazy(() => import('../pages/onboarding/OnboardingPage'));
+const PaymentManagementPage = lazy(() => import('../pages/payments/PaymentManagementPage'));
+const ProductsCatalogPage = lazy(() => import('../pages/products/ProductsCatalogPage'));
 
-// type carbonRouteType = {
-//   virtualPath: string; // related to path, used for arranging Carbon menu when no path exists
-//   label: string;
-//   inHeader?: boolean;
-//   inSideNav?: boolean;
-//   separator?: boolean;
-//   icon?: CarbonIconType;
-//   subMenu?: routesType[];
-//   inSubMenu?: boolean;
-//   href?: string,
-// };
+export const RESOURCE_TAXONOMY = {
+  reports: {
+    id: 'reports',
+    alias: 'overview',
+    schemaType: 'https://schema.org/Report',
+    shortSchema: 'schema:Report',
+    labelKey: 'taxonomy.reports.label',
+    defaultLabel: 'Reports & Telemetry',
+    descriptionKey: 'taxonomy.reports.description',
+    defaultDescription: 'Operational metrics, telemetry, usage reports, and multi-tenant KPI dashboards.',
+    icon: Analytics,
+    primaryRoute: '/dashboard',
+    capabilities: ['capability.audit_ops', 'platform.experience_carbon'],
+  },
+  files: {
+    id: 'files',
+    alias: 'knowledge',
+    schemaType: 'https://schema.org/DigitalDocument',
+    shortSchema: 'schema:DigitalDocument',
+    labelKey: 'taxonomy.files.label',
+    defaultLabel: 'Files & Knowledge Corpus',
+    descriptionKey: 'taxonomy.files.description',
+    defaultDescription: 'Digital documents, media assets, vector RAG embeddings, and tenant storage buckets.',
+    icon: Folder,
+    primaryRoute: '/knowledge',
+    capabilities: ['capability.knowledge_ops', 'capability.brand_dna'],
+  },
+  products: {
+    id: 'products',
+    alias: 'products',
+    schemaType: 'https://schema.org/Product',
+    shortSchema: 'schema:Product',
+    labelKey: 'taxonomy.products.label',
+    defaultLabel: 'Products & Brand DNA',
+    descriptionKey: 'taxonomy.products.description',
+    defaultDescription:
+      'Multi-tenant product suites (Content Factory, Client Ops, Schedule Ops, Reputation Ops, Academy Ops) and Brand DNA profiles.',
+    icon: Catalog,
+    primaryRoute: '/products',
+    capabilities: [
+      'product.content_factory',
+      'product.client_ops',
+      'product.schedule_ops',
+      'product.reputation_ops',
+      'product.academy_ops',
+      'capability.brand_dna',
+    ],
+  },
+  billing: {
+    id: 'billing',
+    alias: 'billing',
+    schemaType: 'https://schema.org/Invoice',
+    shortSchema: 'schema:Invoice',
+    labelKey: 'taxonomy.billing.label',
+    defaultLabel: 'Billing & FinOps',
+    descriptionKey: 'taxonomy.billing.description',
+    defaultDescription:
+      'Financial gateway, PagBank integration, multi-seller splits, recurring subscription plans, and payout transfers.',
+    icon: Wallet,
+    primaryRoute: '/payments',
+    capabilities: ['capability.fin_ops'],
+  },
+  settings: {
+    id: 'settings',
+    alias: 'governance',
+    schemaType: 'https://schema.org/PropertyValue',
+    shortSchema: 'schema:PropertyValue',
+    labelKey: 'taxonomy.settings.label',
+    defaultLabel: 'Settings & Governance',
+    descriptionKey: 'taxonomy.settings.description',
+    defaultDescription:
+      'Four-tier cascading hierarchy (Organization → Workspace → Project → Person), Schema.org rules, and audit ledger.',
+    icon: SettingsAdjust,
+    primaryRoute: '/settings',
+    capabilities: ['platform.configuration_naming', 'platform.experience_carbon'],
+  },
+  profile: {
+    id: 'profile',
+    alias: 'identity',
+    schemaType: 'https://schema.org/ProfilePage',
+    shortSchema: 'schema:ProfilePage',
+    labelKey: 'taxonomy.profile.label',
+    defaultLabel: 'Profile & Identity',
+    descriptionKey: 'taxonomy.profile.description',
+    defaultDescription:
+      'Multi-country PF/PJ verification, passkeys biometric auth, legal representative records, and organization provisioning.',
+    icon: UserFollow,
+    primaryRoute: '/onboarding',
+    capabilities: ['platform.identity_tenancy', 'platform.provisioning_entitlements'],
+  },
+};
 
-// type routesType = {
-//   path: string;
-//   index?: boolean;
-//   element?: ({ usingOutlet }: { usingOutlet?: boolean }) => JSX.Element;
-//   status?: number;
-//   carbon?: carbonRouteType;
-// };
+export const TENANT_SETTINGS_CATEGORIES = Object.values(RESOURCE_TAXONOMY).map((item) => ({
+  id: item.id,
+  alias: item.alias,
+  labelKey: item.labelKey,
+  defaultLabel: item.defaultLabel,
+  descriptionKey: item.descriptionKey,
+  defaultDescription: item.defaultDescription,
+  icon: item.icon,
+  path: item.primaryRoute,
+  schemaType: item.schemaType,
+  shortSchema: item.shortSchema,
+}));
 
 export const routes = [
   {
     index: true,
     path: '/',
     element: Welcome,
+    isPrivate: false,
   },
   {
     path: '/dashboard',
     element: Dashboard,
+    isPrivate: true,
+    tenantLevel: true,
+    category: 'reports',
+    resourceType: 'reports',
+    schemaType: 'schema:Report',
+    capabilityKey: 'capability.audit_ops',
     carbon: {
       labelKey: 'routes.dashboard',
       label: 'Dashboard',
+      icon: Analytics,
       inHeader: true,
+      inSideNav: true,
+      settingCategory: 'reports',
+      resourceType: 'reports',
+      schemaType: 'schema:Report',
     },
   },
   {
     path: '/dashboard/:id',
     element: Dashboard,
+    isPrivate: true,
+    tenantLevel: true,
+    category: 'reports',
+    resourceType: 'reports',
+    schemaType: 'schema:Report',
+    carbon: {
+      settingCategory: 'reports',
+      resourceType: 'reports',
+      schemaType: 'schema:Report',
+    },
   },
   {
-    path: '/link-1',
-    element: Placeholder,
+    category: 'products',
+    resourceType: 'products',
+    schemaType: 'schema:Product',
+    tenantLevel: true,
+    isPrivate: true,
     carbon: {
-      labelKey: 'routes.link1',
-      label: 'Link 1',
+      virtualPath: '/operations',
+      labelKey: 'nav.categories.operations',
+      label: 'Operations & Catalog',
+      icon: Catalog,
       inHeader: true,
-    },
-  },
-  {
-    path: '/link-2',
-    element: Placeholder,
-    carbon: {
-      labelKey: 'routes.link2',
-      label: 'Link 2',
-      inHeader: true,
-    },
-  },
-  {
-    path: '/link-3',
-    element: Placeholder,
-    carbon: {
-      labelKey: 'routes.link3',
-      label: 'Link 3',
-      inHeader: true,
-    },
-  },
-  {
-    path: '/link-4',
-    carbon: {
-      labelKey: 'routes.link4',
-      label: 'Link 4',
-      inHeader: true,
-    },
-  },
-  {
-    path: '/link-4/sub-link-1',
-    element: Placeholder,
-    carbon: {
-      labelKey: 'routes.link4.subLink1',
-      label: 'Sub-link 1',
-    },
-  },
-  {
-    path: '/link-4/sub-link-2',
-    element: Placeholder,
-    carbon: {
-      labelKey: 'routes.link4.subLink2',
-      label: 'Sub-link 2',
-    },
-  },
-  {
-    path: '/link-4/sub-link-3',
-    element: Placeholder,
-    carbon: {
-      labelKey: 'routes.link4.subLink3',
-      label: 'Sub-link 3',
-    },
-  },
-  {
-    carbon: {
-      virtualPath: '/getting-started',
       inSideNav: true,
-      labelKey: 'routes.gettingStarted',
-      label: 'Getting Started',
-      icon: MagicWand,
-      href: `https://github.com/carbon-design-system/carbon-react-router-starter?tab=readme-ov-file#get-started`,
+      settingCategory: 'products',
+      resourceType: 'products',
+      schemaType: 'schema:Product',
+      isCategory: true,
+      categoryGroup: 'operations',
     },
   },
   {
+    path: '/products',
+    element: ProductsCatalogPage,
+    isPrivate: true,
+    tenantLevel: true,
+    category: 'products',
+    resourceType: 'products',
+    schemaType: 'schema:Product',
+    capabilityKey: 'product.content_factory',
     carbon: {
-      virtualPath: '/getting-started/how',
-      labelKey: 'routes.gettingStarted.how',
-      label: 'How does this work',
-      href: `https://github.com/carbon-design-system/carbon-react-router-starter?tab=readme-ov-file#how-does-this-work`,
-    },
-  },
-  {
-    carbon: {
-      virtualPath: '/getting-started/up-to-date',
-      labelKey: 'routes.gettingStarted.upToDate',
-      label: 'Keeping this up to date',
-      href: `https://github.com/carbon-design-system/carbon-react-router-starter?tab=readme-ov-file#keeping-this-up-to-date`,
-    },
-  },
-  {
-    carbon: {
-      virtualPath: '/getting-started/report',
-      labelKey: 'routes.gettingStarted.report',
-      label: 'Report problems',
-      href: `https://github.com/carbon-design-system/carbon-react-router-starter?tab=readme-ov-file#report-problems`,
-    },
-  },
-  {
-    carbon: {
-      virtualPath: '/github',
+      labelKey: 'routes.products',
+      label: 'Products & Brand DNA',
+      icon: Catalog,
+      inHeader: true,
       inSideNav: true,
-      labelKey: 'routes.github',
-      label: 'GitHub',
-      icon: LogoGithub,
-      href: `https://github.com/carbon-design-system/carbon-react-router-starter`,
+      settingCategory: 'products',
+      resourceType: 'products',
+      schemaType: 'schema:Product',
+      categoryParent: 'operations',
     },
   },
-
+  {
+    path: '/knowledge',
+    element: KnowledgeVectorPage,
+    isPrivate: true,
+    tenantLevel: true,
+    category: 'files',
+    resourceType: 'files',
+    schemaType: 'schema:DigitalDocument',
+    capabilityKey: 'capability.knowledge_ops',
+    carbon: {
+      labelKey: 'routes.knowledge',
+      label: 'Knowledge & Vector RAG',
+      icon: Folder,
+      inHeader: true,
+      inSideNav: true,
+      settingCategory: 'files',
+      resourceType: 'files',
+      schemaType: 'schema:DigitalDocument',
+      categoryParent: 'operations',
+    },
+  },
+  {
+    path: '/payments',
+    element: PaymentManagementPage,
+    isPrivate: true,
+    tenantLevel: true,
+    category: 'billing',
+    resourceType: 'billing',
+    schemaType: 'schema:Invoice',
+    capabilityKey: 'capability.fin_ops',
+    carbon: {
+      labelKey: 'routes.payments',
+      label: 'Payments & PagBank',
+      icon: Wallet,
+      inHeader: true,
+      inSideNav: true,
+      settingCategory: 'billing',
+      resourceType: 'billing',
+      schemaType: 'schema:Invoice',
+      categoryParent: 'operations',
+    },
+  },
+  {
+    category: 'settings',
+    resourceType: 'settings',
+    schemaType: 'schema:PropertyValue',
+    tenantLevel: true,
+    isPrivate: true,
+    carbon: {
+      virtualPath: '/governance',
+      labelKey: 'nav.categories.governance',
+      label: 'Tenant Administration',
+      icon: SettingsAdjust,
+      inHeader: true,
+      inSideNav: true,
+      settingCategory: 'settings',
+      resourceType: 'settings',
+      schemaType: 'schema:PropertyValue',
+      isCategory: true,
+      categoryGroup: 'governance',
+    },
+  },
+  {
+    path: '/settings',
+    element: TenantCascadeSettings,
+    isPrivate: true,
+    tenantLevel: true,
+    category: 'settings',
+    resourceType: 'settings',
+    schemaType: 'schema:PropertyValue',
+    capabilityKey: 'platform.configuration_naming',
+    carbon: {
+      labelKey: 'routes.settings',
+      label: 'Cascade Settings',
+      icon: SettingsAdjust,
+      inHeader: true,
+      inSideNav: true,
+      settingCategory: 'settings',
+      resourceType: 'settings',
+      schemaType: 'schema:PropertyValue',
+      categoryParent: 'governance',
+    },
+  },
+  {
+    path: '/onboarding',
+    element: OnboardingPage,
+    isPrivate: true,
+    tenantLevel: true,
+    category: 'profile',
+    resourceType: 'profile',
+    schemaType: 'schema:ProfilePage',
+    capabilityKey: 'platform.identity_tenancy',
+    carbon: {
+      labelKey: 'routes.onboarding',
+      label: 'Onboarding & Identity',
+      icon: UserFollow,
+      inHeader: true,
+      inSideNav: true,
+      settingCategory: 'profile',
+      resourceType: 'profile',
+      schemaType: 'schema:ProfilePage',
+      categoryParent: 'governance',
+    },
+  },
   {
     path: '*',
     element: NotFound,
     status: 404,
+    isPrivate: false,
   },
 ];
 
@@ -213,8 +366,12 @@ const routesProcessed = routes.map((route) => {
     if (!subRoute.carbon) return false;
 
     const subPath = subRoute.path || subRoute.carbon.virtualPath;
+    if (route.index || subPath === path) return false;
 
-    return !route.index && isDirectChildPath(path, subPath);
+    return (
+      isDirectChildPath(path, subPath) ||
+      (route.carbon.isCategory && subRoute.carbon.categoryParent === route.carbon.categoryGroup)
+    );
   });
 
   if (subMenu && subMenu.length > 0) {

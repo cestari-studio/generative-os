@@ -12,46 +12,47 @@ on:
       - beta
       - alpha
 
+# Baseline: read-only. Write permissions are granted only to the release job.
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-  id-token: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   release:
+    name: release
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Quality gates (CI) run on the same push event; branch protection must
+    # require them before merge, so this job consumes an already-validated SHA.
+    permissions:
+      contents: write # tag, CHANGELOG commit and GitHub Release
+      issues: write # @semantic-release/github comments on released issues
+      pull-requests: write # @semantic-release/github comments on released PRs
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Read .nvmrc
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-        id: nvm
-
-      - name: Use Node.js ${{ steps.nvm.outputs.NODE_VERSION }}
-        uses: actions/setup-node@v7
+      - name: Use Node.js from .nvmrc
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+          node-version-file: '.nvmrc'
+          cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install dependencies (lockfile is authoritative)
         run: npm ci
 
-      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+      - name: Verify the integrity of provenance attestations and registry signatures
         run: npm audit signatures
-
-      - name: Build
-        run: npm run build
-
-      - name: Test
-        run: npm run test
 
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
-
-# Made with Bob

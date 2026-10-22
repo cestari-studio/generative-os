@@ -12,13 +12,18 @@ fi
 
 echo ""
 
-# Find all relevant files and run the copyright checker/fixer
-find src -type f \( -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" -o -name "*.scss" -o -name "*.css" -o -name "*.html" -o -name "*.yml" -o -name "*.yaml" \) \
+# Find all relevant files across the repository and run the copyright checker/fixer
+find . -type f \( -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" -o -name "*.scss" -o -name "*.css" -o -name "*.html" -o -name "*.yml" -o -name "*.yaml" \) \
   -not -path "*/node_modules/*" \
   -not -path "*/dist/*" \
   -not -path "*/build/*" \
   -not -path "*/.vite/*" \
   -not -path "*/coverage/*" \
+  -not -path "*/public/*" \
+  -not -path "*/.husky/*" \
+  -not -path "*/.git/*" \
+  -not -path "*/.agents/*" \
+  -not -path "*/supabase/*" \
   -exec node scripts/check-copyright.js $FIX_MODE {} +
 
 exit_code=$?

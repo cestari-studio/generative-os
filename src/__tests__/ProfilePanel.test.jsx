@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -9,8 +9,10 @@ import { test, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
 import { renderWithoutProviders } from '../test/test-utils';
 import { ProfilePanel } from '../components/profilePanel/ProfilePanel';
+import { TenantContext, DEFAULT_CONTEXT_VALUE } from '../context/useTenant';
 import { server } from '../test/server';
 import { setupBeforeAll, setupBeforeEach, setupAfterEach, setupAfterAll } from '../test/setup';
 import * as themeUtils from '../utils/theme';
@@ -36,7 +38,6 @@ beforeEach(() => {
   vi.spyOn(themeUtils, 'setHeaderInverse').mockImplementation(mockSetHeaderInverse);
 
   // Mock cookie utilities to return default values
-  // Note: headerInverse is 'false' (string) which converts to false (boolean)
   vi.spyOn(cookieUtils, 'getThemeFromCookies').mockReturnValue({
     themeSetting: 'light',
     headerInverse: 'false',
@@ -49,101 +50,153 @@ beforeEach(() => {
   });
 });
 
-// Debug test to understand the DOM structure
-test('debug DOM structure', () => {
-  renderWithoutProviders(<ProfilePanel />);
+test('renders guest profile panel when unauthenticated (tenant info hidden before signin)', () => {
+  renderWithoutProviders(
+    <MemoryRouter>
+      <ProfilePanel />
+    </MemoryRouter>,
+  );
+
+  // Tenant/Account info should NOT be visible before signin
+  expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument();
+  expect(screen.queryByText('jane.doe@example.com')).not.toBeInTheDocument();
+
+  // Guest welcome and Log in action should be visible
+  expect(screen.getByText('Guest Session')).toBeInTheDocument();
+  expect(screen.getByText('Log in')).toBeInTheDocument();
+
+  // Theme settings are visible
+  expect(screen.getByText('Complement menu theme')).toBeInTheDocument();
 });
 
-test('renders profile panel with user information', () => {
-  renderWithoutProviders(<ProfilePanel />);
+test('renders authenticated profile panel with user and tenant read-only info after signin', () => {
+  const authContext = {
+    ...DEFAULT_CONTEXT_VALUE,
+    user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'jane.doe@example.com' },
+    person: { name: 'Jane Doe', email: 'jane.doe@example.com' },
+    activeOrganization: {
+      identifier: 'acme-labs',
+      name: 'Acme Labs',
+      legal_name: 'Acme Labs LLC',
+      plan_tier: 'enterprise',
+    },
+    activeWorkspace: { id: 'ws-core-ai-123', name: 'Core AI Platform' },
+    activeProject: { id: 'prj-agentic-456', name: 'Agentic Workflows' },
+    activeWorkspaceId: 'ws-core-ai-123',
+  };
 
-  // Check if user information is displayed
-  expect(screen.getByText('Anne Profile')).toBeInTheDocument();
-  expect(screen.getByText('anne.profile@ibm.com')).toBeInTheDocument();
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider value={authContext}>
+        <ProfilePanel />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
 
-  // Check if theme settings are displayed
-  expect(screen.getByText('Complement menu theme')).toBeInTheDocument();
+  // Authenticated user information is displayed
+  expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+  expect(screen.getByText('jane.doe@example.com')).toBeInTheDocument();
+
+  // Read-only tenant details are displayed dynamically without hardcoded values
+  expect(screen.getByText('Instance')).toBeInTheDocument();
+  expect(screen.getByText('acme-labs')).toBeInTheDocument();
+  expect(screen.getByText('Organization')).toBeInTheDocument();
+  expect(screen.getByText('Acme Labs')).toBeInTheDocument();
+  expect(screen.getByText('Workspace ID')).toBeInTheDocument();
+  expect(screen.getByText('ws-core-ai-123')).toBeInTheDocument();
+  expect(screen.getByText('Brand')).toBeInTheDocument();
+  expect(screen.getByText('Acme Labs LLC')).toBeInTheDocument();
+
+  // Profile actions are displayed
+  expect(screen.getByText('Profile Settings')).toBeInTheDocument();
+  expect(screen.getByText('Plan ENTERPRISE')).toBeInTheDocument();
+  expect(screen.getByText('Logout')).toBeInTheDocument();
 });
 
 test('changes theme when theme switcher is used', async () => {
   const user = userEvent.setup();
-  renderWithoutProviders(<ProfilePanel />);
+  renderWithoutProviders(
+    <MemoryRouter>
+      <ProfilePanel />
+    </MemoryRouter>,
+  );
 
-  // Find all buttons in the theme switcher area
-  // This is more resilient than looking for specific text
+  // Find all tab buttons in the theme switcher
   const buttons = screen.getAllByRole('tab');
 
-  // Find the dark theme button - it should be one of the buttons
-  // We can look for buttons near the theme switcher area
   const darkButton = Array.from(buttons).find((button) => {
-    // Look for a button that might represent dark theme
-    // This could be by text content, aria-label, or other attributes
     return (
       button.textContent.toLowerCase().includes('dark') ||
       button.getAttribute('aria-label')?.toLowerCase().includes('dark')
     );
   });
 
-  // If we found a button that looks like the dark theme button, click it
   if (darkButton) {
     await user.click(darkButton);
 
-    // Verify that setThemeSetting was called with 'dark'
     await waitFor(() => {
       expect(mockSetThemeSetting).toHaveBeenCalledWith('dark');
     });
   } else {
-    // If we couldn't find a button that looks like the dark theme button,
-    // log the available buttons to help with debugging
-    console.log(
-      'Available buttons:',
-      buttons.map((b) => ({
-        text: b.textContent,
-        ariaLabel: b.getAttribute('aria-label'),
-      })),
-    );
     throw new Error('Could not find dark theme button');
   }
 });
 
 test('toggles menu complement when checkbox is clicked', async () => {
   const user = userEvent.setup();
-  renderWithoutProviders(<ProfilePanel />);
+  renderWithoutProviders(
+    <MemoryRouter>
+      <ProfilePanel />
+    </MemoryRouter>,
+  );
 
-  // Find the menu complement checkbox by its label
   const complementLabel = screen.getByText('Complement menu theme');
-
-  // Find the closest checkbox to this label
-  // This is more resilient than trying to navigate the DOM structure directly
   const checkboxes = screen.getAllByRole('checkbox');
   const complementCheckbox = checkboxes.find((checkbox) => {
-    // Check if this checkbox is associated with the label
     const labelFor = complementLabel.getAttribute('for');
     if (labelFor && labelFor === checkbox.id) {
       return true;
     }
-
-    // Check if the checkbox is contained within the label
     return complementLabel.contains(checkbox) || complementLabel.parentElement?.contains(checkbox);
   });
 
-  // If we found the checkbox, click it
   if (complementCheckbox) {
     await user.click(complementCheckbox);
 
-    // Verify that setHeaderInverse was called
-    // The checkbox starts unchecked (false), so clicking it should set it to true
     await waitFor(() => {
       expect(mockSetHeaderInverse).toHaveBeenCalledWith(true);
     });
   } else {
-    // If we couldn't find the checkbox, try clicking the label itself
-    // This often works because labels are associated with checkboxes
     await user.click(complementLabel);
 
-    // Verify that setHeaderInverse was called
     await waitFor(() => {
       expect(mockSetHeaderInverse).toHaveBeenCalledWith(true);
     });
   }
+});
+
+test('triggers signOut and navigates on logout click', async () => {
+  const user = userEvent.setup();
+  const mockSignOut = vi.fn().mockResolvedValue();
+
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider
+        value={{
+          ...DEFAULT_CONTEXT_VALUE,
+          user: { id: 'test-user', email: 'test@ibm.com' },
+          signOut: mockSignOut,
+        }}
+      >
+        <ProfilePanel />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
+
+  const logoutButton = screen.getByText('Logout');
+  await user.click(logoutButton);
+
+  await waitFor(() => {
+    expect(mockSignOut).toHaveBeenCalled();
+  });
 });
