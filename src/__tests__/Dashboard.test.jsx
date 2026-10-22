@@ -165,6 +165,10 @@ describe('Carbon v12 Dashboard Architecture & Components', () => {
     expect(screen.getAllByText('Tenant Activity & Audit Timeline').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Cascade Governance Rule Distribution').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Knowledge & Media Assets by Format').length).toBeGreaterThan(0);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No knowledge documents or media assets are recorded for this scope.',
+    );
+    expect(screen.queryByTestId('mock-bar-chart')).not.toBeInTheDocument();
   });
 
   test('renders operational DataTables with honest empty states when no data exists', async () => {
