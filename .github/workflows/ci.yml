@@ -228,7 +228,6 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:billing-sql
 
-
       - name: Run catalog adapter integration tests against disposable PostgreSQL 17
         env:
           PGHOST: 127.0.0.1
