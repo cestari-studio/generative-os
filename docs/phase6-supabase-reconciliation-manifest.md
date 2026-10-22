@@ -9,27 +9,27 @@
 
 ## 1. Projeto-alvo e ambiente
 
-| Item | Valor | Verificação |
-|---|---|---|
-| Projeto autorizado | `generative-os` | `supabase/config.toml` → `project_id = "ldjfjmihdvdmltrptngf"` |
-| Ref | `ldjfjmihdvdmltrptngf` | Leitura remota confirmada (MCP aponta para este projeto desde a correção) |
-| URL | `https://ldjfjmihdvdmltrptngf.supabase.co` | — |
-| Região | `sa-east-1` | Auditoria inicial |
-| Postgres | 17.11 | Testes locais usam a mesma major version |
-| Projeto IRMÃO (NÃO alvo) | `jkespoegdpkdcrxsxwry` (`genOS`) | Nunca aplicar migrações/configurações do alvo aqui |
+| Item                     | Valor                                      | Verificação                                                               |
+| ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------- |
+| Projeto autorizado       | `generative-os`                            | `supabase/config.toml` → `project_id = "ldjfjmihdvdmltrptngf"`            |
+| Ref                      | `ldjfjmihdvdmltrptngf`                     | Leitura remota confirmada (MCP aponta para este projeto desde a correção) |
+| URL                      | `https://ldjfjmihdvdmltrptngf.supabase.co` | —                                                                         |
+| Região                   | `sa-east-1`                                | Auditoria inicial                                                         |
+| Postgres                 | 17.11                                      | Testes locais usam a mesma major version                                  |
+| Projeto IRMÃO (NÃO alvo) | `jkespoegdpkdcrxsxwry` (`genOS`)           | Nunca aplicar migrações/configurações do alvo aqui                        |
 
 ## 2. Estado remoto observado (leitura, 2026-10-22)
 
 ### Edge Functions — todas PRÉ-`74c3b87`, todas com `verify_jwt = false`
 
-| Função | Versão remota | `verify_jwt` remoto | `verify_jwt` esperado (config.toml) | Divergência |
-|---|---|---|---|---|
-| `passkey-auth` | 6 | `false` | `true` | Código (challenge fail-closed) + JWT |
-| `settings-cascade` | 4 | `false` | `true` | JWT |
-| `vector-rag` | 6 | `false` | `true` | JWT |
-| `pagbank-connect` | 5 | `false` | `true` | JWT |
-| `pagbank-order` | 5 | `false` | `true` | Código (quote-driven, idempotência PSP) + JWT |
-| `pagbank-webhook` | 6 | `false` | `false` | **Nenhuma** (por design — PSP/ECDSA) |
+| Função             | Versão remota | `verify_jwt` remoto | `verify_jwt` esperado (config.toml) | Divergência                                   |
+| ------------------ | ------------- | ------------------- | ----------------------------------- | --------------------------------------------- |
+| `passkey-auth`     | 6             | `false`             | `true`                              | Código (challenge fail-closed) + JWT          |
+| `settings-cascade` | 4             | `false`             | `true`                              | JWT                                           |
+| `vector-rag`       | 6             | `false`             | `true`                              | JWT                                           |
+| `pagbank-connect`  | 5             | `false`             | `true`                              | JWT                                           |
+| `pagbank-order`    | 5             | `false`             | `true`                              | Código (quote-driven, idempotência PSP) + JWT |
+| `pagbank-webhook`  | 6             | `false`             | `false`                             | **Nenhuma** (por design — PSP/ECDSA)          |
 
 **Nota sobre algoritmos de hash:** o manifesto local registra `sha256` sobre a árvore-fonte de cada função (git). O remoto expõe `ezbr_sha256` do bundle compilado. **Não são comparáveis** (entradas e algoritmos diferentes). A reconciliação exige deploy controlado + leitura de versão, não igualdade de hashes.
 
@@ -74,22 +74,22 @@
 
 ## 7. Riscos e mitigação
 
-| Risco | Mitigação |
-|---|---|
-| Aplicar na base errada (irmão `genOS`) | Gate de leitura de `project_id` antes de qualquer ação; MCP já corrigido |
-| Perda de dados na migração | Snapshot prévio; migração é aditiva (`IF NOT EXISTS`, nada destrutivo) |
+| Risco                                                         | Mitigação                                                                                              |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Aplicar na base errada (irmão `genOS`)                        | Gate de leitura de `project_id` antes de qualquer ação; MCP já corrigido                               |
+| Perda de dados na migração                                    | Snapshot prévio; migração é aditiva (`IF NOT EXISTS`, nada destrutivo)                                 |
 | JWT quebrando clientes existentes ao ativar `verify_jwt=true` | Ativar por função, uma de cada vez, com smoke após cada uma; rollback por re-deploy da versão anterior |
-| PagBank em produção com credenciais erradas | Somente sandbox em homologação; produção separada com aprovação própria |
-| Drift hash/versão após deploy | Leitura de volta obrigatória; falha = rollback documentado |
+| PagBank em produção com credenciais erradas                   | Somente sandbox em homologação; produção separada com aprovação própria                                |
+| Drift hash/versão após deploy                                 | Leitura de volta obrigatória; falha = rollback documentado                                             |
 
 ## 8. Autorização necessária
 
-| Ação | Estado | Aprovador |
-|---|---|---|
-| Deploy não-produtivo das functions | `BLOCKED` | Proprietário (Cestari Studio) |
-| Aplicação da migração `20261022053203` | `BLOCKED` | Proprietário |
-| Alteração de `verify_jwt` remoto | `BLOCKED` | Proprietário |
-| E2E PagBank Sandbox | `BLOCKED` | Proprietário |
-| Qualquer ação em produção | `BLOCKED` | Proprietário (gate separado, Fase 8) |
+| Ação                                   | Estado    | Aprovador                            |
+| -------------------------------------- | --------- | ------------------------------------ |
+| Deploy não-produtivo das functions     | `BLOCKED` | Proprietário (Cestari Studio)        |
+| Aplicação da migração `20261022053203` | `BLOCKED` | Proprietário                         |
+| Alteração de `verify_jwt` remoto       | `BLOCKED` | Proprietário                         |
+| E2E PagBank Sandbox                    | `BLOCKED` | Proprietário                         |
+| Qualquer ação em produção              | `BLOCKED` | Proprietário (gate separado, Fase 8) |
 
 **Operador responsável (quando autorizado):** a definir pelo proprietário. O agente NÃO executa nenhuma ação desta seção.
