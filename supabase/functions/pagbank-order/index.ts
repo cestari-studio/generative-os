@@ -49,8 +49,8 @@ Deno.serve(async (req: Request) => {
       organizationId,
       workspaceId,
       projectId,
+      quoteId,
       referenceId = `ORD_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-      amountCents,
       customer,
       items = [],
       paymentMethod = 'PIX',
@@ -59,8 +59,8 @@ Deno.serve(async (req: Request) => {
       customSplitPercentage,
     } = body;
 
-    if (!organizationId || !amountCents || amountCents <= 0) {
-      return new Response(JSON.stringify({ error: 'organizationId and positive amountCents are required' }), {
+    if (!organizationId || !quoteId) {
+      return new Response(JSON.stringify({ error: 'organizationId and quoteId are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -76,6 +76,26 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // 2b. Bind the charge to a server-issued quote. The browser never sets the
+    // final amount: consume_quote validates tenant ownership, status and
+    // expiry and atomically marks the quote as consumed (single use).
+    const { data: quoteResult, error: quoteError } = await supabaseAdmin.rpc('consume_quote', {
+      p_quote_id: quoteId,
+      p_organization_id: organizationId,
+    });
+
+    if (quoteError || !quoteResult?.total_cents) {
+      return new Response(
+        JSON.stringify({
+          error: `Invalid, expired or already-consumed quote: ${quoteError?.message ?? 'not consumable'}`,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // The authoritative charge amount comes from the consumed quote only.
+    const amountCents: number = quoteResult.total_cents;
 
     // 3. Load Gateway Config for tenant
     const { data: gatewayConfig } = await supabaseAdmin
@@ -252,7 +272,14 @@ Deno.serve(async (req: Request) => {
       firstCharge?.links?.find((l: { rel: string; href: string }) => l.rel === 'BOLETO.PDF')?.href || null;
     const boletoDate = boletoData?.due_date || null;
 
-    // 7. Insert real charge record with status returned by PSP
+    // 7. Insert real charge record with status returned by PSP.
+    // The PSP fee is NOT estimated here — it is reconciled from webhook
+    // settlement data. fee_amount_cents stays null until reconciliation
+    // (unless the tenant gateway config declares an explicit estimate in BPS).
+    const configuredFeeBps =
+      typeof gatewayConfig?.estimated_fee_bps === 'number' ? gatewayConfig.estimated_fee_bps : null;
+    const feeAmountCents = configuredFeeBps !== null ? Math.round((amountCents * configuredFeeBps) / 10000) : null;
+
     const { data: chargeRecord, error: chargeError } = await supabaseAdmin
       .from('payment_charges')
       .insert({
@@ -263,7 +290,7 @@ Deno.serve(async (req: Request) => {
         status: initialStatus,
         amount_cents: amountCents,
         paid_amount_cents: 0,
-        fee_amount_cents: Math.round(amountCents * 0.0399),
+        fee_amount_cents: feeAmountCents,
         pix_emv: pixEmv,
         pix_qr_code_url: pixQrCodeUrl,
         pix_expiration_date: pixExpirationDate,
@@ -306,7 +333,20 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
 
       if (seller) {
-        const splitPct = Number(customSplitPercentage ?? gatewayConfig?.default_split_percentage ?? 10);
+        // Split percentage must be explicit: per-request or tenant gateway
+        // config. There is no silent default — a split without an approved
+        // rule is rejected instead of guessing a percentage.
+        const splitValueRaw = customSplitPercentage ?? gatewayConfig?.default_split_percentage ?? null;
+        if (splitValueRaw === null || Number.isNaN(Number(splitValueRaw))) {
+          return new Response(
+            JSON.stringify({
+              error:
+                'Split percentage is not configured for this tenant. Set customSplitPercentage or configure default_split_percentage before charging with a connected seller.',
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+        const splitPct = Number(splitValueRaw);
         const platformShare = Math.round((amountCents * splitPct) / 100);
         const sellerShare = amountCents - platformShare;
 

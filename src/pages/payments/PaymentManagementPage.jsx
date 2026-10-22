@@ -184,6 +184,9 @@ export default function PaymentManagementPage() {
   }, [organizationId]);
 
   // Handle Instant Charge Creation
+  // Flow: (1) the server issues an audited quote for the operator-entered
+  // amount; (2) the order boundary consumes that quote and derives the charge
+  // amount from it — the browser never sets the final charge amount.
   const handleCreateCharge = async () => {
     setStatusMsg('');
     const amountCents = Math.round(parseFloat(modalAmount || '0') * 100);
@@ -200,12 +203,31 @@ export default function PaymentManagementPage() {
 
     try {
       const supabase = getSupabaseBrowserClient();
+
+      // 1. Server-issued, audited quote for the proposed amount.
+      const { data: quote, error: quoteError } = await supabase.rpc('issue_manual_quote', {
+        p_organization_id: organizationId,
+        p_amount_cents: amountCents,
+        p_currency: 'BRL',
+        p_description: `Manual charge for ${modalCustomerName.trim()}`,
+        p_idempotency_key: crypto.randomUUID(),
+      });
+
+      if (quoteError || !quote?.quote_id) {
+        setStatusMsg(
+          quoteError?.message || t('payments.quoteError', 'Could not issue a server quote for this charge.'),
+        );
+        setStatusType('error');
+        return;
+      }
+
+      // 2. The order boundary consumes the quote and derives the amount.
       const { data, error } = await supabase.functions.invoke('pagbank-order', {
         body: {
           organizationId,
           workspaceId,
           projectId,
-          amountCents,
+          quoteId: quote.quote_id,
           paymentMethod: modalMethod,
           customer: {
             name: modalCustomerName,
