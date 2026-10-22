@@ -1,6 +1,15 @@
-name: SSR Test
+# Copyright IBM Corp. 2026
+#
+# This source code is licensed under the Apache-2.0 license found in the
+# LICENSE file in the root directory of this source tree.
 
-on: [push]
+name: SSR Verification
+
+on:
+  push:
+    branches: [main, beta, alpha]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -9,27 +18,39 @@ jobs:
   ssr-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - name: Read .nvmrc
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_OUTPUT
-        id: nvm
-      - name: Use Node.js ${{ steps.nvm.outputs.NODE_VERSION }}
-        uses: actions/setup-node@v7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: npm ci
-      - name: Start dev server
-        run: npm run dev &
-      - name: Wait for server
-        run: npx wait-on http://localhost:5173 --timeout 60000
-      - name: Test SSR content
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production SSR & client bundles
+        run: npm run build
+
+      - name: Start production SSR server and verify routes
         run: |
-          RESPONSE=$(curl -s -H 'Accept-Language: en' http://localhost:5173/)
-          # Assert response contains actual content, not just empty root
-          if echo "$RESPONSE" | grep -q 'Welcome to the Carbon React Router starter'; then
-            echo "SSR content verified"
-          else
-            echo "SSR check failed. Response:"
-            echo "$RESPONSE" | head -100
-            exit 1
-          fi
+          PORT=5173 npm run preview:prod &
+          SERVER_PID=$!
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null http://localhost:5173/; then
+              break
+            fi
+            sleep 1
+          done
+          ROOT_HTML=$(curl -s -H 'Accept-Language: en' http://localhost:5173/)
+          DASHBOARD_HTML=$(curl -s -H 'Accept-Language: en' http://localhost:5173/dashboard)
+          SETTINGS_HTML=$(curl -s -H 'Accept-Language: en' http://localhost:5173/settings)
+          KNOWLEDGE_HTML=$(curl -s -H 'Accept-Language: en' http://localhost:5173/knowledge)
+          kill $SERVER_PID 2>/dev/null || true
+
+          echo "$ROOT_HTML" | grep -q 'Generative OS'
+          echo "$DASHBOARD_HTML" | grep -q 'Effective Cascade Governance'
+          echo "$SETTINGS_HTML" | grep -q 'Multi-Tenant Cascade Settings'
+          echo "$KNOWLEDGE_HTML" | grep -q 'Knowledge Base & pgvector RAG'
+          echo "All SSR routes verified successfully."

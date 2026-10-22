@@ -1,13 +1,14 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-import { getComments, getPost } from '../../../api/message.js';
-import { Heading, Grid, Layer, Section, Stack, Tile } from '@carbon/react';
+import { Heading, Layer, Section, Stack, Tile } from '@carbon/react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getComments, getPost } from '../../../api/message.js';
 
 /**
  * Renders a single blog post and its comments.
@@ -17,6 +18,7 @@ import { useEffect, useState } from 'react';
  *   If not provided, defaults to 1 and renders the first post.
  */
 const PostComponent = ({ postId = 1 }) => {
+  const { t } = useTranslation();
   const [post, setPost] = useState();
   const [comments, setComments] = useState([]);
 
@@ -49,25 +51,33 @@ const PostComponent = ({ postId = 1 }) => {
   return (
     <Section>
       <Tile>
-        <Heading>Blog data retrieval example</Heading>
+        <Heading>{t('welcome.fetching.exampleHeading', 'Blog data retrieval example')}</Heading>
         <Stack gap={3}>
           <Section as="article">
             <Section>
-              <Heading>{post?.title ?? 'Loading...'}</Heading>
+              <Heading>{post?.title ?? t('common.loading', 'Loading...')}</Heading>
               <p>{post?.body}</p>
             </Section>
           </Section>
 
           <Section>
             <Stack gap={3}>
-              <Heading>Comments</Heading>
+              <Heading>{t('welcome.fetching.comments', 'Comments')}</Heading>
               <Section as="div">
                 <Stack gap={3}>
                   {Array.isArray(comments) &&
                     comments.map((comment) => (
                       <Layer key={comment.id}>
-                        <Tile title={`Post from ${comment.email}`}>
-                          <Heading>{`From ${comment.email}`}</Heading>
+                        <Tile
+                          title={t('welcome.fetching.postFrom', 'Post from {{email}}', {
+                            email: comment.email,
+                          })}
+                        >
+                          <Heading>
+                            {t('welcome.fetching.from', 'From {{email}}', {
+                              email: comment.email,
+                            })}
+                          </Heading>
                           <p>{comment.body}</p>
                         </Tile>
                       </Layer>

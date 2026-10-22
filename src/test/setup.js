@@ -1,9 +1,34 @@
 /**
- * Copyright IBM Corp. 2025
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
+
+import React from 'react';
+import { vi } from 'vitest';
+import '../config/carbon-flags.js';
+
+vi.mock('@carbon/charts-react', () => ({
+  AreaChart: (props) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'area-chart', 'data-options': JSON.stringify(props.options || {}) },
+      props.children,
+    ),
+  DonutChart: (props) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'donut-chart', 'data-options': JSON.stringify(props.options || {}) },
+      props.children,
+    ),
+  SimpleBarChart: (props) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'bar-chart', 'data-options': JSON.stringify(props.options || {}) },
+      props.children,
+    ),
+}));
 
 // Mocking methods which are not implemented in JSDOM
 // If some code uses a method which JSDOM (the DOM implementation used by Jest) hasn't implemented yet,
@@ -31,6 +56,33 @@ global.ResizeObserver = class {
   unobserve() {}
   disconnect() {}
 };
+
+global.IntersectionObserver = class {
+  constructor(callback) {
+    this.callback = callback;
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
+if (typeof window !== 'undefined' && window.HTMLDialogElement) {
+  window.HTMLDialogElement.prototype.show =
+    window.HTMLDialogElement.prototype.show ||
+    function show() {
+      this.open = true;
+    };
+  window.HTMLDialogElement.prototype.showModal =
+    window.HTMLDialogElement.prototype.showModal ||
+    function showModal() {
+      this.open = true;
+    };
+  window.HTMLDialogElement.prototype.close =
+    window.HTMLDialogElement.prototype.close ||
+    function close() {
+      this.open = false;
+    };
+}
 
 export function setupBeforeAll(server) {
   console.log('[Test Setup: BeforeAll] Starting server');

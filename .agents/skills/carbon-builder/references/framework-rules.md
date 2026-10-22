@@ -148,23 +148,14 @@ IBM-hosted CDN exclusively:
 
 ```html
 <!-- ✅ Correct — IBM CDN for Plex fonts -->
-<link
-  rel="stylesheet"
-  href="https://1.www.s81c.com/common/carbon/plex/sans.css"
-/>
+<link rel="stylesheet" href="https://1.www.s81c.com/common/carbon/plex/sans.css" />
 <!-- Or for full Plex package (excluding jp and kr): -->
-<link
-  rel="stylesheet"
-  href="https://1.www.s81c.com/common/carbon/plex/plex-full.css"
-/>
+<link rel="stylesheet" href="https://1.www.s81c.com/common/carbon/plex/plex-full.css" />
 ```
 
 ```html
 <!-- ❌ Wrong — Google Fonts is not permitted for IBM Plex -->
-<link
-  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans..."
-  rel="stylesheet"
-/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans..." rel="stylesheet" />
 ```
 
 ```css
@@ -340,12 +331,7 @@ ComboBox, and Select from positioning outside the viewport when rendered inside 
 attribute to set initial focus when the Modal opens (accessibility requirement):
 
 ```jsx
-<TextInput
-  data-modal-primary-focus
-  id="domain"
-  labelText="Domain name"
-  placeholder="example.com"
-/>
+<TextInput data-modal-primary-focus id="domain" labelText="Domain name" placeholder="example.com" />
 ```
 
 **Complete correct Modal with form composition:**
@@ -373,12 +359,7 @@ attribute to set initial focus when the Modal opens (accessibility requirement):
     items={[{ id: 'us-south', text: 'US South' }]}
     itemToString={(item) => item?.text ?? ''}
   />
-  <ComboBox
-    autoAlign
-    id="role"
-    titleText="Permissions"
-    items={['Viewer', 'Editor', 'Manager']}
-  />
+  <ComboBox autoAlign id="role" titleText="Permissions" items={['Viewer', 'Editor', 'Manager']} />
 </Modal>
 ```
 
@@ -456,13 +437,7 @@ import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@carbon/react';
 **Vertical Tabs** — `TabsVertical` + `TabListVertical`:
 
 ```jsx
-import {
-  TabsVertical,
-  TabListVertical,
-  Tab,
-  TabPanels,
-  TabPanel,
-} from '@carbon/react';
+import { TabsVertical, TabListVertical, Tab, TabPanels, TabPanel } from '@carbon/react';
 
 <TabsVertical>
   <TabListVertical aria-label="List of vertical tabs">

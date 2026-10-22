@@ -1,6 +1,18 @@
-name: Carbon React Router starter CI
+# Copyright IBM Corp. 2026
+#
+# This source code is licensed under the Apache-2.0 license found in the
+# LICENSE file in the root directory of this source tree.
 
-on: [push]
+name: Generative OS CI (Build, Lint & Test)
+
+on:
+  push:
+    branches: [main, beta, alpha]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   run-defined-frontend-tests:
@@ -9,14 +21,28 @@ jobs:
       run:
         working-directory: .
     steps:
-      - uses: actions/checkout@v7
-      - name: Read .nvmrc
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-        id: nvm
-      - name: Use Node.js ${{ steps.nvm.outputs.NODE_VERSION }}
-        uses: actions/setup-node@v7
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: npm ci
-      - run: npm run build
-      - run: npm run test
+          fetch-depth: 0
+
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify copyright headers
+        run: npm run copyright:check
+
+      - name: Run linters (ESLint, Stylelint, Prettier, CSpell)
+        run: npm run lint
+
+      - name: Build client and SSR bundles
+        run: npm run build
+
+      - name: Run unit and integration tests with coverage
+        run: npm run test

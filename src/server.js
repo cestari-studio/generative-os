@@ -1,11 +1,13 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { Transform } from 'node:stream';
 import { getRoutes } from './routes/routes.js';
@@ -15,6 +17,8 @@ import i18n from './i18n.server.js';
 import { setBaseUrl } from './service/postHandlers.js';
 
 // Constants
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname, '..');
 const isProduction = process.env.NODE_ENV === 'production';
 const ABORT_DELAY = 10000;
 
@@ -34,20 +38,20 @@ if (!isProduction) {
   const { createServer } = await import('vite');
   const { findAvailablePort } = await import('./utils/port.js');
 
-  // Find an available port for Vite's HMR WebSocket server
-  let hmrPort;
+  // Find an available port for Vite's WebSocket server
+  let wsPort;
   try {
-    hmrPort = await findAvailablePort(24678);
+    wsPort = await findAvailablePort(24678);
   } catch (error) {
-    console.error('Failed to find available port for Vite HMR:', error);
-    throw new Error('Unable to start development server: Could not find available port for HMR');
+    console.error('Failed to find available port for Vite WebSocket:', error);
+    throw new Error('Unable to start development server: Could not find available port for WebSocket');
   }
 
   vite = await createServer({
     server: {
       middlewareMode: true,
-      hmr: {
-        port: hmrPort,
+      ws: {
+        port: wsPort,
       },
     },
     appType: 'custom',
@@ -58,7 +62,7 @@ if (!isProduction) {
   const compression = (await import('compression')).default;
   const sirv = (await import('sirv')).default;
   app.use(compression());
-  app.use(base, sirv('./dist/client', { extensions: [] }));
+  app.use(base, sirv(path.resolve(projectRoot, 'dist/client'), { extensions: [] }));
 }
 
 // Add i18next middleware for language detection
@@ -86,14 +90,21 @@ app.use('*all', async (req, res) => {
     let render;
     if (!isProduction) {
       // Always read fresh template in development
-      template = await fs.readFile('./index.html', 'utf-8');
+      template = await fs.readFile(path.resolve(projectRoot, 'index.html'), 'utf-8');
       // Transform HTML for SSR - Vite 8 requires the full URL path
       // Ensure we always have a valid path (default to '/' for root)
       const transformUrl = url || '/';
       template = await vite.transformIndexHtml(transformUrl, template);
       render = (await vite.ssrLoadModule('/src/entry-server.jsx')).render;
     } else {
-      const templateHtml = isProduction ? await fs.readFile('./dist/client/index.html', 'utf-8') : '';
+      const serverTemplatePath = path.resolve(projectRoot, 'dist/server/index.html');
+      const clientTemplatePath = path.resolve(projectRoot, 'dist/client/index.html');
+      let templateHtml = '';
+      try {
+        templateHtml = await fs.readFile(serverTemplatePath, 'utf-8');
+      } catch {
+        templateHtml = await fs.readFile(clientTemplatePath, 'utf-8');
+      }
       template = templateHtml;
       render = (await import('../dist/server/entry-server.js')).render;
     }
@@ -173,14 +184,21 @@ app.use('*all', async (req, res) => {
   }
 });
 
-// Start http server
-const server = app.listen(port, () => {
-  console.log(`Server started at: ${baseUrl}`);
-});
+// Start http server when not running in Vercel serverless environment
+let server;
+if (!process.env.VERCEL) {
+  server = app.listen(port, () => {
+    console.log(`Server started at: ${baseUrl}`);
+  });
+}
 
 // Graceful shutdown handler
 function gracefulShutdown(signal) {
   console.log(`\n${signal} received. Closing server gracefully...`);
+
+  if (!server) {
+    process.exit(0);
+  }
 
   server.close(() => {
     console.log('HTTP server closed');
@@ -211,3 +229,6 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 if (process.platform === 'win32') {
   process.on('SIGBREAK', () => gracefulShutdown('SIGBREAK'));
 }
+
+export { app };
+export default app;

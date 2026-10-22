@@ -1,0 +1,209 @@
+/**
+ * Copyright IBM Corp. 2026
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+};
+
+function generateRandomChallenge(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const authHeader = req.headers.get('Authorization') ?? '';
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: authHeader ? { Authorization: authHeader } : {} },
+    });
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const body = req.method === 'POST' ? await req.json() : {};
+    const action = body.action ?? 'list';
+
+    // 1. WebAuthn Challenge generation (for registration or authentication ceremony)
+    if (action === 'challenge') {
+      const challenge = generateRandomChallenge();
+      const rpId = body.rpId ?? new URL(req.url).hostname;
+      const ceremonyType = body.ceremony === 'authentication' ? 'authentication' : 'registration';
+
+      if (user) {
+        await supabase.from('webauthn_challenges').insert({
+          person_id: user.id,
+          challenge,
+          ceremony_type: ceremonyType,
+          rp_id: rpId,
+          origin: req.headers.get('origin') ?? `https://${rpId}`,
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'AuthorizeAction',
+          challenge,
+          rp: { name: 'Generative OS', id: rpId },
+          pubKeyCredParams: [
+            { type: 'public-key', alg: -7 },
+            { type: 'public-key', alg: -257 },
+          ],
+          timeout: 60000,
+          attestation: 'none',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
+    // 2. Register passkey credential - requires authenticated session
+    if (action === 'register') {
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Authentication required to register passkey' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const {
+        credentialId,
+        publicKey,
+        name = 'Passkey Device',
+        transports = ['internal', 'hybrid'],
+        deviceType = 'multiDevice',
+        backedUp = true,
+        organizationId,
+      } = body;
+
+      if (!credentialId || !publicKey) {
+        return new Response(JSON.stringify({ error: 'credentialId and publicKey are required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const targetOrgId = organizationId || user.user_metadata?.organization_id;
+
+      const { data, error } = await supabase
+        .from('passkey_credentials')
+        .upsert(
+          {
+            person_id: user.id,
+            organization_id: targetOrgId,
+            name,
+            identifier: credentialId,
+            public_key: publicKey,
+            transports,
+            credential_device_type: deviceType,
+            credential_backed_up: backedUp,
+            last_used_at: new Date().toISOString(),
+          },
+          { onConflict: 'identifier' },
+        )
+        .select()
+        .single();
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'RegisterAction',
+          actionStatus: 'CompletedActionStatus',
+          credential: data,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
+    // 3. SEC-06 P0 FIX: Disallow insecure pseudo-authentication based on email or credential ID matching.
+    // True WebAuthn authentication must use cryptographic assertion verification or native Supabase Auth Passkeys.
+    if (action === 'verify' || action === 'authenticate') {
+      return new Response(
+        JSON.stringify({
+          error:
+            'Insecure pseudo-passkey verification is disabled. WebAuthn authentication requires cryptographic assertion verification via native Supabase Auth Passkeys or standard FIDO2 ceremony.',
+          verified: false,
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
+    // 4. List passkey credentials - requires authenticated session
+    if (action === 'list') {
+      if (!user) {
+        return new Response(JSON.stringify({ credentials: [] }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('passkey_credentials')
+        .select('*')
+        .eq('person_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          credentials: data ?? [],
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
+
+    return new Response(JSON.stringify({ error: `Unsupported passkey action: ${action}` }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unexpected error';
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

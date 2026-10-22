@@ -1,78 +1,81 @@
 # 🛠️ Automação do Generative OS
 
-Este documento descreve as automações implementadas no projeto generative-os para permitir que o ambiente local, os agentes de IA, os estilos do Carbon e o repositório remoto operem sem intervenção manual.
+Este documento descreve as automações implementadas no projeto `generative-os` para permitir que o ambiente local, os agentes de IA, os estilos do Carbon Design System, o banco de dados Supabase (`ldjfjmihdvdmltrptngf`) e o deploy na Vercel operem de forma integrada e verificável.
 
 ## 📋 Resumo das Automações
 
-### 1. ✅ Automação do VS Code (.vscode/)
+### 1. ✅ Automação do VS Code (`.vscode/`)
 
 | Arquivo                   | Status | Descrição                                                   |
 | ------------------------- | ------ | ----------------------------------------------------------- |
-| `.vscode/extensions.json` | ✅     | Adicionado i18n Ally e SCSS IntelliSense                    |
-| `.vscode/settings.json`   | ✅     | Configurações de i18n, SCSS, format on save                 |
+| `.vscode/extensions.json` | ✅     | Adicionado i18n Ally, Stylelint, ESLint e SCSS IntelliSense |
+| `.vscode/settings.json`   | ✅     | Configurações de i18n, SCSS, Prettier format on save        |
 | `.vscode/tasks.json`      | ✅     | Tasks para Dev Server, i18n sync, SCSS generate, lint, test |
 | `.vscode/mcp.json`        | ✅     | Configuração de servidores MCP (Carbon, Playwright)         |
 
-### 2. ✅ Configuração do Carbon MCP e Skill
+### 2. ✅ Configuração do Carbon Builder & Supabase Skills
 
-| Arquivo                                  | Status | Descrição                                      |
-| ---------------------------------------- | ------ | ---------------------------------------------- |
-| `.agents/skills/carbon-builder/SKILL.md` | ✅     | Instruções para agentes de IA (Carbon Builder) |
-| `CLAUDE.md`                              | ✅     | Guia completo de IA Agent                      |
-| `.github/copilot-instructions.md`        | ✅     | Instruções rápidas para GitHub Copilot         |
+| Arquivo                                                    | Status | Descrição                                      |
+| ---------------------------------------------------------- | ------ | ---------------------------------------------- |
+| `.agents/skills/carbon-builder/SKILL.md`                   | ✅     | Instruções e guardrails para IBM Carbon v11    |
+| `.agents/skills/supabase/SKILL.md`                         | ✅     | Guia oficial de arquitetura Supabase           |
+| `.agents/skills/supabase-postgres-best-practices/SKILL.md` | ✅     | Boas práticas de PostgreSQL 17, RLS e pgvector |
 
-### 3. ✅ Auto-generate de SCSS a partir de @carbon/styles
+### 3. ✅ Gerador Canônico de Foundations & Arquétipos SCSS (`@carbon/react`)
 
-| Arquivo                           | Status | Descrição                                                |
-| --------------------------------- | ------ | -------------------------------------------------------- |
-| `scripts/generate-carbon-scss.js` | ✅     | Script que gera `_carbon-generated.scss` automaticamente |
-| `npm run scss:generate`           | ✅     | Script adicionado ao package.json                        |
-| `src/index.scss`                  | ✅     | Importado o arquivo gerado automaticamente               |
+| Arquivo                               | Status | Descrição                                                                                      |
+| ------------------------------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| `scripts/generate-carbon-scss.js`     | ✅     | Gerador de foundations, temas, arquétipos de páginas e sincronizador de stylesheets existentes |
+| `src/styles/_carbon-foundations.scss` | ✅     | Mixins canônicos de Layout, Grid, Colors, Spacing, Theme, Typography e Motion                  |
+| `src/styles/_carbon-generated.scss`   | ✅     | Seletores globais de tema (`g10`/`g100`/`header-inverse`) e classes base `.cs--page__*`        |
+| `src/index.scss`                      | ✅     | Manifesto auto-gerado com imports determinísticos de layouts, páginas e componentes            |
 
 **Uso:**
 
 ```bash
+# Regenerar foundations e sincronizar todas as páginas/componentes existentes
 npm run scss:generate
+
+# Scaffold de nova página padronizada (arquétipos: dashboard | welcome | settings)
+npm run scss:generate -- --scaffold analytics --archetype dashboard
 ```
 
-### 4. ✅ Automação Completa de i18n (pt-BR)
+### 4. ✅ Automação Completa de i18n (`en`, `de`, `pt-BR`, `jp-JP`)
 
-| Arquivo                    | Status | Descrição                        |
-| -------------------------- | ------ | -------------------------------- |
-| `i18next-parser`           | ✅     | Instalado (extraction de chaves) |
-| `i18next-parser.config.js` | 📝     | Criar nos próximos passos        |
-| `scripts/i18n-sync.js`     | 📝     | Criar nos próximos passos        |
+| Arquivo                    | Status | Descrição                                                       |
+| -------------------------- | ------ | --------------------------------------------------------------- |
+| `i18next-parser`           | ✅     | Extração automática de chaves de tradução                       |
+| `i18next-parser.config.js` | ✅     | Configuração multi-locale (`en`, `de`, `pt-BR`, `jp-JP`)        |
+| `scripts/i18n-sync.js`     | ✅     | Sincronização idempotente dos catálogos em `src/locales/*.json` |
 
-**Uso (a ser implementado):**
+**Uso:**
 
 ```bash
 npm run i18n:sync
 ```
 
-### 5. ✅ Governança no GitHub Privado
+### 5. ✅ Governança, Copyright & GitHub Actions CI/CD
 
-| Arquivo             | Status | Descrição                                      |
-| ------------------- | ------ | ---------------------------------------------- |
-| `.releaserc.json`   | ✅     | `npmPublish: false` para repositório privado   |
-| `renovate.json`     | ✅     | Agrupamento de updates do Carbon Design System |
-| `branch protection` | 🔒     | Não disponível no GitHub Free (esperado)       |
+| Arquivo                           | Status | Descrição                                                                   |
+| --------------------------------- | ------ | --------------------------------------------------------------------------- |
+| `scripts/check-all-copyrights.sh` | ✅     | Verifica/corrige cabeçalhos Apache-2.0 em todo o repositório                |
+| `.github/workflows/buildTest.yml` | ✅     | CI com Node 24 (`actions/checkout@v4`, `setup-node@v4`), lint, build e test |
+| `.github/workflows/ssr-test.yml`  | ✅     | Verifica streaming SSR em `/`, `/dashboard`, `/settings`, `/knowledge`      |
+| `.github/workflows/release.yml`   | ✅     | Release semântico automatizado (`semantic-release`)                         |
+| `.releaserc.json`                 | ✅     | `npmPublish: false` para repositório privado                                |
+| `renovate.json`                   | ✅     | Agrupamento de updates do ecossistema Carbon Design System                  |
 
-### 6. ✅ Link com Vercel CLI e Pacotes Locais
+### 6. ✅ Deploy SSR na Vercel & Supabase Remote
 
-| Configuração     | Status | Descrição                                                  |
-| ---------------- | ------ | ---------------------------------------------------------- |
-| `vite.config.js` | ✅     | `noExternal: [/^@carbon\//, /^@ibm\/plex/, /^@cestari\//]` |
-
-**Uso (a ser implementado):**
-
-```bash
-npx vercel link --scope cestari-studio
-npx vercel env pull .env.local
-```
+| Configuração           | Status | Descrição                                                                     |
+| ---------------------- | ------ | ----------------------------------------------------------------------------- |
+| `vercel.json`          | ✅     | Build SSR + separação de `dist/server/index.html` e rewrite para `api/ssr.js` |
+| `api/ssr.js`           | ✅     | Entrypoint Serverless para streaming SSR do Express 5 + React 19              |
+| `vite.config.js`       | ✅     | `ssr.noExternal` e `optimizeDeps` configurados para Carbon v11 no Vite 8      |
+| `supabase/migrations/` | ✅     | Taxonomia Schema.org integral (18 tabelas, RLS `app_private`, pgvector)       |
+| `supabase/functions/`  | ✅     | Edge Functions ativas (`passkey-auth`, `settings-cascade`, `vector-rag`)      |
 
 ## 🚀 Fluxo de Desenvolvimento Automatizado
-
-### Desenvolvimento Local
 
 ```bash
 # Iniciar servidor de desenvolvimento (SSR + HMR)
@@ -81,53 +84,15 @@ npm run dev
 # Sincronizar i18n e gerar SCSS do Carbon
 npm run i18n:sync && npm run scss:generate
 
-# Executar todos os linters
+# Verificar/corrigir cabeçalhos de copyright Apache-2.0
+npm run copyright:fix
+
+# Executar todos os linters (ESLint, Stylelint, Prettier, CSpell)
 npm run lint
 
-# Executar testes
+# Executar suíte de testes com cobertura
 npm run test
+
+# Build de produção (Client + SSR)
+npm run build
 ```
-
-### VS Code Tasks
-
-- **Cmd + Shift + B** → Run Task
-  - Dev Server (SSR) - Default
-  - Sync i18n + Generate Carbon SCSS
-  - Lint All
-  - Test
-
-### VS Code Extensions Recomendadas
-
-- Code Spell Checker
-- ESLint
-- Prettier
-- Stylelint
-- Carbon Token Snippets
-- **i18n Ally** (nova) - Edição inline de traduções
-- **SCSS IntelliSense** (novo) - Autocompletar tokens Carbon
-
-## 📊 Status das Automações
-
-| Etapa                 | Status         | Prioridade |
-| --------------------- | -------------- | ---------- |
-| 1. VS Code Automation | ✅ Concluído   | High       |
-| 2. Carbon MCP + Skill | ✅ Concluído   | High       |
-| 3. Auto-generate SCSS | ✅ Concluído   | Medium     |
-| 4. i18n Automation    | 📝 Pendente    | High       |
-| 5. GitHub Governance  | ✅ Concluído   | Medium     |
-| 6. Vercel Link        | ✅ Configurado | Low        |
-
-## 📝 Próximos Passos
-
-1. **Criar `i18next-parser.config.js`** para extração automática de chaves
-2. **Criar `scripts/i18n-sync.js`** para sincronização pt-BR
-3. **Instalar `@cspell/dict-pt-br`** para suporte ao português no spell checker
-4. **Configurar Vercel Deploy** (se desejado)
-5. **Criar workflow de CI/CD** (se necessário)
-
-## 🔗 Recursos
-
-- [Documentação do Vite SSR](https://vite.dev/guide/ssr)
-- [Carbon Design System](https://carbondesignsystem.com/)
-- [react-i18next Documentation](https://www.i18next.com/)
-- [GitHub Copilot Instructions](.github/copilot-instructions.md)

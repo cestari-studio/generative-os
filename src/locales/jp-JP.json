@@ -1,0 +1,873 @@
+{
+  "auth": {
+    "protected": {
+      "allCategoriesSubtitle": "以下のモジュール設定ドメインは、検証されたテナントガバナンスのもとで管理されています:",
+      "allCategoriesTitle": "テナントレベル設定カテゴリ",
+      "cardCategoryPrompt": "{{category}}にアクセスしようとしています。この領域は組織ワークスペースの認証済みメンバーに制限されています。",
+      "cardDefaultPrompt": "この領域は組織ワークスペースの認証済みメンバーに制限されています。",
+      "cardHeading": "認証済みテナントセッションが必要です",
+      "privateCategory": "非公開",
+      "returnHome": "公開ウェルカムページに戻る",
+      "signInButton": "テナントワークスペースにサインイン",
+      "subtitle": "すべてのアプリケーションワークスペース、インテリジェンスサービス、運用設定はテナントレベルの設定カテゴリに属しており、認証済みセッションが必要です。",
+      "targetCategory": "ターゲット",
+      "title": "テナントレベル設定へのアクセスが制限されています",
+      "validating": "テナントセッションを検証中...",
+      "warningSubtitle": "ゲストユーザーはマルチテナント設定、pgvector埋め込み、財務記録を閲覧または変更することはできません。",
+      "warningTitle": "アクセスゲートが有効です"
+    }
+  },
+  "cascadeSettings": {
+    "allScopes": "すべてのドメイン",
+    "applyButton": "保存してカスケード適用",
+    "auditHeading": "カスケード監査台帳 (Schema.org Action)",
+    "auditSubtitle": "RPCおよびEdge Functionsによって記録されたPostgreSQL public.audit_actionsのリアルタイムイベント。",
+    "filterScopeLabel": "ドメインでフィルター",
+    "hubDesc": "すべてのプラットフォームモジュールおよび運用サービスは、アクティブな組織コンテキストに分離されたテナントレベル設定として動作します。",
+    "hubTitle": "テナントレベル設定カテゴリ",
+    "inheritedFrom": "有効な継承元: {{level}}",
+    "jsonLdDesc": "組織、ワークスペース、およびCreativeWorkプロジェクト階層から動的に構成された統合Schema.orgエンティティグラフ。",
+    "jsonLdPreview": "Schema.org JSON-LD スナップショット",
+    "lockedBadge": "{{level}} によりロック中",
+    "openCategory": "設定を開く",
+    "privateBadge": "非公開",
+    "purgeChildrenLabel": "適用時に下位階層のオーバーライドをクリアする",
+    "ruleLabel": "カスケードルール",
+    "subtitle": "Schema.org PropertyValueタクソノミーと継承ルールを備えた4階層設定エンジン（Organization → Workspace → Project → Person）。",
+    "tabAudit": "監査元帳",
+    "tabCategories": "テナント設定ハブ",
+    "tabJsonLd": "Schema.org JSON-LD",
+    "tabMatrix": "ポリシーマトリックス",
+    "tabsAriaLabel": "カスケードガバナンスセクション",
+    "tierSelectorLabel": "編集スコープ階層",
+    "title": "マルチテナント・カスケード設定",
+    "valueLabel": "設定値"
+  },
+  "common": {
+    "actions": "アクション",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "error": "エラー",
+    "loading": "読み込み中...",
+    "next": "Next processor",
+    "organization": "Organization",
+    "previous": "Previous processor",
+    "project": "Project",
+    "refresh": "Refresh",
+    "select": "選択",
+    "selected": "アクティブ",
+    "workspace": "Workspace",
+    "back": "戻る",
+    "finish": "完了",
+    "on": "オン",
+    "off": "オフ"
+  },
+  "commonHeader": {
+    "logoAlt": "Cestari Studio ロゴ"
+  },
+  "dashboard": {
+    "actions": {
+      "cascade": "カスケードガバナンスエンジン",
+      "cascadeDesc": "4つの層にわたるLOCKED、INHERIT_OVERRIDABLE、およびMERGEルールを検証および適用します。",
+      "identity": "アイデンティティと複数国対応PF/PJ",
+      "identityDesc": "9カ国の税務登録検証とFIDO2パスキーによるエンタープライズオンボーディング。",
+      "ingest": "ナレッジコーパスの取り込み",
+      "ingestDesc": "多層Schema.org DigitalDocumentアセットをセグメント化して孤立したベクトル空間にインデックスします。",
+      "search": "セマンティックベクトル検索",
+      "searchDesc": "リアルタイムのコサイン距離計算により384次元のpgvector HNSW埋め込みを照会します。"
+    },
+    "activity": {
+      "networkActivity": "ネットワーク活動",
+      "networkNotifications": "ネットワーク通知"
+    },
+    "charts": {
+      "actionsAxis": "Actions recorded",
+      "activityDesc": "Audited actions recorded in public.audit_actions across active horizons.",
+      "activityTitle": "Tenant Activity & Audit Timeline",
+      "cascadeDesc": "Breakdown of active settings by inheritance and locking directives.",
+      "cascadeTitle": "Cascade Governance Rule Distribution",
+      "corpusDesc": "Breakdown of indexed Schema.org DigitalDocument and MediaObject files.",
+      "corpusTitle": "Knowledge & Media Assets by Format",
+      "itemsCount": "Count",
+      "rulesTotal": "Effective rules",
+      "timelineAxis": "Timeline"
+    },
+    "chartsRegion": "Telemetry and Governance Analytics",
+    "contextHierarchy": "Tenant hierarchy",
+    "emptyStates": {
+      "clearSearch": "検索をクリア",
+      "nodesSubtitle": "選択したクラスター範囲または検索クエリに一致するノードはありません。すべてのオンラインシステムを表示するにはフィルターをリセットしてください。",
+      "nodesTitle": "一致するクラスターノードがありません",
+      "resetFilters": "フィルターをリセット",
+      "searchSubtitle": "\"{{query}}\" に一致する項目はありません。すべてのレコードを表示するには検索をクリアしてください。",
+      "searchTitle": "一致する結果がありません"
+    },
+    "filtersRegion": "Dashboard filters",
+    "kpis": {
+      "assetsLabel": "Knowledge assets",
+      "assetsSub": "Vector embeddings & media objects",
+      "assetsTag": "pgvector & Storage",
+      "membersLabel": "Active members",
+      "membersSub": "Schema.org Persons registered in organization",
+      "membersTag": "Tier 4 Persons",
+      "projectsLabel": "CreativeWork projects",
+      "projectsSub": "Active initiatives across workspaces",
+      "projectsTag": "Tier 3 Projects",
+      "rulesLabel": "Locked cascade rules",
+      "rulesSub": "Enforced policies from higher tiers",
+      "rulesTag": "Strict Governance"
+    },
+    "kpisRegion": "Operational KPIs",
+    "loading": "ダッシュボードを読み込み中...",
+    "nodes": {
+      "heading": "ノード"
+    },
+    "numberTiles": {
+      "activeProjects": "CreativeWorkプロジェクト",
+      "activeUsers": "アクティブユーザー",
+      "assetsBadge": "pgvector HNSW (384-d)",
+      "certifiedDevelopers": "認定開発者",
+      "effectiveSettings": "有効なカスケードルール",
+      "industryClients": "業界クライアント",
+      "innovationCenters": "量子イノベーションセンター",
+      "knowledgeAssets": "ナレッジコーパス",
+      "networkMembers": "ネットワークメンバー",
+      "ninetyDayChange": "90日間の変化",
+      "projectsBadge": "第3層プロジェクト",
+      "qiskitAdvocates": "Qiskit アドボケイト",
+      "qiskitCourses": "Qiskit コース",
+      "qiskitLearners": "Qiskit 学習者",
+      "quantumSafeClients": "耐量子クライアント",
+      "researchPapers": "総研究論文",
+      "settingsBadge_one": "{{count}} 件ロック中",
+      "settingsBadge_other": "{{count}} 件ロック中",
+      "usersBadge": "ユーザー (Schema.org Person)"
+    },
+    "previewCards": {
+      "blueprintDesc": "pgvector検索、Granite推論、およびSchema.org Action実行を接続する自律型認知ループ。",
+      "blueprintTitle": "ニューラルエージェントワークフローブループリント",
+      "governanceDesc": "4つのマルチテナント組織層にわたってLOCKED、INHERIT_OVERRIDABLE、およびMERGEポリシーを適用します。",
+      "governanceTitle": "カスケードガバナンス",
+      "graniteDesc": "ハードウェアテンソルアクセラレーション、int4量子化、エンドツーエンドのトークン監査を備えたエンタープライズマルチテナントモードでプロビジョニングされたGranite 3.0 8B Instructモデル。",
+      "graniteTitle": "IBM Granite 基盤モデルのデプロイ",
+      "knowledgeDesc": "マルチ層スキーマにわたってリアルタイムのコサイン距離計算を用いて384次元のpgvector HNSW埋め込みを照会します。",
+      "knowledgeTitle": "ナレッジ & ベクトルRAG",
+      "monitoringDesc": "99.98% SLAコンプライアンス追跡、自動メモリリーク診断、およびリアルタイムのCore Web Vitalsプロファイリング。",
+      "monitoringTitle": "継続的テレメトリ",
+      "paymentsDesc": "リアルタイムの監査元帳ロギングとWebhook検証を備えたPagBankマルチテナント会計処理。",
+      "paymentsTitle": "ファイナンシャルゲートウェイ",
+      "runtimeDesc": "14ms未満の起動レイテンシでnode-v22サーバーレスワーカーを実行する分離コンテナノード。",
+      "runtimeTitle": "仮想マシンランタイム",
+      "tagActive": "アクティブパイプライン"
+    },
+    "processor": {
+      "available": "利用可能",
+      "label": "プロセッサ"
+    },
+    "shortcuts": {
+      "heading": "Operational Accelerators",
+      "knowledgeDesc": "Query 384-dimensional pgvector HNSW embeddings with real-time cosine distance.",
+      "knowledgeTitle": "Semantic Vector Search",
+      "paymentsDesc": "Manage PagBank multi-tenant splits, seller payouts, and subscription plans.",
+      "paymentsTitle": "Financial & Billing Hub",
+      "productsDesc": "Configure multi-tenant modular product suites and corporate identity attributes.",
+      "productsTitle": "Products & Brand DNA",
+      "settingsDesc": "Inspect and enforce LOCKED, INHERIT_OVERRIDABLE, and MERGE rules across 4 tiers.",
+      "settingsTitle": "Cascade Governance Engine",
+      "subheading": "Direct pathways to core multi-tenant subsystems and governance tools."
+    },
+    "shortcutsRegion": "Quick Action Shortcuts",
+    "sla": "オンライン · 14msレイテンシ · 99.98% SLA",
+    "subtitle": "マルチテナントワークスペース、pgvectorセマンティックインテリジェンス、カスケードポリシー、および監査ログの統合運用ダッシュボード。",
+    "tables": {
+      "actionType": "Action @type",
+      "auditDesc": "Immutable multi-tenant operational ledger recorded in PostgreSQL public.audit_actions.",
+      "auditTitle": "Schema.org Audit Action Stream",
+      "cascadeRule": "Cascade rule",
+      "domain": "Domain",
+      "entity": "Entity",
+      "governanceDesc": "Resolved Schema.org PropertyValue parameters computed across 4 hierarchical tiers.",
+      "governanceTitle": "Effective Cascade Governance",
+      "instrument": "Instrument",
+      "propertyId": "Property ID",
+      "searchAudits": "Filter audit actions...",
+      "searchGovernance": "Filter policies...",
+      "sourceTier": "Source tier",
+      "status": "Status"
+    },
+    "tablesRegion": "Operational Ledgers and Governance Matrix",
+    "throughput": {
+      "liveStream": "ライブ配信",
+      "online": "オンライン",
+      "pendingJobs": "保留中のジョブ",
+      "timeSpentTitle": "Time spent in state (%)"
+    },
+    "title": "ダッシュボード",
+    "toolbar": {
+      "allWorkspaces": "All workspaces",
+      "clusterAll": "すべてのクラスター",
+      "clusterScope": "クラスター範囲",
+      "export": "レポートのエクスポート",
+      "formAria": "ダッシュボードフィルタリングツールバー",
+      "horizon24h": "過去24時間",
+      "horizon30d": "過去30日間",
+      "horizon7d": "過去7日間",
+      "horizon90d": "過去90日間",
+      "refresh": "メトリクスを更新",
+      "refreshing": "更新中...",
+      "searchLabel": "ノードとテレメトリを検索",
+      "searchPlaceholder": "クラスター、ID、または監査アクションでフィルタ...",
+      "timeHorizon": "時間軸",
+      "timeHorizonLabel": "Time horizon",
+      "workspaceScopeLabel": "Workspace scope"
+    },
+    "topology": {
+      "title": "システムトポロジ"
+    },
+    "urlParameters": {
+      "description": "URLからパスパラメータとクエリパラメータの両方を取得する方法を示します。",
+      "greeting": "こんにちは、{{name}}さん！ 👋",
+      "pathParameter": "検出されたパスパラメータ (id):",
+      "queryParameterName": "検出されたクエリパラメータ (name):",
+      "queryParameterQ": "検出されたクエリパラメータ (q):",
+      "title": "URLパラメータの例",
+      "tryAccessing": "以下にアクセスしてみてください:"
+    },
+    "visualizations": {
+      "auditSubtitle": "public.audit_actions の追記専用マルチテナント・イベントストリーム。",
+      "auditTitle": "Schema.org 監査アクショントストリーム",
+      "emptyAudits": "監査アクションはまだ記録されていません。運用イベントはここにリアルタイムで配信されます。",
+      "emptySettings": "このテナントコンテキストに対して解決された有効なカスケードポリシーはありません。",
+      "settingsSubtitle": "Supabase RPC resolve_effective_settings による Schema.org PropertyValue のリアルタイム解決。",
+      "settingsTitle": "有効なカスケードガバナンス"
+    },
+    "header": {
+      "title": "テナントダッシュボード",
+      "subtitle": "エンタープライズマルチテナントテレメトリ、オンボーディングおよびガバナンス運用",
+      "actionsButton": "アクション",
+      "actionsOverflow": "その他のアクション"
+    },
+    "breadcrumbs": {
+      "home": "ホーム"
+    },
+    "tabs": {
+      "ariaLabel": "ダッシュボードビュー",
+      "dashboard": "ダッシュボード",
+      "workspace": "ワークスペース",
+      "users": "ユーザー",
+      "subscriptions": "サブスクリプション",
+      "settings": "設定"
+    },
+    "onboarding": {
+      "title": "テナントオンボーディングを完了する",
+      "subtitleWithProgress": "4つのステップに従って環境をプロビジョニングしてください ({{completed}}/4完了)。",
+      "step1": {
+        "label": "ステップ 1 / 4",
+        "title": "テナントDNAとアイデンティティの構成",
+        "desc": "法的組織の詳細、複数国対応の検証、税務登録、ブランドアイデンティティを設定します。"
+      },
+      "step2": {
+        "label": "ステップ 2 / 4",
+        "title": "ワークスペースとプロジェクトのプロビジョニング",
+        "desc": "クリエイティブチームを編成し、テナント分離スコープを定義します。"
+      },
+      "step3": {
+        "label": "ステップ 3 / 4",
+        "title": "ベクトルナレッジとドキュメントのインデックス化",
+        "desc": "認知型RAG用の384次元pgvector埋め込みを生成します。"
+      },
+      "step4": {
+        "label": "ステップ 4 / 4",
+        "title": "サブスクリプションとFinOpsの有効化",
+        "desc": "PagBank決済処理とプラン制限を構成します。"
+      }
+    },
+    "workspaces": {
+      "current": "アクティブなワークスペース",
+      "organization": "組織",
+      "identifier": "ID",
+      "createButton": "新規ワークスペース作成",
+      "tableTitle": "プロビジョニング済みワークスペース",
+      "tableDesc": "Schema.orgモデルに準拠したマルチテナント実行環境。",
+      "colName": "ワークスペース名",
+      "colIdentifier": "識別子 / ID",
+      "colProjects": "CreativeWorkプロジェクト",
+      "colStatus": "ステータス",
+      "unnamed": "デフォルトワークスペース",
+      "nameLabel": "ワークスペース名",
+      "slugLabel": "識別子スラッグ",
+      "envLabel": "環境タイプ"
+    },
+    "users": {
+      "title": "テナントメンバーと権限",
+      "subtitle": "{{org}} に登録されたSchema.org Personエンティティ。",
+      "inviteButton": "チームメンバーを招待",
+      "inviteAlert": "招待ダイアログがディスパッチされました。",
+      "tableTitle": "組織メンバー",
+      "tableDesc": "エンタープライズガバナンスポリシーに基づくメンバー一覧。",
+      "colName": "メンバー名",
+      "colEmail": "メールアドレス",
+      "colRole": "組織ロール",
+      "colStatus": "ステータス",
+      "colId": "人物ID",
+      "roleOwner": "テナントオーナー / 管理者",
+      "roleMember": "ワークスペースメンバー",
+      "unnamed": "匿名ユーザー"
+    },
+    "subscriptions": {
+      "currentPlan": "アクティブなサブスクリプション: {{tier}}",
+      "subtitle": "PagBank決済処理と自動請求サイクル。",
+      "manageButton": "請求とPagBankの管理",
+      "membersQuota": "チームメンバー枠",
+      "workspacesQuota": "ワークスペース枠",
+      "ragQuota": "ベクトルナレッジドキュメント枠",
+      "quotaProgress": "使用率",
+      "upgrade": "プランをアップグレード",
+      "planSelect": "サブスクリプションプランの選択",
+      "billingCycle": "請求サイクル"
+    },
+    "settings": {
+      "personalTitle": "個人ユーザー設定",
+      "personalSubtitle": "データベース内のPersonエンティティに永続化される個別設定。",
+      "governanceTitle": "テナントカスケードガバナンス",
+      "governanceSubtitle": "プラットフォームから組織、ワークスペース、個人へのポリシー継承。",
+      "activePolicies": "アクティブなカスケードルール",
+      "lockedPolicies": "ロックされたポリシー",
+      "openMatrixButton": "カスケードマトリクスとJSON-LDを開く",
+      "savedTitle": "設定を保存しました",
+      "persistedDesc": "設定がデータベースに永続化されました。",
+      "saveError": "設定の保存に失敗しました。"
+    }
+  },
+  "footer": {
+    "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
+    "disclaimer": "Generative Operating System で利用可能なすべてのソフトウェア製品にはサブスクリプションが必要です。オープンソース評価については、IBM AI Nexus Atlas および IBM Granite Model を参照してください。",
+    "evaluation": "genOS アプリケーションの評価方法の詳細については、次を参照してください:"
+  },
+  "knowledgeVector": {
+    "docContentLabel": "ドキュメント本文 (Markdown / テキスト)",
+    "docScopeLabel": "公開スコープ階層",
+    "docsTableDesc": "public.knowledge_documents 内で384次元HNSW埋め込みによりインデックス化されたドキュメント。",
+    "docsTableTitle": "インデックス済みナレッジコーパス (Schema.org DigitalDocument)",
+    "docTitleLabel": "ドキュメントタイトル (Schema.org name)",
+    "dropzoneLabel": "ここにファイルをドラッグ＆ドロップするか、クリックしてSupabase Storageにアップロード",
+    "emptyDocs": "このテナントナレッジコーパスにはまだドキュメントが登録されていません。フォームを使用してドキュメントを分割・インデックスしてください。",
+    "emptyMedia": "このバケットにはまだメディアオブジェクトがアップロードされていません。",
+    "emptySearch": "この類似度しきい値に一致するセマンティックチャンクは見つかりませんでした。スライダーを調整するかクエリを変更してください。",
+    "ingestButton": "チャンク分割＆インデックス登録",
+    "ingestHeading": "ナレッジドキュメントの取り込み",
+    "matchCountLabel": "最大結果数",
+    "mediaTableDesc": "public.media_objects のテナント分離バケットに保存されているリアルタイムオブジェクト。",
+    "mediaTableTitle": "テナントストレージ MediaObjects (Schema.org MediaObject)",
+    "searchButton": "ベクトル検索",
+    "searchDescription": "PostgreSQL pgvectorテーブルに保存された事前計算済みの384次元埋め込みに対してリアルタイムコサイン距離照合を実行します。",
+    "searchHeading": "セマンティック・ベクトル検索",
+    "searchPlaceholder": "質問を入力するか、テナントのナレッジチャンクを検索...",
+    "similarityThresholdLabel": "最小類似度しきい値",
+    "storagePathLabel": "分離ストレージパス:",
+    "subtitle": "マルチテナント Schema.org DigitalDocument ストレージおよび384次元HNSWコサイン類似度検索。",
+    "suggestionsLabel": "推奨クエリ:",
+    "tabIngest": "コーパスと取り込み",
+    "tabsAriaLabel": "ナレッジおよびベクトルRAGセクション",
+    "tabSearch": "セマンティック検索",
+    "tabStorage": "ストレージバケット",
+    "title": "ナレッジベース＆pgvector RAG",
+    "uploadDescription": "分離されたテナントストレージパスにファイルをアップロード",
+    "uploadHeading": "テナントストレージ・バケット"
+  },
+  "nav": {
+    "actions": {
+      "appSwitcher": "ワークスペース切替",
+      "search": "検索",
+      "userProfile": "ユーザープロフィール"
+    },
+    "categories": {
+      "governance": "テナント管理",
+      "operations": "運用とカタログ",
+      "overview": "概要"
+    },
+    "header": {
+      "name": "Generative OS",
+      "navigationAria": "メインナビゲーション",
+      "prefix": "Cestari",
+      "shellLabel": "Generative OS"
+    },
+    "home": "Home",
+    "links": {
+      "cascadeSettings": "カスケード設定",
+      "dashboard": "ダッシュボード",
+      "knowledgeVector": "ナレッジ＆ベクトルRAG",
+      "payments": "Billing & FinOps",
+      "placeholder": "プレースホルダー",
+      "subMenu": "サブメニュー",
+      "welcome": "ようこそ"
+    },
+    "menu": {
+      "close": "メニューを閉じる",
+      "open": "メニューを開く"
+    },
+    "sideNav": {
+      "ariaLabel": "サイドナビゲーション"
+    }
+  },
+  "notFound": {
+    "description": "お探しのページは見つかりませんでした。",
+    "loading": "エラーページを読み込み中...",
+    "maintainer": "Cestari Studio Inc. によって保守されています。",
+    "routeNotRecognized": "ルート '{{pathname}}' は認識されません。",
+    "title": "ページが見つかりません"
+  },
+  "onboarding": {
+    "accountTypeHeading": "1. 法人格およびアカウント分類",
+    "backButton": "戻る",
+    "birthDate": "生年月日 (YYYY-MM-DD)",
+    "cameraAria": "顔認証 / Windows Hello",
+    "cameraAuth": "顔認証",
+    "cancelButton": "キャンセル",
+    "cancelModalDesc": "進行状況は順次保存されます。プロフィールからいつでもオンボーディングを再開できます。",
+    "cancelModalTitle": "セットアップを終了してもよろしいですか？",
+    "cardPFDesc": "個人用ワークスペース権限と個別の税務データがアカウントにプロビジョニングされます。",
+    "cardPFTitle": "個人アカウントワークフロー",
+    "cardPJDesc": "法人ガバナンス、複数のワークスペース、部門別アクセスを備えたエンタープライズテナント階層がプロビジョニングされます。",
+    "cardPJTitle": "エンタープライズテナントのプロビジョニング",
+    "completeButton": "セットアップを完了して参加",
+    "completing": "セットアップを完了しています...",
+    "continueSetup": "セットアップを続行",
+    "enrollPasskeyBtn": "WebAuthn パスキーを登録",
+    "exitSetup": "セットアップを終了",
+    "newTenantDesc": "分離されたPostgreSQLスキーマ、初期ワークスペース、およびデフォルトプロジェクトを備えた専用テナント組織がプロビジョニングされます。",
+    "newTenantTitle": "プロビジョニングターゲット:",
+    "nextButton": "次へ",
+    "orgSelectLabel": "組織 (第1層)",
+    "passkeyDesc": "パスワードレス多要素認証のために、ハードウェア認証器 (Touch ID、Face ID、Windows Hello、またはYubiKey) を登録します。",
+    "passkeyHeading": "FIDO2 / WebAuthn 生体認証セキュリティ",
+    "passkeySuccessDesc": "パスワードレスのエンタープライズサインイン用にハードウェア生体認証資格情報が登録されました。",
+    "prjSelectLabel": "プロジェクト / CreativeWork (第3層)",
+    "securityKeyAria": "FIDO2セキュリティキー / YubiKey",
+    "securityKeyAuth": "FIDO2ハードウェアキー",
+    "securityKeyLabel": "セキュリティキー",
+    "steps": {
+      "addressSubtitle": "登録された本社または税務上の住所",
+      "addressTitle": "公式住所",
+      "classificationSubtitle": "アカウントの法的カテゴリ、管轄区域、およびインターフェース言語を選択してください",
+      "classificationTitle": "アカウントと管轄区域",
+      "corporateSubtitle": "企業規模分類、法定代理人、および署名者の役割",
+      "corporateTitle": "企業統治と規模",
+      "identitySubtitle": "公式の政府登録番号および法的身分証明書",
+      "identityTitle": "身元と税務登録",
+      "workspaceSubtitle": "マルチテナント階層構成とFIDO2/WebAuthn登録",
+      "workspaceTitle": "ワークスペースとセキュリティ"
+    },
+    "title": "組織とアカウントのセットアップを完了する",
+    "touchAria": "指紋センサー / Touch ID",
+    "touchAuth": "Touch ID / 指紋認証",
+    "workspaceHeading": "インスタンスおよびワークスペース階層",
+    "wsSelectLabel": "ワークスペース / 部門 (第2層)",
+    "validation": {
+      "required": "組織名は必須です"
+    }
+  },
+  "payments": {
+    "amountLabel": "請求金額 (BRL)",
+    "auditHeading": "リアルタイム監査元帳イベント (public.audit_actions)",
+    "authorizeSeller": "PagBank販売者を認証",
+    "boletoHeading": "Boleto Bancário が生成されました",
+    "boletoInstructions": "決済用バーコードデジタル行:",
+    "chargeError": "PagBank請求の処理に失敗しました。",
+    "chargeFailed": "請求の作成に失敗しました。",
+    "chargesSectionHeading": "テナント取引元帳",
+    "chargesTableDesc": "テナントRLSポリシーによって管理される取引",
+    "chargesTableTitle": "請求と注文",
+    "chargeSuccess": "請求が正常に生成されました！",
+    "colAmount": "金額",
+    "colChargeId": "請求ID",
+    "colDate": "日時",
+    "colMethod": "決済方法",
+    "colSellerAccount": "PagBankアカウント",
+    "colSellerEmail": "メールアドレス",
+    "colSellerName": "氏名 / 法人名",
+    "colSellerStatus": "ステータス",
+    "colSellerTaxId": "納税者番号 / CNPJ",
+    "colStatus": "ステータス",
+    "commissionLabel": "プラットフォーム手数料 (%)",
+    "connectError": "PagBank Connect URLの取得中にエラーが発生しました。",
+    "connectHeading": "接続済みアカウントと支払い分割エンジン",
+    "connectInitError": "Connect初期化エラー。",
+    "connectWindowOpened": "PagBank Connect認証ウィンドウが開きました。",
+    "copied": "コピー完了！",
+    "copyEmv": "PIXコードをコピー",
+    "customerEmail": "顧客メールアドレス",
+    "customerName": "顧客氏名",
+    "emptyAudits": "記録された支払い監査イベントはまだありません。",
+    "emptyCharges": "取引が見つかりません。「新規インスタント請求」をクリックして作成してください。",
+    "emptySellers": "接続されたPagBank販売者はまだいません。「PagBank販売者の認証」をクリックしてください。",
+    "fdwDesc": "wasm_wrapper外部データラッパー (wrappers v0.6.3) は、PagBank RESTエンドポイントをプライベートpagbank_fdwスキーマ内のリレーショナルPostgreSQLテーブルに直接マップします。",
+    "fdwHeading": "Supabase Wrappers と 外部データラッパー (FDW) アーキテクチャ",
+    "invalidAmount": "0より大きい有効な金額を入力してください。",
+    "kpiPaid": "支払済み請求",
+    "kpiPending": "保留中の請求",
+    "kpiSellers": "接続済み販売者 (分割)",
+    "kpiTotal": "総取引額",
+    "methodBoleto": "Boleto Bancário (銀行振込票)",
+    "methodCard": "クレジットカード",
+    "methodLegend": "決済方法",
+    "methodPix": "即時PIX決済 (EMV QRコード)",
+    "modalCancel": "キャンセル",
+    "modalHeading": "新規PagBank請求を発行",
+    "modalSubmit": "請求を生成",
+    "newCharge": "新規インスタント請求",
+    "noAuditEvents": "記録された支払い監査イベントはまだありません。",
+    "noSplit": "なし (100% プラットフォームテナント)",
+    "pixQrHeading": "動的PIX QRコードが生成されました",
+    "pixQrInstructions": "銀行アプリでスキャンするか、EMVデジタル行をコピーしてください:",
+    "printBoleto": "Boleto PDFの印刷 / ダウンロード",
+    "refresh": "更新",
+    "sellerSplitLabel": "支払い分割用販売者 (オプション)",
+    "sellersTableDesc": "自動分割支払いの対象となる接続済みサブアカウント",
+    "sellersTableTitle": "承認済み販売者",
+    "status": "ステータス",
+    "subtitle": "統合金融モジュール: 即時PIX決済、カード、Boleto、分割マーケットプレイスConnect、およびSupabase Wrappers。",
+    "tabAudit": "Schema.org 監査",
+    "tabCharges": "請求と注文",
+    "tabConnect": "PagBank Connect と 分割",
+    "tabFdw": "Supabase Wrappers (FDW)",
+    "taxonomyHeading": "実装されたSchema.orgタクソノミー:",
+    "title": "PagBank マルチテナント & FDW エンジン"
+  },
+  "placeholder": {
+    "description1": "一般的に、準備中のページを公開したままにすることは推奨されません。",
+    "description2": "このページはグローバルナビゲーションの動作を示すためのものです。",
+    "loading": "プレースホルダーページを読み込み中...",
+    "maintainer": "Cestari Studio Inc. によって保守されています。",
+    "routeInfo": "現在のルートは '{{pathname}}' です。",
+    "title": "このページはまだ準備中です"
+  },
+  "productsCatalog": {
+    "allEntitled": "5スイート有効",
+    "brandDnaDesc": "Cestari Studio Agency傘下のクライアントテナント全体で解決されるアイデンティティモデル。",
+    "brandDnaTitle": "ブランドDNAマルチテナントカタログ",
+    "brandName": "ブランドプロファイル",
+    "brandTableDesc": "プロファイルを選択してブランドDNAセマンティックトークン、トーン、ポジショニングを確認します。",
+    "brandTableTitle": "アクティブなテナントブランドプロファイル",
+    "brandTokensHeading": "ブランドDNAセマンティックトークン",
+    "capabilitiesHeading": "必要なケイパビリティ",
+    "capabilitiesHeadingTitle": "共有プラットフォームケイパビリティ",
+    "capabilitiesSub": "5つのgenOS製品スイート全体で均一に消費される再利用可能な機能群。",
+    "emptyBrands": "検索条件に一致するブランドプロファイルはありません。",
+    "entitledBadge": "エンタイトル済み＆アクティブ",
+    "inspectTokens": "詳細表示",
+    "jsonLdSnippet": "ライブSchema.org JSON-LDコンテキスト",
+    "locale": "ロケール",
+    "marketSegment": "市場セグメント",
+    "maturity": "成熟度ステータス",
+    "openModule": "モジュールを開く",
+    "parentTenant": "親テナント権限",
+    "searchBrands": "ブランドプロファイルを検索",
+    "searchPlaceholder": "名前、市場セグメント、カテゴリで絞り込み...",
+    "segment": "市場カテゴリ",
+    "servicesHeading": "基盤プラットフォームサービス",
+    "servicesSub": "認証、UIシェル、カスケードルール、リリースゲートを支える横断的サービス。",
+    "subproductsHeading": "サブプロダクト＆コンポーネント",
+    "subtitle": "Schema.orgタクソノミに基づく自律型マルチテナント製品群、ブランドDNAプロファイル、プラットフォームサービス。",
+    "suitesDesc": "共有Helianエージェントランタイム、pgvector RAG、不変監査元帳上で稼働する5つのドメイン製品群。",
+    "suitesTitle": "マルチテナントgenOS製品スイート",
+    "supportedLocales": "対応言語",
+    "tabBrandDna": "ブランドDNAプロファイル（12）",
+    "tabPlatform": "プラットフォームサービス＆ケイパビリティ",
+    "tabProducts": "製品スイート（5）",
+    "tabsAriaLabel": "プロダクトおよびブランドDNAセクション",
+    "tabTaxonomy": "Schema.orgタクソノミグラフ",
+    "taxonomyDesc": "すべてのプラットフォームページ、エンティティ、アクションの標準Schema.org語彙への適合。",
+    "taxonomyTitle": "Schema.orgマルチテナントタクソノミグラフ",
+    "title": "プロダクト＆ブランドDNAカタログ",
+    "verifiableOutcomes": "検証可能な成果"
+  },
+  "profile": {
+    "auth": {
+      "emailLabel": "業務メールアドレス",
+      "guestMode": "デフォルトのデモ組織を表示中",
+      "heading": "リモートIDとパスキー",
+      "languageLabel": "インターフェース言語 (Schema.org inLanguage)",
+      "magicLink": "マジックリンクを送信",
+      "noPasskeys": "このユーザーにはまだパスキーが登録されていません。",
+      "passkeysHeading": "登録済みパスキー (Schema.org SecurityCredential)",
+      "passwordLabel": "パスワード",
+      "registerPasskey": "WebAuthn パスキーを登録",
+      "signedInAs": "ログイン中:",
+      "signIn": "サインイン",
+      "signOut": "サインアウト"
+    },
+    "guest": {
+      "signInPrompt": "テナントのワークスペースとリソースにアクセスするにはサインインしてください。",
+      "welcome": "ゲストセッション"
+    },
+    "language": {
+      "label": "優先インターフェース言語"
+    },
+    "links": {
+      "accessKeys": "アクセスキー",
+      "authSection": "認証",
+      "dashboard": "概要と分析",
+      "label": "プロファイルリンク",
+      "payments": "決済ゲートウェイとPagBank",
+      "planAndBilling": "プランと請求",
+      "planFormat": "プラン {{plan}}",
+      "products": "プロダクト＆ブランドDNA",
+      "profileSettings": "プロファイル設定",
+      "userManagement": "ユーザー管理",
+      "userProfile": "ユーザープロファイル＆オンボーディング",
+      "workspaceSwitcher": "ワークスペースとコンテキスト設定"
+    },
+    "passkeys": {
+      "description": "パスキーは、W3C WebAuthnを介してTouch ID、Face ID、またはセキュリティキーを使用し、暗号化されたフィッシング耐性のある認証を提供します。",
+      "deviceNameLabel": "デバイスまたはキー名",
+      "empty": "登録済みのパスキー資格情報はまだありません。",
+      "modalTitle": "パスキーと生体認証セキュリティ",
+      "registerButton": "パスキーを登録",
+      "registeredList_one": "登録済み資格情報 ({{count}}):",
+      "registeredList_other": "登録済み資格情報 ({{count}}):"
+    },
+    "readOnly": {
+      "brand": "ブランド",
+      "instance": "インスタンス",
+      "organization": "組織",
+      "owner": "インスタンス所有者",
+      "workspace": "ワークスペース / プロジェクト",
+      "workspaceId": "ワークスペースID"
+    },
+    "settings": {
+      "complementMenuTheme": "メニューテーマを補完する",
+      "themeLegend": "テーマ"
+    }
+  },
+  "routes": {
+    "products": "プロダクト＆ブランドDNA"
+  },
+  "signInModal": {
+    "accountTypePF": "Pessoa Física (Individual / PF)",
+    "accountTypePJ": "Pessoa Jurídica (Enterprise / PJ)",
+    "addressTitle": "Endereço Oficial",
+    "authenticating": "認証中...",
+    "changeEmail": "変更",
+    "companySizeLabel": "企業規模",
+    "companySizes": {
+      "ENTERPRISE": "大企業 (250名以上 / Enterprise)",
+      "MEDIUM": "中規模企業 (50-249名 / Medium)",
+      "MICRO": "零細企業 (1-9名 / Micro)",
+      "SMALL": "小規模企業 (10-49名 / Small)"
+    },
+    "completeSetup": "設定を完了して開始",
+    "continue": "次へ",
+    "countries": {
+      "BR": "ブラジル (BR)",
+      "CN": "中国 (CN)",
+      "DE": "ドイツ (DE)",
+      "ES": "スペイン (ES)",
+      "FR": "フランス (FR)",
+      "GB": "イギリス (GB)",
+      "JP": "日本 (JP)",
+      "PT": "ポルトガル (PT)",
+      "US": "アメリカ合衆国 (US)"
+    },
+    "countryLabel": "国 / 管轄地域",
+    "emailLabel": "IBMid または会社メールアドレス",
+    "error": {
+      "emptyPassword": "パスワードは必須です。",
+      "invalidCredentials": "IBMid またはパスワードが正しくありません。再試行してください。",
+      "invalidEmail": "有効な IBMid またはメールアドレスを入力してください。",
+      "title": "認証エラー"
+    },
+    "fastTrackPasskey": "生体認証（パスキー）でサインイン",
+    "fastTrackTitle": "パスワードレス生体認証MFA:",
+    "fullName": "氏名（フルネーム）",
+    "headerLabel": "エンタープライズ認証＆オンボーディング",
+    "legalName": "法人名 / 商号",
+    "locality": "市区町村",
+    "logIn": "ログイン",
+    "magicLinkBtn": "代わりにマジックリンクをメールで送信",
+    "mfa": {
+      "authenticateBtn": "生体認証で認証",
+      "authenticating": "認証中...",
+      "backToPassword": "パスワード入力に戻る",
+      "cameraDesc": "顔認識 / Windows Hello",
+      "cameraMethod": "カメラ方式",
+      "cameraMethodAria": "カメラ認証 (顔認証 / Windows Hello)",
+      "cameraScanPrompt": "カメラを見て本人確認を行ってください。",
+      "cancelled": "生体認証がキャンセルされました。再試行するか代替方法を選択してください。",
+      "failed": "生体認証に失敗しました。再試行するかメール確認をご利用ください。",
+      "fallbackMagicLink": "代わりにメールワンタイムリンクを送信",
+      "heading": "多要素生体認証（MFA）",
+      "ready": "生体認証機能の準備完了",
+      "scanning": "生体認証センサーの待機中...",
+      "sensorPrompt": "認証をクリックしてデバイスのハードウェアセキュリティ検証を開始します。",
+      "subheading": "タッチまたはカメラの顔認識を使用して本人確認を行ってください。",
+      "touchDesc": "Touch ID / 指紋センサー",
+      "touchMethod": "タッチ方式",
+      "touchMethodAria": "タッチ認証 (Touch ID / 指紋認証)",
+      "touchScanPrompt": "指紋センサーに触れて本人確認を行ってください。",
+      "verified": "生体認証署名が確認されました"
+    },
+    "onboardingIntro": "ワークスペースに入る前に、有効な Schema.org マルチテナント階層とセッション設定を選択してください:",
+    "otpSentDesc": "直接ログインリンクについてメールの受信箱を確認してください。",
+    "otpSentTitle": "マジックリンクを送信しました",
+    "passkeyRegistered": "パスキークレデンシャルを登録しました",
+    "passwordLabel": "パスワード",
+    "pfDetailsTitle": "個人情報・本人確認",
+    "pjDetailsTitle": "企業情報＆規模",
+    "proceedMfa": "生体認証MFAで確認 →",
+    "quickFillTitle": "デモエンタープライズID (ワンクリック):",
+    "region": "都道府県",
+    "registerPasskey": "WebAuthn パスキーを登録",
+    "rememberId": "ユーザーIDを記憶する",
+    "repDetailsTitle": "法定代表者情報",
+    "repDoc": "代表者身分証明書番号",
+    "repName": "法定代表者氏名",
+    "repPosition": "役職 / 職務",
+    "settingUp": "セットアップ中...",
+    "steps": {
+      "credentials": "2. クレデンシャル",
+      "credentialsDesc": "パスワードと検証",
+      "identity": "1. アイデンティティ",
+      "identityDesc": "ユーザーID",
+      "mfa": "3. 多要素認証 (MFA)",
+      "mfaDesc": "タッチまたはカメラ",
+      "onboarding": "3. オンボーディング",
+      "onboardingDesc": "ワークスペース設定"
+    },
+    "streetAddress": "丁目・番地・号 / 建物名",
+    "title": "Generative OS にログイン",
+    "tradeName": "屋号 / ブランド名",
+    "verifiedBadge": "アイデンティティ確認済み"
+  },
+  "taxonomy": {
+    "billing": {
+      "description": "決済ゲートウェイ、PagBank統合、マルチセラースプリット、請求書、元帳。",
+      "label": "請求＆FinOps"
+    },
+    "files": {
+      "description": "デジタルドキュメント、メディアアセット、ベクトルRAG埋め込み、ストレージバケット。",
+      "label": "ファイル＆ナレッジコーパス"
+    },
+    "products": {
+      "description": "マルチテナント製品群（Content Factory、ClientOps、ScheduleOps、ReputationOps、AcademyOps）とブランドDNAプロファイル。",
+      "label": "プロダクト＆ブランドDNA"
+    },
+    "profile": {
+      "description": "多国籍企業ID（個人/法人）、FIDO2パスキー、テナントプロビジョニング。",
+      "label": "プロファイル＆ID"
+    },
+    "reports": {
+      "description": "運用指標、テレメトリ、利用状況レポート、マルチテナントKPIダッシュボード。",
+      "label": "レポート＆テレメトリ"
+    },
+    "settings": {
+      "description": "4層カスケード階層、Schema.org PropertyValue分類体系、システムガバナンス。",
+      "label": "設定＆ガバナンス"
+    }
+  },
+  "tenantSettings": {
+    "categories": {
+      "billing": {
+        "description": "PagBank認証情報、マルチセラースプリット、定期購読プラン、送金振替。",
+        "label": "決済ゲートウェイと請求"
+      },
+      "governance": {
+        "description": "4層カスケード階層（組織 → ワークスペース → プロジェクト → 個人）、Schema.orgルール、監査元帳。",
+        "label": "ガバナンスとカスケードポリシー"
+      },
+      "identity": {
+        "description": "多国籍個人/法人認証、パスキー生体認証、法定代表者記録、組織プロビジョニング。",
+        "label": "企業IDとオンボーディング"
+      },
+      "knowledge": {
+        "description": "コーパスドキュメント、pgvectorセマンティック検索設定、埋め込みモデル、ストレージオブジェクト。",
+        "label": "ナレッジベースとベクトルRAG"
+      },
+      "overview": {
+        "description": "テナントワークスペースの状態、テレメトリ、リソース使用指標、マルチテナントKPI。",
+        "label": "概要と分析"
+      }
+    }
+  },
+  "welcome": {
+    "about": {
+      "consistency": {
+        "description": "IBMのデザイン基準を維持するためのリファレンスとして活用できます。ユーザー体験の一貫性を保ちながら柔軟にカスタマイズ可能です。",
+        "title": "基準の維持"
+      },
+      "customize": {
+        "description": "厳格なフレームワークではなく、出発点およびガイドとして捉えてください。ニーズに合わせて調整したり、インスピレーションとして活用できます。",
+        "title": "個別にカスタマイズ"
+      },
+      "heading": "このテンプレートについて",
+      "purpose": {
+        "description": "このリポジトリは、ReactでCarbon Design Systemを始めるための事前構成済み基盤を提供し、新規プロジェクトの立ち上げ時間を短縮します。",
+        "title": "目的"
+      }
+    },
+    "features": {
+      "designSystemDesc": "アクセシブルなv11コンポーネントとトークン",
+      "designSystemTitle": "Carbonデザインシステム",
+      "heading": "主な機能",
+      "multiTenancyDesc": "Schema.org 4層アーキテクチャ",
+      "multiTenancyTitle": "マルチテナンシー",
+      "vectorRagDesc": "pgvector 384次元 HNSW埋め込み",
+      "vectorRagTitle": "コグニティブRAG"
+    },
+    "fetching": {
+      "apiLayer": "APIレイヤー",
+      "apiLayerDesc": "api/message.js のクライアント側関数がExpressバックエンドへのHTTPリクエストを処理します",
+      "comments": "コメント",
+      "exampleHeading": "ブログデータ取得の例",
+      "from": "差出人: {{email}}",
+      "heading": "例: データの取得",
+      "intro": "ここでは外部APIエンドポイントからメッセージを動的に読み込みます。コンポーネントをクリーンに保ちつつネットワーク処理を分離する方法を示します:",
+      "postFrom": "投稿者: {{email}}",
+      "serviceLayer": "サービスレイヤー",
+      "serviceLayerDesc": "service/postHandlers.js のサーバー側ハンドラーが外部APIへリクエストをプロキシします。",
+      "summary": "このパターンにより、データ取得ロジックを一元化して再利用性とテスト容易性を高めながら、コンポーネントをUI表示に集中させることができます。",
+      "uiLayer": "UIレイヤー",
+      "uiLayerDesc": "PostComponent.jsx がReactの状態を管理し、Carbon Designコンポーネントでデータを描画します"
+    },
+    "run": {
+      "heading": "テンプレートの実行",
+      "nodeRequirement": "Node v.24 が必要です"
+    }
+  },
+  "welcomeHeader": {
+    "button": {
+      "enterApp": "テナントダッシュボードに入る",
+      "signIn": "ワークスペースにサインイン",
+      "useTemplate": "このテンプレートを使用"
+    },
+    "description1": "Carbon Design SystemでReactアプリケーションを構築するためのボイラープレート兼実践ガイドです。必要に応じてカスタマイズしてください。",
+    "maintainer": "Cestari Studio Inc. によって保守されています。",
+    "title": "Carbon React スターターテンプレートへようこそ"
+  },
+  "workspaceSwitcher": {
+    "activeRole": "現在のロール",
+    "createOrganization": "組織を作成",
+    "heading": "ワークスペースおよび組織の切り替え",
+    "modalHeading": "アクティブなワークスペースコンテキストの切り替え",
+    "organizationLabel": "組織 / Organization (Tier 1)",
+    "orgIdentifierPlaceholder": "例: acme-corp",
+    "orgNamePlaceholder": "組織名",
+    "projectLabel": "プロジェクト / CreativeWork (Tier 3)",
+    "statusTitle": "テナントコンテキスト",
+    "workspaceLabel": "ワークスペース / Department (Tier 2)"
+  },
+  "settings": {
+    "profile": {
+      "orgName": "組織名",
+      "legalName": "正式登録企業名",
+      "country": "管轄地域 / 国",
+      "postalCode": "郵便番号"
+    }
+  },
+  "knowledge": {
+    "modelLabel": "埋め込みモデル",
+    "chunkSizeLabel": "ドキュメントチャンクサイズ",
+    "metricLabel": "pgvector距離メトリック",
+    "autoIndexLabel": "アップロード時の自動チャンクおよびベクトル化"
+  }
+}

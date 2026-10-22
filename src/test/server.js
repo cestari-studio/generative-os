@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -10,7 +10,7 @@ import { setupServer } from 'msw/node';
 import { getNetworking } from './networking';
 import { getRouter } from './router';
 import { getRoutes } from '../routes/routes';
-import { port, base } from '../config/server-config.js';
+import { baseUrl } from '../config/server-config.js';
 
 const _setupServer = (...args) => {
   const mocks = [];
@@ -22,7 +22,7 @@ const _setupServer = (...args) => {
   // Mock external API calls from postHandlers to our local external endpoints
   // These intercept the fetch calls made by postHandlers.js
   const externalMocks = [
-    http.get(`${base}:${port}/api/external/post/:id`, ({ params }) => {
+    http.get(`${baseUrl}/api/external/post/:id`, ({ params }) => {
       return HttpResponse.json({
         id: params.id,
         title: 'Test post title',
@@ -30,7 +30,7 @@ const _setupServer = (...args) => {
         userId: 1,
       });
     }),
-    http.get(`${base}:${port}/api/external/comments`, ({ request }) => {
+    http.get(`${baseUrl}/api/external/comments`, ({ request }) => {
       const url = new URL(request.url);
       const postId = url.searchParams.get('postId');
       return HttpResponse.json([
@@ -50,6 +50,10 @@ const _setupServer = (...args) => {
         },
       ]);
     }),
+    http.get('https://*.supabase.co/rest/v1/*', () => HttpResponse.json([])),
+    http.post('https://*.supabase.co/rest/v1/rpc/*', () => HttpResponse.json([])),
+    http.get('https://*.supabase.co/auth/v1/*', () => HttpResponse.json({ user: null, session: null })),
+    http.post('https://*.supabase.co/functions/v1/*', () => HttpResponse.json({ status: 'ok', matches: [] })),
   ];
 
   const server = setupServer(...mocks, ...externalMocks, ...args);
