@@ -1,105 +1,838 @@
 {
+  "auth": {
+    "protected": {
+      "allCategoriesSubtitle": "Die folgenden modularen Einstellungsbereiche werden unter verifizierter Mandanten-Governance verwaltet:",
+      "allCategoriesTitle": "Einstellungskategorien auf Mandantenebene",
+      "cardCategoryPrompt": "Sie versuchen auf {{category}} zuzugreifen. Dieser Bereich ist authentifizierten Mitgliedern von Unternehmens-Workspaces vorbehalten.",
+      "cardDefaultPrompt": "Dieser Bereich ist authentifizierten Mitgliedern von Unternehmens-Workspaces vorbehalten.",
+      "cardHeading": "Authentifizierte Mandantensitzung erforderlich",
+      "privateCategory": "Privat",
+      "returnHome": "Zurück zur öffentlichen Startseite",
+      "signInButton": "Im Mandanten-Workspace anmelden",
+      "subtitle": "Alle Anwendungsworkspaces, Dienste und Betriebskonfigurationen gehören zu Mandantenebene-Einstellungskategorien und erfordern eine authentifizierte Sitzung.",
+      "targetCategory": "Ziel",
+      "title": "Zugriff auf Mandantenebene-Einstellungen beschränkt",
+      "validating": "Mandantensitzung wird validiert...",
+      "warningSubtitle": "Gastbenutzer können keine Mandantenkonfigurationen, pgvector-Embeddings oder Finanzdatensätze einsehen oder ändern.",
+      "warningTitle": "Zugangssperre aktiv"
+    }
+  },
+  "cascadeSettings": {
+    "allScopes": "Alle Bereiche",
+    "applyButton": "Speichern & Kaskadieren",
+    "auditHeading": "Kaskaden-Audit-Protokoll (Schema.org Action)",
+    "auditSubtitle": "Live PostgreSQL public.audit_actions Ereignisse aus RPC und Edge Functions.",
+    "filterScopeLabel": "Nach Bereich filtern",
+    "hubDesc": "Alle Plattformmodule und Betriebsdienste fungieren als Einstellungen auf Mandantenebene, isoliert im Kontext Ihrer aktiven Organisation.",
+    "hubTitle": "Einstellungskategorien auf Mandantenebene",
+    "inheritedFrom": "Wirksam von: {{level}}",
+    "jsonLdDesc": "Einheitlicher mehrstufiger Schema.org-Entitätsgraph, der dynamisch aus der aktiven Hierarchie von Organisation, Workspace und CreativeWork-Projekt zusammengestellt wird.",
+    "jsonLdPreview": "Schema.org JSON-LD Vorschau",
+    "lockedBadge": "GESPERRT durch {{level}}",
+    "openCategory": "Einstellung öffnen",
+    "privateBadge": "Privat",
+    "purgeChildrenLabel": "Untergeordnete Überschreibungen beim Anwenden löschen",
+    "ruleLabel": "Kaskadenregel",
+    "subtitle": "Granulare 4-stufige Einstellungs-Engine (Organisation → Arbeitsbereich → Projekt → Person) mit Schema.org PropertyValue-Taxonomie.",
+    "tabAudit": "Audit-Hauptbuch",
+    "tabCategories": "Mandanten-Einstellungs-Hub",
+    "tabJsonLd": "Schema.org JSON-LD",
+    "tabMatrix": "Richtlinien-Matrix",
+    "tabsAriaLabel": "Kaskaden-Governance-Abschnitte",
+    "tierSelectorLabel": "Bearbeitungsebene",
+    "title": "Mandantenfähige Kaskaden-Einstellungen",
+    "valueLabel": "Einstellungswert"
+  },
+  "common": {
+    "actions": "Aktionen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "error": "Fehler",
+    "loading": "Wird geladen...",
+    "next": "Next processor",
+    "organization": "Organization",
+    "previous": "Previous processor",
+    "project": "Project",
+    "refresh": "Refresh",
+    "select": "Auswählen",
+    "selected": "Aktiv",
+    "workspace": "Workspace",
+    "back": "Zurück",
+    "finish": "Abschließen",
+    "on": "Ein",
+    "off": "Aus"
+  },
+  "commonHeader": {
+    "logoAlt": "Cestari Studio Logo"
+  },
+  "dashboard": {
+    "actions": {
+      "cascade": "Kaskaden-Governance-Engine",
+      "cascadeDesc": "Prüfen und erzwingen Sie LOCKED-, INHERIT_OVERRIDABLE- und MERGE-Regeln über 4 Ebenen.",
+      "identity": "Identität & Multi-Länder-PF/PJ",
+      "identityDesc": "Unternehmens-Onboarding mit 9-Länder-Validierung, Steuerregister und FIDO2-Passkeys.",
+      "ingest": "Wissenskorpus erfassen",
+      "ingestDesc": "Segmentieren und indizieren Sie mehrstufige Schema.org DigitalDocument-Assets in isolierte Vektorräume.",
+      "search": "Semantische Vektorsuche",
+      "searchDesc": "Fragen Sie 384-dimensionale pgvector HNSW-Embeddings mit Echtzeit-Kosinusabstand ab."
+    },
+    "activity": {
+      "networkActivity": "Netzwerkaktivität",
+      "networkNotifications": "Netzwerkbenachrichtigungen"
+    },
+    "charts": {
+      "actionsAxis": "Actions recorded",
+      "activityDesc": "Audited actions recorded in public.audit_actions across active horizons.",
+      "activityTitle": "Tenant Activity & Audit Timeline",
+      "cascadeDesc": "Breakdown of active settings by inheritance and locking directives.",
+      "cascadeTitle": "Cascade Governance Rule Distribution",
+      "corpusDesc": "Breakdown of indexed Schema.org DigitalDocument and MediaObject files.",
+      "corpusTitle": "Knowledge & Media Assets by Format",
+      "itemsCount": "Count",
+      "rulesTotal": "Effective rules",
+      "timelineAxis": "Timeline"
+    },
+    "chartsRegion": "Telemetry and Governance Analytics",
+    "contextHierarchy": "Tenant hierarchy",
+    "emptyStates": {
+      "clearSearch": "Suche löschen",
+      "nodesSubtitle": "Keine Knoten entsprechen dem ausgewählten Cluster-Bereich oder der Suchanfrage. Filter zurücksetzen, um alle Online-Systeme anzuzeigen.",
+      "nodesTitle": "Keine übereinstimmenden Cluster-Knoten",
+      "resetFilters": "Filter zurücksetzen",
+      "searchSubtitle": "Keine Einträge stimmen mit \"{{query}}\" überein. Suche löschen, um alle Datensätze anzuzeigen.",
+      "searchTitle": "Keine übereinstimmenden Ergebnisse"
+    },
+    "filtersRegion": "Dashboard filters",
+    "kpis": {
+      "assetsLabel": "Knowledge assets",
+      "assetsSub": "Vector embeddings & media objects",
+      "assetsTag": "pgvector & Storage",
+      "membersLabel": "Active members",
+      "membersSub": "Schema.org Persons registered in organization",
+      "membersTag": "Tier 4 Persons",
+      "projectsLabel": "CreativeWork projects",
+      "projectsSub": "Active initiatives across workspaces",
+      "projectsTag": "Tier 3 Projects",
+      "rulesLabel": "Locked cascade rules",
+      "rulesSub": "Enforced policies from higher tiers",
+      "rulesTag": "Strict Governance"
+    },
+    "kpisRegion": "Operational KPIs",
+    "loading": "Dashboard wird geladen...",
+    "nodes": {
+      "heading": "Knoten"
+    },
+    "numberTiles": {
+      "activeProjects": "CreativeWork-Projekte",
+      "activeUsers": "Aktive Benutzer",
+      "assetsBadge": "pgvector HNSW (384-d)",
+      "certifiedDevelopers": "Zertifizierte Entwickler",
+      "effectiveSettings": "Aktive Kaskadenregeln",
+      "industryClients": "Industriekunden",
+      "innovationCenters": "Quanten-Innovationszentren",
+      "knowledgeAssets": "Wissenssammlungen",
+      "networkMembers": "Netzwerkmitglieder",
+      "ninetyDayChange": "90-Tage-Änderung",
+      "projectsBadge": "Ebene 3 Projekte",
+      "qiskitAdvocates": "Qiskit-Befürworter",
+      "qiskitCourses": "Qiskit-Kurse",
+      "qiskitLearners": "Qiskit-Lernende",
+      "quantumSafeClients": "Quantum-Safe-Kunden",
+      "researchPapers": "Forschungsarbeiten gesamt",
+      "settingsBadge_one": "{{count}} GESPERRT",
+      "settingsBadge_other": "{{count}} GESPERRT",
+      "usersBadge": "Personen (Schema.org Person)"
+    },
+    "previewCards": {
+      "blueprintDesc": "Autonome kognitive Schleife, die pgvector-Retrieval, Granite-Reasoning und Schema.org Action-Ausführung verbindet.",
+      "blueprintTitle": "Blueprint für neuronale Agenten-Workflows",
+      "governanceDesc": "Erzwingen Sie LOCKED-, INHERIT_OVERRIDABLE- und MERGE-Richtlinien über 4 Mehrmandanten-Organisationsebenen.",
+      "governanceTitle": "Kaskaden-Governance",
+      "graniteDesc": "Granite 3.0 8B Instruct-Modell im Enterprise-Multi-Tenant-Modus bereitgestellt mit Hardware-Tensorbeschleunigung, int4-Quantisierung und End-to-End-Token-Auditierung.",
+      "graniteTitle": "Bereitstellung des IBM Granite-Basismodells",
+      "knowledgeDesc": "Fragen Sie 384-dimensionale pgvector HNSW-Embeddings mit Echtzeit-Kosinusabstand über mehrstufige Schemas ab.",
+      "knowledgeTitle": "Wissen & Vektor-RAG",
+      "monitoringDesc": "99,98 % SLA-Konformitätsverfolgung, automatische Speicherleck-Diagnose und Echtzeit-Profiling von Core Web Vitals.",
+      "monitoringTitle": "Kontinuierliche Telemetrie",
+      "paymentsDesc": "PagBank Mehrmandanten-Finanzverarbeitung mit Echtzeit-Prüfprotokollierung und Webhook-Verifizierung.",
+      "paymentsTitle": "Finanz-Gateway",
+      "runtimeDesc": "Isolierte Container-Knoten, auf denen node-v22 Serverless-Worker mit Startlatenzen unter 14 ms ausgeführt werden.",
+      "runtimeTitle": "Virtuelle Maschinen-Laufzeit",
+      "tagActive": "Aktive Pipeline"
+    },
+    "processor": {
+      "available": "Verfügbar",
+      "label": "Prozessor"
+    },
+    "shortcuts": {
+      "heading": "Operational Accelerators",
+      "knowledgeDesc": "Query 384-dimensional pgvector HNSW embeddings with real-time cosine distance.",
+      "knowledgeTitle": "Semantic Vector Search",
+      "paymentsDesc": "Manage PagBank multi-tenant splits, seller payouts, and subscription plans.",
+      "paymentsTitle": "Financial & Billing Hub",
+      "productsDesc": "Configure multi-tenant modular product suites and corporate identity attributes.",
+      "productsTitle": "Products & Brand DNA",
+      "settingsDesc": "Inspect and enforce LOCKED, INHERIT_OVERRIDABLE, and MERGE rules across 4 tiers.",
+      "settingsTitle": "Cascade Governance Engine",
+      "subheading": "Direct pathways to core multi-tenant subsystems and governance tools."
+    },
+    "shortcutsRegion": "Quick Action Shortcuts",
+    "sla": "Online · 14 ms Latenz · 99,98 % SLA",
+    "subtitle": "Einheitliche operative Übersicht über Mandanten-Workspaces, pgvector-Semantik, Kaskadenrichtlinien und Prüfprotokolle.",
+    "tables": {
+      "actionType": "Action @type",
+      "auditDesc": "Immutable multi-tenant operational ledger recorded in PostgreSQL public.audit_actions.",
+      "auditTitle": "Schema.org Audit Action Stream",
+      "cascadeRule": "Cascade rule",
+      "domain": "Domain",
+      "entity": "Entity",
+      "governanceDesc": "Resolved Schema.org PropertyValue parameters computed across 4 hierarchical tiers.",
+      "governanceTitle": "Effective Cascade Governance",
+      "instrument": "Instrument",
+      "propertyId": "Property ID",
+      "searchAudits": "Filter audit actions...",
+      "searchGovernance": "Filter policies...",
+      "sourceTier": "Source tier",
+      "status": "Status"
+    },
+    "tablesRegion": "Operational Ledgers and Governance Matrix",
+    "throughput": {
+      "liveStream": "Livestream",
+      "online": "Online",
+      "pendingJobs": "Ausstehende Aufgaben",
+      "timeSpentTitle": "Time spent in state (%)"
+    },
+    "title": "Mandanten-Dashboard",
+    "toolbar": {
+      "allWorkspaces": "All workspaces",
+      "clusterAll": "Alle Cluster",
+      "clusterScope": "Cluster-Bereich",
+      "export": "Bericht exportieren",
+      "formAria": "Symbolleiste zur Dashboard-Filterung",
+      "horizon24h": "Letzte 24 Stunden",
+      "horizon30d": "Letzte 30 Tage",
+      "horizon7d": "Letzte 7 Tage",
+      "horizon90d": "Letzte 90 Tage",
+      "refresh": "Metriken aktualisieren",
+      "refreshing": "Wird aktualisiert...",
+      "searchLabel": "Knoten und Telemetrie durchsuchen",
+      "searchPlaceholder": "Nach Cluster, ID oder Audit-Aktion filtern...",
+      "timeHorizon": "Zeithorizont",
+      "timeHorizonLabel": "Time horizon",
+      "workspaceScopeLabel": "Workspace scope"
+    },
+    "topology": {
+      "title": "Systemtopologie"
+    },
+    "urlParameters": {
+      "description": "Dies zeigt, wie Sie sowohl Pfad- als auch Query-Parameter aus der URL abrufen können.",
+      "greeting": "Hallo {{name}}! 👋",
+      "pathParameter": "Pfad-Parameter erkannt (id):",
+      "queryParameterName": "Query-Parameter erkannt (name):",
+      "queryParameterQ": "Query-Parameter erkannt (q):",
+      "title": "URL-Parameter Beispiel",
+      "tryAccessing": "Versuchen Sie:"
+    },
+    "visualizations": {
+      "auditSubtitle": "Mandantenfähiger Ereignisstrom in public.audit_actions.",
+      "auditTitle": "Schema.org-Audit-Aktionsdatenstrom",
+      "emptyAudits": "Bisher wurden keine Audit-Aktionen aufgezeichnet. Operative Ereignisse werden hier in Echtzeit gestreamt.",
+      "emptySettings": "Für diesen Mandantenkontext wurden keine aktiven Kaskadenrichtlinien aufgelöst.",
+      "settingsSubtitle": "Live Schema.org PropertyValue-Auflösung über Supabase RPC resolve_effective_settings.",
+      "settingsTitle": "Effektive Kaskadierungs-Governance"
+    },
+    "header": {
+      "title": "Mandanten-Dashboard",
+      "subtitle": "Mandantenfähige Unternehmenstelemetrie, Onboarding-Orchestrierung und Governance-Betrieb",
+      "actionsButton": "Aktionen",
+      "actionsOverflow": "Weitere Aktionen"
+    },
+    "breadcrumbs": {
+      "home": "Startseite"
+    },
+    "tabs": {
+      "ariaLabel": "Dashboard-Ansichten",
+      "dashboard": "Dashboard",
+      "workspace": "Arbeitsbereich",
+      "users": "Benutzer",
+      "subscriptions": "Abonnements",
+      "settings": "Einstellungen"
+    },
+    "onboarding": {
+      "title": "Schließen Sie Ihr Mandanten-Onboarding ab",
+      "subtitleWithProgress": "Befolgen Sie diese 4 wesentlichen Schritte ({{completed}} von 4 abgeschlossen).",
+      "step1": {
+        "label": "Schritt 1 von 4",
+        "title": "Mandanten-DNA & Identität konfigurieren",
+        "desc": "Legen Sie juristische Organisationsdetails, Steuerregister und Markenidentität fest."
+      },
+      "step2": {
+        "label": "Schritt 2 von 4",
+        "title": "Arbeitsbereiche & Projekte bereitstellen",
+        "desc": "Organisieren Sie Kreativteams und definieren Sie Projektgrenzen."
+      },
+      "step3": {
+        "label": "Schritt 3 von 4",
+        "title": "Vektorwissen & Dokumente indexieren",
+        "desc": "Laden Sie Dokumente hoch, um 384-d pgvector-Embeddings für kognitives RAG zu generieren."
+      },
+      "step4": {
+        "label": "Schritt 4 von 4",
+        "title": "Abonnement & FinOps aktivieren",
+        "desc": "Richten Sie die PagBank-Zahlungsabwicklung ein und wählen Sie Tariflimits."
+      }
+    },
+    "workspaces": {
+      "current": "Aktiver Arbeitsbereich",
+      "organization": "Organisation",
+      "identifier": "ID",
+      "createButton": "Neuen Arbeitsbereich erstellen",
+      "tableTitle": "Bereitgestellte Arbeitsbereiche",
+      "tableDesc": "Isolierte mandantenfähige Kontexte, geregelt durch Schema.org-Modelle.",
+      "colName": "Name des Arbeitsbereichs",
+      "colIdentifier": "Kennung / ID",
+      "colProjects": "CreativeWork-Projekte",
+      "colStatus": "Status",
+      "unnamed": "Standard-Arbeitsbereich",
+      "nameLabel": "Arbeitsbereichsname",
+      "slugLabel": "Kennung / Slug",
+      "envLabel": "Umgebungstyp"
+    },
+    "users": {
+      "title": "Mandantenmitglieder & Berechtigungen",
+      "subtitle": "Schema.org Person-Entitäten in {{org}} mit isolierten RBAC-Bereichen.",
+      "inviteButton": "Teammitglied einladen",
+      "inviteAlert": "Einladungsdialog versendet.",
+      "tableTitle": "Organisationsmitglieder",
+      "tableDesc": "Geprüftes Personal unter mandantenfähigen Governance-Richtlinien.",
+      "colName": "Mitgliedsname",
+      "colEmail": "E-Mail-Adresse",
+      "colRole": "Organisationsrolle",
+      "colStatus": "Status",
+      "colId": "Personen-ID",
+      "roleOwner": "Inhaber / Administrator",
+      "roleMember": "Arbeitsbereichsmitglied",
+      "unnamed": "Anonyme Person"
+    },
+    "subscriptions": {
+      "currentPlan": "Aktives Abonnement: {{tier}}",
+      "subtitle": "Abrechnungs-, Nutzungs- und Abonnementverwaltung für diese Organisation.",
+      "manageButton": "Abrechnung & PagBank verwalten",
+      "membersQuota": "Teammitglieder-Kontingent",
+      "workspacesQuota": "Arbeitsbereichs-Kontingent",
+      "ragQuota": "Vektorwissen-Dokumente",
+      "quotaProgress": "Auslastung",
+      "upgrade": "Tarif upgraden",
+      "planSelect": "Abonnementstufe auswählen",
+      "billingCycle": "Abrechnungshäufigkeit",
+      "noPlan": "Kein aktives Abonnement",
+      "pricingNotConfigured": "Die Preise sind für diese Organisation noch nicht konfiguriert. Pläne, Preise und Limits werden vom Plattformadministrator über den versionierten Abrechnungskatalog veröffentlicht."
+    },
+    "settings": {
+      "personalTitle": "Persönliche Benutzereinstellungen",
+      "personalSubtitle": "Benutzerspezifische Einstellungen, die in der Person-Entität gespeichert sind.",
+      "governanceTitle": "Kaskaden-Governance",
+      "governanceSubtitle": "Mehrebenen-Richtlinienvererbung.",
+      "activePolicies": "Aktive Kaskadenregeln",
+      "lockedPolicies": "Gesperrte Richtlinien",
+      "openMatrixButton": "Kaskadenmatrix & JSON-LD-Graph öffnen",
+      "savedTitle": "Einstellungen gespeichert",
+      "persistedDesc": "Konfiguration im Mandantenprofil in der Datenbank gespeichert.",
+      "saveError": "Fehler beim Speichern der Einstellung."
+    }
+  },
+  "footer": {
+    "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
+    "disclaimer": "genOS ist das generative Betriebssystem von Cestari Studio Inc. Der Zugriff auf Produktions-Workspaces erfordert ein aktives Abonnement.",
+    "evaluation": "Erfahren Sie mehr darüber, wie genOS-Anwendungen evaluiert werden unter"
+  },
+  "knowledgeVector": {
+    "docContentLabel": "Dokumentinhalt (Markdown / Text)",
+    "docScopeLabel": "Sichtbarkeitsebene",
+    "docsTableDesc": "Dokumente indexiert mit 384-d HNSW-Embeddings in public.knowledge_documents.",
+    "docsTableTitle": "Indexierter Wissenskorpus (Schema.org DigitalDocument)",
+    "docTitleLabel": "Dokumenttitel (Schema.org name)",
+    "dropzoneLabel": "Dateien hier ablegen oder klicken, um in Supabase Storage hochzuladen",
+    "emptyDocs": "Noch keine Dokumente in diesem Wissenskorpus indiziert. Verwenden Sie das Formular zum Segmentieren und Indizieren.",
+    "emptyMedia": "Noch keine Medienobjekte in diesen Bucket hochgeladen.",
+    "emptySearch": "Keine passenden semantischen Chunks für diesen Schwellenwert gefunden. Passen Sie den Schieberegler an.",
+    "ingestButton": "Aufteilen & Indexieren",
+    "ingestHeading": "Wissensdokument aufnehmen",
+    "matchCountLabel": "Maximale Treffer",
+    "mediaTableDesc": "Live-Objekte in mandantenisolierten Buckets in public.media_objects.",
+    "mediaTableTitle": "Mandanten-Speicher MediaObjects (Schema.org MediaObject)",
+    "searchButton": "Vektoren durchsuchen",
+    "searchDescription": "Führt Echtzeit-Kosinusabstandsabgleiche gegen vorab berechnete 384-dimensionale Embeddings in pgvector durch.",
+    "searchHeading": "Semantische Vektorsuche",
+    "searchPlaceholder": "Frage stellen oder Wissensabschnitte durchsuchen...",
+    "similarityThresholdLabel": "Mindest-Ähnlichkeitsschwelle",
+    "storagePathLabel": "Isolierter Speicherpfad:",
+    "subtitle": "Mandantenfähiger Schema.org DigitalDocument-Speicher und 384-dimensionale HNSW-Ähnlichkeitssuche.",
+    "suggestionsLabel": "Schnellabfragen:",
+    "tabIngest": "Korpus & Erfassung",
+    "tabsAriaLabel": "Wissens- und Vektor-RAG-Bereiche",
+    "tabSearch": "Semantische Suche",
+    "tabStorage": "Speicher-Buckets",
+    "title": "Wissensdatenbank & pgvector RAG",
+    "uploadDescription": "Dateien in isolierten Mandantenpfad hochladen",
+    "uploadHeading": "Mandanten-Speicher-Buckets",
+    "searching": "Wissenskorpus wird durchsucht..."
+  },
   "nav": {
+    "actions": {
+      "appSwitcher": "App-Umschalter",
+      "search": "Suchen",
+      "userProfile": "Benutzerprofil"
+    },
+    "categories": {
+      "governance": "Mandantenverwaltung",
+      "operations": "Betrieb & Katalog",
+      "overview": "Übersicht"
+    },
+    "header": {
+      "name": "Generative OS",
+      "navigationAria": "Hauptnavigation",
+      "prefix": "Cestari",
+      "shellLabel": "Generative OS"
+    },
+    "home": "Home",
+    "links": {
+      "cascadeSettings": "Kaskaden-Einstellungen",
+      "dashboard": "Dashboard",
+      "knowledgeVector": "Wissensdatenbank & Vektor-RAG",
+      "payments": "Billing & FinOps",
+      "placeholder": "Platzhalter",
+      "subMenu": "Untermenü",
+      "welcome": "Willkommen"
+    },
     "menu": {
       "close": "Menü schließen",
       "open": "Menü öffnen"
-    },
-    "header": {
-      "name": "React-Startvorlage"
-    },
-    "actions": {
-      "search": "Suchen",
-      "userProfile": "Benutzerprofil",
-      "appSwitcher": "App-Umschalter"
     },
     "sideNav": {
       "ariaLabel": "Seitennavigation"
     }
   },
-  "footer": {
-    "title": "Fußzeile",
-    "copyright": "Copyright IBM 2025, 2026"
-  },
-  "profile": {
-    "settings": {
-      "complementMenuTheme": "Menü-Theme umkehren"
-    }
-  },
-  "commonHeader": {
-    "logoAlt": "fed-at-ibm Logo"
-  },
-  "dashboard": {
-    "loading": "Dashboard wird geladen...",
-    "title": "Dashboard",
-    "numberTiles": {
-      "activeUsers": "Aktive Benutzer"
-    },
-    "urlParameters": {
-      "title": "URL-Parameter Beispiel",
-      "greeting": "Hallo {{name}}! 👋",
-      "description": "Dies zeigt, wie Sie sowohl Pfad- als auch Query-Parameter aus der URL abrufen können.",
-      "tryAccessing": "Versuchen Sie:",
-      "pathParameter": "Pfad-Parameter erkannt (id):",
-      "queryParameterQ": "Query-Parameter erkannt (q):",
-      "queryParameterName": "Query-Parameter erkannt (name):"
-    }
-  },
   "notFound": {
-    "loading": "Fehlerseite wird geladen...",
-    "title": "Seite nicht gefunden",
     "description": "Dies ist nicht die Seite, die Sie gesucht haben.",
+    "loading": "Fehlerseite wird geladen...",
+    "maintainer": "Betreut von Cestari Studio Inc.",
     "routeNotRecognized": "Die Route '{{pathname}}' ist nicht bekannt.",
-    "maintainer": "Betreut von fed-at-ibm, einem Chapter der OIC."
+    "title": "Seite nicht gefunden"
+  },
+  "onboarding": {
+    "accountTypeHeading": "1. Rechtliche Einstufung der Rechtspersönlichkeit",
+    "backButton": "Zurück",
+    "birthDate": "Geburtsdatum (JJJJ-MM-TT)",
+    "cameraAria": "Gesichtserkennung / Windows Hello",
+    "cameraAuth": "Gesichtserkennung",
+    "cancelButton": "Abbrechen",
+    "cancelModalDesc": "Ihr Fortschritt wird schrittweise gespeichert. Sie können das Onboarding jederzeit über Ihr Profil fortsetzen.",
+    "cancelModalTitle": "Möchten Sie die Einrichtung wirklich verlassen?",
+    "cardPFDesc": "Ihr Konto wird mit persönlichen Arbeitsbereichsrechten und individuellen Steuerdaten bereitgestellt.",
+    "cardPFTitle": "Ablauf für Privatkonto",
+    "cardPJDesc": "Eine Unternehmens-Mandantenhierarchie mit rechtlicher Governance, mehreren Arbeitsbereichen und Abteilungszugriff wird bereitgestellt.",
+    "cardPJTitle": "Bereitstellung für Enterprise-Mandanten",
+    "completeButton": "Einrichtung abschließen & beitreten",
+    "completing": "Einrichtung wird abgeschlossen...",
+    "continueSetup": "Einrichtung fortsetzen",
+    "enrollPasskeyBtn": "WebAuthn-Passkey registrieren",
+    "exitSetup": "Einrichtung beenden",
+    "newTenantDesc": "Eine dedizierte Mandantenorganisation wird mit isoliertem PostgreSQL-Schema, erstem Arbeitsbereich und Standardprojekt bereitgestellt.",
+    "newTenantTitle": "Bereitstellungsziel:",
+    "nextButton": "Weiter",
+    "orgSelectLabel": "Organisation (Ebene 1)",
+    "passkeyDesc": "Registrieren Sie Ihren Hardware-Geräte-Authenticator (Touch ID, Face ID, Windows Hello oder YubiKey) für die passwortlose Multi-Faktor-Authentifizierung.",
+    "passkeyHeading": "FIDO2 / WebAuthn Biometrische Sicherheit",
+    "passkeySuccessDesc": "Ihre biometrische Hardware-Anmeldeinformation ist jetzt für die passwortlose Unternehmensanmeldung registriert.",
+    "prjSelectLabel": "Projekt / CreativeWork (Ebene 3)",
+    "securityKeyAria": "FIDO2-Sicherheitsschlüssel / YubiKey",
+    "securityKeyAuth": "FIDO2-Hardwareschlüssel",
+    "securityKeyLabel": "Sicherheitsschlüssel",
+    "steps": {
+      "addressSubtitle": "Eingetragener Hauptsitz oder steuerlicher Wohnsitz",
+      "addressTitle": "Offizielle Adresse",
+      "classificationSubtitle": "Wählen Sie die Rechtsform des Kontos, die Gerichtsbarkeit und die Oberflächensprache",
+      "classificationTitle": "Konto & Gerichtsbarkeit",
+      "corporateSubtitle": "Größeneinstufung, gesetzlicher Vertreter und Unterzeichnerrolle",
+      "corporateTitle": "Unternehmensführung & Größe",
+      "identitySubtitle": "Amtliche Registrierungsnummern und rechtliche Identifikation",
+      "identityTitle": "Identität & Steuerregistrierung",
+      "workspaceSubtitle": "Konfiguration der Mandantenhierarchie und FIDO2/WebAuthn-Registrierung",
+      "workspaceTitle": "Workspace & Sicherheit"
+    },
+    "title": "Schließen Sie Ihre Unternehmens- und Kontoeinrichtung ab",
+    "touchAria": "Fingerabdrucksensor / Touch ID",
+    "touchAuth": "Touch ID / Fingerabdruck",
+    "workspaceHeading": "Instanz- & Arbeitsbereichshierarchie",
+    "wsSelectLabel": "Arbeitsbereich / Abteilung (Ebene 2)",
+    "validation": {
+      "required": "Organisationsname ist erforderlich"
+    },
+    "passkeyUnavailableTitle": "Passkeys in dieser Version nicht verfügbar",
+    "passkeyUnavailableDesc": "Die Registrierung von Hardware-Authentikatoren (Touch ID, Face ID, Windows Hello, Sicherheitsschlüssel) wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist. Sie können das Onboarding jetzt abschließen und sich mit E-Mail und Passwort anmelden."
+  },
+  "payments": {
+    "amountLabel": "Zahlungsbetrag (BRL)",
+    "auditHeading": "Echtzeit-Audit-Ledger-Ereignisse (public.audit_actions)",
+    "authorizeSeller": "PagBank-Verkäufer autorisieren",
+    "boletoHeading": "Boleto Bancário generiert",
+    "boletoInstructions": "Barcode-Zahlenreihe zur Abrechnung:",
+    "chargeError": "Fehler beim Verarbeiten der PagBank-Zahlung.",
+    "chargeFailed": "Erstellung der Zahlung fehlgeschlagen.",
+    "chargesSectionHeading": "Transaktionsbuch des Mandanten",
+    "chargesTableDesc": "Transaktionen unterliegen der Mandanten-RLS-Richtlinie",
+    "chargesTableTitle": "Zahlungen und Bestellungen",
+    "chargeSuccess": "Zahlung erfolgreich generiert!",
+    "colAmount": "Betrag",
+    "colChargeId": "Zahlungs-ID",
+    "colDate": "Datum/Uhrzeit",
+    "colMethod": "Methode",
+    "colSellerAccount": "PagBank-Konto",
+    "colSellerEmail": "E-Mail",
+    "colSellerName": "Firmenname / Name",
+    "colSellerStatus": "Status",
+    "colSellerTaxId": "Steuer-ID / CNPJ",
+    "colStatus": "Status",
+    "commissionLabel": "Plattformprovision (%)",
+    "connectError": "Fehler beim Abrufen der PagBank Connect-URL.",
+    "connectHeading": "Verbundene Konten & Auszahlungssplit-Engine",
+    "connectInitError": "Fehler beim Initiieren von Connect.",
+    "connectWindowOpened": "PagBank Connect-Autorisierungsfenster wurde geöffnet.",
+    "copied": "Kopiert!",
+    "copyEmv": "PIX-Code kopieren",
+    "customerEmail": "Kunden-E-Mail",
+    "customerName": "Kundenname",
+    "emptyAudits": "Bisher wurden keine Zahlungsaudit-Ereignisse aufgezeichnet.",
+    "emptyCharges": "Keine Transaktionen gefunden. Klicken Sie auf \"Neue Sofortzahlung\", um eine zu erstellen.",
+    "emptySellers": "Noch keine PagBank-Verkäufer verbunden. Klicken Sie auf \"PagBank-Verkäufer autorisieren\".",
+    "fdwDesc": "Der wasm_wrapper Foreign Data Wrapper (wrappers v0.6.3) bildet PagBank-REST-Endpunkte direkt auf relationale PostgreSQL-Tabellen im privaten Schema pagbank_fdw ab.",
+    "fdwHeading": "Supabase Wrappers & Foreign Data Wrapper-Architektur",
+    "invalidAmount": "Bitte geben Sie einen gültigen Betrag größer als null ein.",
+    "kpiPaid": "Bezahlte Rechnungen",
+    "kpiPending": "Ausstehende Rechnungen",
+    "kpiSellers": "Verbundene Verkäufer (Split)",
+    "kpiTotal": "Gesamtes Transaktionsvolumen",
+    "methodBoleto": "Boleto Bancário",
+    "methodCard": "Kreditkarte",
+    "methodLegend": "Zahlungsart",
+    "methodPix": "Instant PIX (EMV QR-Code)",
+    "modalCancel": "Abbrechen",
+    "modalHeading": "Neue PagBank-Zahlung ausstellen",
+    "modalSubmit": "Zahlung generieren",
+    "newCharge": "Neue Sofortzahlung",
+    "noAuditEvents": "Bisher wurden keine Zahlungsaudit-Ereignisse aufgezeichnet.",
+    "noSplit": "Keiner (100% Plattform-Mandant)",
+    "pixQrHeading": "Dynamischer PIX-QR-Code generiert",
+    "pixQrInstructions": "Scannen Sie mit Ihrer Banking-App oder kopieren Sie den EMV-Code:",
+    "printBoleto": "Boleto als PDF drucken / herunterladen",
+    "refresh": "Aktualisieren",
+    "sellerSplitLabel": "Verkäufer für Zahlungssplit (Optional)",
+    "sellersTableDesc": "Verbundene Unterkonten für automatisierte Split-Auszahlungen berechtigt",
+    "sellersTableTitle": "Autorisierte Verkäufer",
+    "status": "Status",
+    "subtitle": "Einheitliches Finanzmodul: Instant-PIX-Zahlungen, Karte, Boleto, Split Marketplace Connect und Supabase Wrappers.",
+    "tabAudit": "Schema.org-Audit",
+    "tabCharges": "Zahlungen & Bestellungen",
+    "tabConnect": "PagBank Connect & Split",
+    "tabFdw": "Supabase Wrappers (FDW)",
+    "taxonomyHeading": "Implementierte Schema.org-Taxonomie:",
+    "title": "PagBank Multi-Tenant & FDW-Engine",
+    "invalidCustomer": "Kundenname und E-Mail sind erforderlich.",
+    "amountPlaceholder": "0,00"
   },
   "placeholder": {
-    "loading": "Platzhalterseite wird geladen...",
-    "title": "Diese Seite ist noch nicht fertig",
     "description1": "Generell ist es keine gute Idee, Seiten im Aufbau zu haben.",
     "description2": "Diese Seite hilft, die globale Navigation zu demonstrieren.",
+    "loading": "Platzhalterseite wird geladen...",
+    "maintainer": "Betreut von Cestari Studio Inc.",
     "routeInfo": "Sie befinden sich an der Route '{{pathname}}'.",
-    "maintainer": "Betreut von fed-at-ibm, einem Chapter der OIC."
+    "title": "Diese Seite ist noch nicht fertig"
   },
-  "welcomeHeader": {
-    "title": "Willkommen zur Carbon React-Startvorlage",
-    "description1": "Dies ist eine Boilerplate und ein lebendiger Leitfaden für die Erstellung von React-Anwendungen mit dem Carbon Design System. Passen Sie es nach Bedarf an.",
-    "maintainer": "Betreut von fed-at-ibm, einem Chapter der OIC.",
-    "button": {
-      "useTemplate": "Diese Vorlage verwenden"
+  "productsCatalog": {
+    "allEntitled": "5 Suiten Aktiv",
+    "brandDnaDesc": "Verbale, visuelle und verhaltensbezogene Identitätsmodelle für Mandanten unter der Cestari Studio Agency.",
+    "brandDnaTitle": "Brand-DNA-Multi-Tenant-Katalog",
+    "brandName": "Markenprofil",
+    "brandTableDesc": "Wählen Sie ein Profil aus, um Brand-DNA-Tokens, Sprachrichtlinien und Positionierung anzuzeigen.",
+    "brandTableTitle": "Aktive Mandanten-Markenprofile",
+    "brandTokensHeading": "Semantische Brand-DNA-Tokens",
+    "capabilitiesHeading": "Erforderliche Fähigkeiten",
+    "capabilitiesHeadingTitle": "Geteilte Plattformfähigkeiten",
+    "capabilitiesSub": "Wiederverwendbare Fähigkeiten, die einheitlich von allen 5 genOS-Produktsuiten genutzt werden.",
+    "emptyBrands": "Keine Markenprofile entsprechen Ihren Suchkriterien.",
+    "entitledBadge": "Berechtigt & Aktiv",
+    "inspectTokens": "Prüfen",
+    "jsonLdSnippet": "Aktiver Schema.org JSON-LD-Kontext",
+    "locale": "Sprache",
+    "marketSegment": "Marktsegment",
+    "maturity": "Reifegradstatus",
+    "openModule": "Modul öffnen",
+    "parentTenant": "Übergeordnete Mandantenautorität",
+    "searchBrands": "Markenprofile suchen",
+    "searchPlaceholder": "Nach Name, Marktsegment oder Kategorie filtern...",
+    "segment": "Marktkategorie",
+    "servicesHeading": "Grundlegende Plattformdienste",
+    "servicesSub": "Transversale Dienste für Authentifizierung, UI-Shell, Kaskadenregeln und Release-Gates.",
+    "subproductsHeading": "Teilprodukte & Komponenten",
+    "subtitle": "Autonome Multi-Tenant-Produktsuiten, Brand-DNA-Profile und Plattformdienste nach Schema.org-Taxonomien.",
+    "suitesDesc": "Fünf domänenspezifische Produktsysteme auf gemeinsamer Helian-Agentenlaufzeit, pgvector-RAG und Audit-Ledgern.",
+    "suitesTitle": "Multi-Tenant genOS-Produktsuiten",
+    "supportedLocales": "Unterstützte Sprachen",
+    "tabBrandDna": "Brand-DNA-Profile (12)",
+    "tabPlatform": "Plattformdienste & Fähigkeiten",
+    "tabProducts": "Produktsuiten (5)",
+    "tabsAriaLabel": "Produkt- und Brand-DNA-Bereiche",
+    "tabTaxonomy": "Schema.org-Taxonomiegraph",
+    "taxonomyDesc": "Formale Ausrichtung aller Plattformseiten, Entitäten und Aktionen an Standard-Schema.org-Vokabularen.",
+    "taxonomyTitle": "Schema.org Multi-Tenant-Taxonomiegraph",
+    "title": "Produkt- & Brand-DNA-Katalog",
+    "verifiableOutcomes": "Verifizierbare Ergebnisse"
+  },
+  "profile": {
+    "auth": {
+      "emailLabel": "Geschäftliche E-Mail",
+      "guestMode": "Standard-Showcase-Organisation anzeigen",
+      "heading": "Remote-Identität & Passkeys",
+      "languageLabel": "Oberflächensprache (Schema.org inLanguage)",
+      "magicLink": "Magic-Link senden",
+      "noPasskeys": "Für diese Person wurden noch keine Passkeys registriert.",
+      "passkeysHeading": "Registrierte Passkeys (Schema.org SecurityCredential)",
+      "passwordLabel": "Passwort",
+      "registerPasskey": "WebAuthn-Passkey registrieren",
+      "signedInAs": "Angemeldet als",
+      "signIn": "Anmelden",
+      "signOut": "Abmelden"
+    },
+    "guest": {
+      "signInPrompt": "Melden Sie sich an, um auf Ihren Mandanten-Arbeitsbereich und Ressourcen zuzugreifen.",
+      "welcome": "Gastsitzung"
+    },
+    "language": {
+      "label": "Bevorzugte Oberflächensprache"
+    },
+    "links": {
+      "accessKeys": "Zugriffsschlüssel",
+      "authSection": "Authentifizierung",
+      "dashboard": "Übersicht & Analysen",
+      "label": "Profil-Links",
+      "payments": "Finanz-Gateway & PagBank",
+      "planAndBilling": "Abonnement & Abrechnung",
+      "planFormat": "Tarif {{plan}}",
+      "products": "Produkte & Brand DNA",
+      "profileSettings": "Profileinstellungen",
+      "userManagement": "Benutzerverwaltung",
+      "userProfile": "Benutzerprofil & Onboarding",
+      "workspaceSwitcher": "Workspace- & Kontexteinrichtung"
+    },
+    "passkeys": {
+      "description": "Passkeys bieten kryptografische, phishing-resistente Authentifizierung über Touch ID, Face ID oder Sicherheitsschlüssel via W3C WebAuthn.",
+      "deviceNameLabel": "Geräte- oder Schlüsselname",
+      "empty": "Noch keine Passkey-Anmeldedaten registriert.",
+      "modalTitle": "Passkeys & Biometrische Sicherheit",
+      "registerButton": "Passkey registrieren",
+      "registeredList_one": "Registrierte Anmeldedaten ({{count}}):",
+      "registeredList_other": "Registrierte Anmeldedaten ({{count}}):"
+    },
+    "readOnly": {
+      "brand": "Marke",
+      "instance": "Instanz",
+      "organization": "Organisation",
+      "owner": "Instanz-Eigentümer",
+      "workspace": "Arbeitsbereich / Projekt",
+      "workspaceId": "Workspace-ID"
+    },
+    "settings": {
+      "complementMenuTheme": "Menü-Theme umkehren",
+      "themeLegend": "Carbon-Themenmodus"
+    }
+  },
+  "routes": {
+    "products": "Produkte & Brand DNA"
+  },
+  "signInModal": {
+    "accountTypePF": "Natürliche Person (PF / Einzelperson)",
+    "accountTypePJ": "Juristische Person (PJ / Unternehmen)",
+    "addressTitle": "Offizielle Geschäfts- / Wohnadresse",
+    "authenticating": "Wird authentifiziert...",
+    "changeEmail": "Ändern",
+    "companySizeLabel": "Unternehmensgröße",
+    "companySizes": {
+      "ENTERPRISE": "Großunternehmen (250+ Beschäftigte / Enterprise)",
+      "MEDIUM": "Mittleres Unternehmen (50-249 Beschäftigte / Medium)",
+      "MICRO": "Kleinstunternehmen (1-9 Beschäftigte / Micro)",
+      "SMALL": "Kleines Unternehmen (10-49 Beschäftigte / Small)"
+    },
+    "completeSetup": "Einrichtung abschließen & starten",
+    "continue": "Weiter",
+    "countries": {
+      "BR": "Brasilien (BR)",
+      "CN": "China (CN)",
+      "DE": "Deutschland (DE)",
+      "ES": "Spanien (ES)",
+      "FR": "Frankreich (FR)",
+      "GB": "Vereinigtes Königreich (GB)",
+      "JP": "Japan (JP)",
+      "PT": "Portugal (PT)",
+      "US": "Vereinigte Staaten (US)"
+    },
+    "countryLabel": "Land / Gerichtsbarkeit",
+    "emailLabel": "Geschäftliche E-Mail",
+    "error": {
+      "emptyPassword": "Passwort ist erforderlich.",
+      "invalidCredentials": "E-Mail oder Passwort ungültig. Bitte erneut versuchen.",
+      "invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein.",
+      "title": "Authentifizierungsfehler"
+    },
+    "fullName": "Vollständiger Name",
+    "headerLabel": "Cestari Studio Authentifizierung",
+    "legalName": "Offizielle Firmenbezeichnung (Handelsregister)",
+    "locality": "Stadt / Gemeinde",
+    "logIn": "Anmelden",
+    "magicLinkBtn": "Stattdessen Magic-Link per E-Mail senden",
+    "onboardingIntro": "Wählen Sie vor dem Betreten Ihre aktive Schema.org-Mandanten-Hierarchie und Sitzungseinstellungen:",
+    "otpSentDesc": "Überprüfen Sie Ihren Posteingang für den direkten Anmeldelink.",
+    "otpSentTitle": "Magic-Link gesendet",
+    "passkeyRegistered": "Passkey-Berechtigung registriert",
+    "passwordLabel": "Passwort",
+    "pfDetailsTitle": "Angaben zur Person & Steuer-ID",
+    "pjDetailsTitle": "Unternehmensdaten & Größenklasse",
+    "region": "Bundesland / Kanton / Region",
+    "registerPasskey": "WebAuthn-Passkey registrieren",
+    "rememberId": "Benutzer-ID speichern",
+    "repDetailsTitle": "Gesetzlicher Vertreter / Zeichnungsberechtigter",
+    "repDoc": "Persönliches Ausweisdokument",
+    "repName": "Name des gesetzlichen Vertreters",
+    "repPosition": "Position / Führungsfunktion",
+    "settingUp": "Wird eingerichtet...",
+    "steps": {
+      "credentials": "2. Anmeldedaten",
+      "credentialsDesc": "Passwort & Überprüfung",
+      "identity": "1. Identität",
+      "identityDesc": "Benutzer-ID",
+      "mfa": "3. Multi-Faktor (MFA)",
+      "mfaDesc": "Touch oder Kamera",
+      "onboarding": "Onboarding-Einrichtung",
+      "onboardingDesc": "Arbeitsbereich-Einrichtung"
+    },
+    "streetAddress": "Straße und Hausnummer",
+    "title": "Bei genOS anmelden",
+    "tradeName": "Markenname / Geschäftsbezeichnung",
+    "verifiedBadge": "Identität verifiziert",
+    "emailPlaceholder": "sie@firma.com",
+    "passkeyUnavailableTitle": "Passkeys in dieser Version nicht verfügbar",
+    "passkeyUnavailableDesc": "Die passwortlose Anmeldung wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist."
+  },
+  "taxonomy": {
+    "billing": {
+      "description": "Finanz-Gateway, PagBank-Integration, Multi-Seller-Splits, Rechnungen und Ledgers.",
+      "label": "Abrechnung & FinOps"
+    },
+    "files": {
+      "description": "Digitale Dokumente, Medien-Assets, Vektor-RAG-Embeddings und Mandanten-Speicher-Buckets.",
+      "label": "Dateien & Wissenskorpus"
+    },
+    "products": {
+      "description": "Multi-Tenant-Produktsuiten (Content Factory, ClientOps, ScheduleOps, ReputationOps, AcademyOps) und Brand-DNA-Profile.",
+      "label": "Produkte & Brand DNA"
+    },
+    "profile": {
+      "description": "Multi-Länder-Unternehmensidentität (PF/PJ), FIDO2-Passkeys und Mandantenbereitstellung.",
+      "label": "Profil & Identität"
+    },
+    "reports": {
+      "description": "Betriebsmetriken, Telemetrie, Nutzungsberichte und Multi-Tenant-KPI-Dashboards.",
+      "label": "Berichte & Telemetrie"
+    },
+    "settings": {
+      "description": "Vierstufige Kaskadenhierarchie, Schema.org PropertyValue-Taxonomie und Systemgovernance.",
+      "label": "Einstellungen & Governance"
+    }
+  },
+  "tenantSettings": {
+    "categories": {
+      "billing": {
+        "description": "PagBank-Zugangsdaten, Multi-Seller-Splits, wiederkehrende Abonnementpläne und Auszahlungstransfers.",
+        "label": "Finanz-Gateway & Abrechnungen"
+      },
+      "governance": {
+        "description": "Vierstufige Kaskadenhierarchie (Organisation → Workspace → Projekt → Person), Schema.org-Regeln und Audit-Ledger.",
+        "label": "Governance & Kaskadenrichtlinien"
+      },
+      "identity": {
+        "description": "Multi-Länder-PF/PJ-Prüfung, biometrische Passkeys-Authentifizierung, Daten gesetzlicher Vertreter und Organisationsbereitstellung.",
+        "label": "Unternehmensidentität & Onboarding"
+      },
+      "knowledge": {
+        "description": "Corpus-Dokumente, pgvector-Semantiksuchkonfigurationen, Embedding-Modelle und Speicherobjekte.",
+        "label": "Wissensdatenbank & Vektor-RAG"
+      },
+      "overview": {
+        "description": "Zustand des Mandanten-Workspaces, Telemetrie, Nutzungsmetriken und Multi-Tenant-Leistungs-KPIs.",
+        "label": "Übersicht & Analysen"
+      }
     }
   },
   "welcome": {
-    "run": {
-      "heading": "Template starten",
-      "nodeRequirement": "Benötigt Node v.24"
-    },
     "about": {
-      "heading": "Worum geht's?",
-      "purpose": {
-        "title": "Verwendungszweck",
-        "description": "Dieses Repository hilft beim Einstieg in das Carbon Design System mit React. Es spart Zeit durch eine fertig konfigurierte Basis für neue Projekte."
-      },
       "consistency": {
-        "title": "Standards einhalten",
-        "description": "Nutzen Sie dies als Referenz, um IBM Design-Standards einzuhalten. Flexibel anpassbar, dabei konsistent in der User Experience."
+        "description": "Nutzen Sie dies als Referenz, um IBM Design-Standards einzuhalten. Flexibel anpassbar, dabei konsistent in der User Experience.",
+        "title": "Standards einhalten"
       },
       "customize": {
-        "title": "Individuell anpassen",
-        "description": "Verstehen Sie dies als Startpunkt und Leitfaden, nicht als starres Framework. Passen Sie es an Ihre Anforderungen an oder nutzen Sie es als Inspiration."
+        "description": "Verstehen Sie dies als Startpunkt und Leitfaden, nicht als starres Framework. Passen Sie es an Ihre Anforderungen an oder nutzen Sie es als Inspiration.",
+        "title": "Individuell anpassen"
+      },
+      "heading": "Worum geht's?",
+      "purpose": {
+        "description": "Dieses Repository hilft beim Einstieg in das Carbon Design System mit React. Es spart Zeit durch eine fertig konfigurierte Basis für neue Projekte.",
+        "title": "Verwendungszweck"
       }
     },
     "features": {
-      "heading": "Features"
-    },
-    "fetching": {
-      "heading": "Beispiel: Daten laden",
-      "intro": "Hier wird eine Nachricht dynamisch von einem externen API-Endpunkt geladen. Das zeigt, wie Sie Daten laden können, während Komponenten sauber und Netzwerklogik getrennt bleiben. So funktioniert es:",
-      "uiLayer": "UI-Schicht",
-      "uiLayerDesc": "PostComponent.jsx verwaltet den React-State und rendert die Daten mit Carbon Design-Komponenten",
-      "apiLayer": "API-Schicht",
-      "apiLayerDesc": "Client-seitige Funktionen in api/message.js verarbeiten HTTP-Anfragen an unser Express-Backend",
-      "serviceLayer": "Service-Schicht",
-      "serviceLayerDesc": "Server-seitige Handler in service/postHandlers.js leiten Anfragen an externe APIs weiter.",
-      "summary": "Dieses Muster hält Ihre Komponenten auf die Darstellung fokussiert, während die Datenabruflogik zentral für Wiederverwendbarkeit und Testbarkeit gebündelt wird."
+      "designSystemDesc": "Barrierefreie v11-Komponenten & Tokens",
+      "designSystemTitle": "Carbon Design System",
+      "heading": "Kernfunktionen",
+      "multiTenancyDesc": "Schema.org 4-Ebenen-Hierarchie",
+      "multiTenancyTitle": "Multi-Tenancy",
+      "vectorRagDesc": "pgvector 384-d HNSW-Embeddings",
+      "vectorRagTitle": "Kognitives RAG"
     }
+  },
+  "welcomeHeader": {
+    "button": {
+      "enterApp": "Mandanten-Dashboard öffnen",
+      "signIn": "Im Workspace anmelden",
+      "useTemplate": "Diese Vorlage verwenden"
+    },
+    "description1": "genOS ist das generative Betriebssystem von Cestari Studio Inc.: Multi-Tenant-Workspaces mit Cascade-Governance, Wissensabruf und integrierter Abrechnung.",
+    "title": "genOS by Cestari Studio",
+    "description2": "Melden Sie sich an, um auf Ihre Organisation, Workspaces und Projekte zuzugreifen."
+  },
+  "workspaceSwitcher": {
+    "activeRole": "Aktive Rolle",
+    "createOrganization": "Organisation erstellen",
+    "heading": "Workspace- & Organisations-Umschalter",
+    "modalHeading": "Aktiven Arbeitsbereichskontext wechseln",
+    "organizationLabel": "Organisation (Ebene 1)",
+    "orgIdentifierPlaceholder": "organisations-kennung",
+    "orgNamePlaceholder": "Organisationsname",
+    "projectLabel": "Projekt / CreativeWork (Ebene 3)",
+    "statusTitle": "Mandanten-Kontext",
+    "workspaceLabel": "Arbeitsbereich / Abteilung (Ebene 2)"
+  },
+  "settings": {
+    "profile": {
+      "orgName": "Organisationsname",
+      "legalName": "Eingetragener Firmenname",
+      "country": "Gerichtsbarkeit / Land",
+      "postalCode": "Postleitzahl"
+    }
+  },
+  "knowledge": {
+    "modelLabel": "Embedding-Modell",
+    "chunkSizeLabel": "Dokument-Chunk-Größe",
+    "metricLabel": "pgvector-Distanzmetrik",
+    "autoIndexLabel": "Uploads automatisch segmentieren und vektorisieren"
   }
 }

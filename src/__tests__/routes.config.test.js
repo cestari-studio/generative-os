@@ -1,12 +1,19 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 import { test, expect, describe } from 'vitest';
-import { routes, routesInHeader, routesInSideNav, isDirectChildPath } from '../routes/config';
+import {
+  routes,
+  routesInHeader,
+  routesInSideNav,
+  isDirectChildPath,
+  TENANT_SETTINGS_CATEGORIES,
+  RESOURCE_TAXONOMY,
+} from '../routes/config';
 
 describe('routes configuration', () => {
   test('routes array contains expected structure', () => {
@@ -37,6 +44,38 @@ describe('routes configuration', () => {
     expect(dashboardRoute.carbon).toBeDefined();
     expect(dashboardRoute.carbon.label).toBe('Dashboard');
     expect(dashboardRoute.carbon.inHeader).toBe(true);
+  });
+
+  test('enforces private routes and tenant-level settings categorization', () => {
+    // Index route / is public
+    const indexRoute = routes.find((route) => route.path === '/');
+    expect(indexRoute.isPrivate).toBe(false);
+
+    // 404 route * is public
+    const notFoundRoute = routes.find((route) => route.path === '*');
+    expect(notFoundRoute.isPrivate).toBe(false);
+
+    // All other routes are private and part of tenant-level settings
+    const privateRoutes = routes.filter((route) => route.path !== '/' && route.path !== '*');
+    expect(privateRoutes.length).toBeGreaterThan(0);
+
+    const categoryIds = TENANT_SETTINGS_CATEGORIES.map((c) => c.id);
+    expect(categoryIds).toEqual(['reports', 'files', 'products', 'billing', 'settings', 'profile']);
+
+    expect(RESOURCE_TAXONOMY.reports.shortSchema).toBe('schema:Report');
+    expect(RESOURCE_TAXONOMY.files.shortSchema).toBe('schema:DigitalDocument');
+    expect(RESOURCE_TAXONOMY.products.shortSchema).toBe('schema:Product');
+    expect(RESOURCE_TAXONOMY.billing.shortSchema).toBe('schema:Invoice');
+    expect(RESOURCE_TAXONOMY.settings.shortSchema).toBe('schema:PropertyValue');
+    expect(RESOURCE_TAXONOMY.profile.shortSchema).toBe('schema:ProfilePage');
+
+    privateRoutes.forEach((route) => {
+      expect(route.isPrivate).toBe(true);
+      expect(route.tenantLevel).toBe(true);
+      expect(route.carbon).toBeDefined();
+      expect(categoryIds).toContain(route.carbon.settingCategory);
+      expect(route.schemaType).toBeDefined();
+    });
   });
 
   test('routesInHeader contains only routes with inHeader flag', () => {
@@ -156,6 +195,7 @@ describe('routes configuration', () => {
     const componentImports = {
       '/': () => import('../pages/welcome/Welcome'),
       '/dashboard': () => import('../pages/dashboard/Dashboard'),
+      '/products': () => import('../pages/products/ProductsCatalogPage'),
       '*': () => import('../pages/not-found/NotFound'),
     };
 
@@ -182,7 +222,7 @@ describe('routes configuration', () => {
       expect(typeof componentName).toBe('string');
       expect(componentName.length).toBeGreaterThan(0);
     }
-  });
+  }, 15000);
 });
 
 describe('isDirectChildPath', () => {

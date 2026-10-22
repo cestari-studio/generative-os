@@ -1,0 +1,134 @@
+/**
+ * Copyright IBM Corp. 2026
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/type' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '../../styles/carbon-foundations' as *;
+
+.cs--protected-gate-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 50vh;
+  padding: $spacing-07;
+}
+
+.cs--protected-gate {
+  padding-block-end: $spacing-09;
+}
+
+.cs--protected-gate__header {
+  margin-block-end: $spacing-06;
+}
+
+.cs--protected-gate__category-tag {
+  display: flex;
+  align-items: center;
+  margin-block-start: $spacing-03;
+}
+
+.cs--protected-gate__content {
+  margin-block-start: $spacing-05;
+}
+
+.cs--protected-gate__card {
+  padding: $spacing-07;
+  background-color: $layer;
+  border: 1px solid $border-subtle;
+}
+
+.cs--protected-gate__lock-indicator {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-05;
+}
+
+.cs--protected-gate__lock-icon {
+  flex-shrink: 0;
+  color: $support-warning;
+  margin-block-start: $spacing-01;
+}
+
+.cs--protected-gate__card-heading {
+  @include type-style('heading-03');
+
+  color: $text-primary;
+  margin-block-end: $spacing-03;
+}
+
+.cs--protected-gate__card-lead {
+  @include type-style('body-long-01');
+
+  color: $text-secondary;
+}
+
+.cs--protected-gate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-04;
+  margin-block-start: $spacing-04;
+}
+
+.cs--protected-gate__categories-section {
+  margin-block-start: $spacing-06;
+}
+
+.cs--protected-gate__categories-heading {
+  @include type-style('heading-02');
+
+  color: $text-primary;
+  margin-block-end: $spacing-02;
+}
+
+.cs--protected-gate__categories-sub {
+  @include type-style('body-short-01');
+
+  color: $text-secondary;
+  margin-block-end: $spacing-05;
+}
+
+.cs--protected-gate__categories-grid {
+  row-gap: $spacing-05;
+}
+
+.cs--protected-gate__category-col {
+  margin-block-end: $spacing-05;
+}
+
+.cs--protected-gate__category-tile {
+  @include cs-motion-productive(border-color);
+
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  padding: $spacing-05;
+  border: 1px solid $border-subtle;
+}
+
+.cs--protected-gate__category-tile--active {
+  border-color: $interactive;
+  box-shadow: 0 0 0 1px $interactive;
+}
+
+.cs--protected-gate__category-tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cs--protected-gate__category-tile-title {
+  @include type-style('heading-01');
+
+  color: $text-primary;
+}
+
+.cs--protected-gate__category-tile-desc {
+  @include type-style('body-short-01');
+
+  color: $text-secondary;
+}

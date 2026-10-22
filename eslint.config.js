@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -25,10 +25,10 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 export default [
-  { ignores: ['dist', 'vite.config.js', 'node_modules/**'] },
+  { ignores: ['dist', 'vite.config.js', 'node_modules/**', 'supabase/**', '.agents/**'] },
   {
     files: ['**/*.{js,mjs,cjs,jsx}'],
-    ignores: ['dist', 'vite.config.js'],
+    ignores: ['dist', 'vite.config.js', 'supabase/**', '.agents/**'],
     languageOptions: {
       /* added (globals.node) - for server side elements */
       globals: { ...globals.browser, ...globals.node, ...globals.jest },
@@ -70,6 +70,10 @@ export default [
       ...pluginJs.configs.recommended.rules,
       /* import named is off because @carbon/react uses default exports in some components April 10th 2025 */
       'import-x/named': 'off',
+      /* Build artifacts (dist/**) are produced by `npm run build` after
+         linting, so the dynamic SSR entry import in src/server.js cannot
+         resolve at lint time — ignore it explicitly. */
+      'import-x/no-unresolved': ['error', { ignore: ['^\\.\\./dist/'] }],
       /* no-unused-vars - ignore pattern for React component usage */
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],

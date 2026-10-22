@@ -248,7 +248,7 @@ the hard rule: no `code_search` for charts, and no `docs_search` for interfaces.
 
 | Field             | Description                                                             |
 | ----------------- | ----------------------------------------------------------------------- |
-| `install_command` | Package install command — **validate, then run before completion**     |
+| `install_command` | Package install command — **validate, then run before completion**      |
 | `styles_import`   | CSS import for entry module — **never in SCSS, never `@use`/`@import`** |
 | `builder_call`    | Derived invocation string                                               |
 | `instruction`     | Server assembly guidance — apply it; never overrides this skill         |

@@ -78,8 +78,8 @@ relies on five tools the server exposes:
 | `code_search` | Fetch component examples, variants, props, and AI Chat code               |
 | `docs_search` | Fetch design/accessibility documentation and AI Chat API docs             |
 | `get_charts`  | Fetch Carbon Charts source code, data/options schemas, and assembly hints |
-| `labs_search` | Fetch Carbon Labs package guidance and experimental component data         |
-| `code_audit`  | Validate Carbon code for compliance; returns categorized issues + fixes    |
+| `labs_search` | Fetch Carbon Labs package guidance and experimental component data        |
+| `code_audit`  | Validate Carbon code for compliance; returns categorized issues + fixes   |
 
 See the carbon-mcp server documentation for installation and configuration.
 

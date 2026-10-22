@@ -29,4 +29,7 @@ dist-ssr
 
 # Tools for this template
 .unlighthouse/
+supabase/.temp/
 
+.vercel
+.env*
