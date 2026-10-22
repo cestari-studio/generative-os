@@ -26,6 +26,9 @@
 // Canonical Carbon foundations, theme cascade, and shared archetype classes
 @use './styles/carbon-generated';
 
+// genOS / Cestari Studio brand token alias layer (falls back to Carbon tokens)
+@use './styles/genos-brand-tokens';
+
 // Global Layout Shell
 @use 'layouts/page-layout';
 

@@ -10,11 +10,26 @@
 
 ## 1. Fundamentos e Stack do Design System
 
-- **Framework:** React 18 (`@carbon/react` 1.117.0)
-- **Extensões Corporativas:** Carbon for IBM Products (`@carbon/ibm-products` 2.66.0)
-- **Ícones Oficiais:** `@carbon/icons-react` 11.60.0
+Versões resolvidas a partir do `package-lock.json` (fonte autoritativa — não declarar versões não verificadas):
+
+| Dependência                         | Versão resolvida (lockfile) |
+| :---------------------------------- | :-------------------------- |
+| `react` / `react-dom`               | **19.3.0**                  |
+| `@carbon/react`                     | **1.117.0**                 |
+| `@carbon/icons-react`               | **11.89.0**                 |
+| `@carbon/ibm-products`              | **2.100.0**                 |
+| `@carbon-labs/react-ui-shell`       | **0.106.0**                 |
+| `@carbon-labs/react-theme-settings` | **0.30.0**                  |
+| `@carbon/charts-react`              | **1.27.21**                 |
+| `@carbon/pictograms-react`          | **11.113.0**                |
+| `react-router`                      | **8.4.0**                   |
+| `vite`                              | **8.3.3**                   |
+| `sass`                              | **1.105.1**                 |
+
+- **Design System:** Carbon Design System (dependência técnica; nunca apresentado como marca do produto — a marca do produto é **genOS / Cestari Studio Inc.**)
 - **Tipografia Canônica:** IBM Plex Sans (produtiva e UI padrão), IBM Plex Mono (código e chaves de telemetria), IBM Plex Serif (momentos editoriais específicos)
-- **Tokens de Estilo:** `@carbon/styles` / variáveis CSS nativas `--cds-*`
+- **Tokens de Estilo:** variáveis CSS oficiais `--cds-*` (Camada 0) expostas ao produto via aliases semânticos `--genos-*` (`src/styles/_genos-brand-tokens.scss`, Camada 1); overrides de marca autorizados pelo manifest validado `src/brand/brand-manifest.json` (Camada 2); cascata de tenant conforme policy (Camada 3). Fallback integral aos temas Carbon `white` (light) e `g100` (dark) quando um override está ausente ou é inválido.
+- **`@carbon/ibm-products`:** dependência em transição — componentes IBM-specific serão substituídos por equivalentes `@carbon/react` componente a componente, sem remoção mecânica que quebre o bundle (decisão registrada no direcionamento global §8.1).
 
 ---
 
