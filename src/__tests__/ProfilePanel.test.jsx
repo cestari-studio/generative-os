@@ -101,7 +101,10 @@ test('renders authenticated profile panel with user and tenant read-only info af
   expect(screen.getByText('Instance')).toBeInTheDocument();
   expect(screen.getByText('acme-labs')).toBeInTheDocument();
   expect(screen.getByText('Organization')).toBeInTheDocument();
-  expect(screen.getByText('Acme Labs')).toBeInTheDocument();
+  // 'Acme Labs' now appears in both the workspace switcher tag and the
+  // read-only account info — assert the switcher is rendered for signed-in users.
+  expect(screen.getAllByText('Acme Labs').length).toBeGreaterThanOrEqual(2);
+  expect(screen.getByText('Multi-Tenant Context (Schema.org)')).toBeInTheDocument();
   expect(screen.getByText('Workspace ID')).toBeInTheDocument();
   expect(screen.getByText('ws-core-ai-123')).toBeInTheDocument();
   expect(screen.getByText('Brand')).toBeInTheDocument();
