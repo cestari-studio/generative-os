@@ -93,3 +93,36 @@
 | Qualquer ação em produção              | `BLOCKED` | Proprietário (gate separado, Fase 8) |
 
 **Operador responsável (quando autorizado):** a definir pelo proprietário. O agente NÃO executa nenhuma ação desta seção.
+
+---
+
+## 9. Matriz `expected vs observed` (read-only, 2026-10-22)
+
+**Project ref:** `ldjfjmihdvdmltrptngf` (generative-os, sa-east-1, Postgres 17.11). `expected` = artefatos versionados (branches); `observed` = estado remoto lido via MCP. **Caveat de hash preservado:** sha256 da árvore local ≠ `ezbr_sha256` do bundle remoto — reconciliar por deploy + read-back de versões, não por igualdade de prefixo.
+
+### Edge Functions
+
+| Função             | verify_jwt (expected) | verify_jwt (observed) | Código (expected)                                                                                                              | Código (observed)                                                                                                                                 | Estado                            |
+| ------------------ | --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `passkey-auth`     | `true`                | `false`               | challenge fail-closed (401 anônimo, 500 não-persistido, 401 list-anônimo)                                                      | emite challenge a anônimo SEM persistir, list anônimo → 200 vazio                                                                                 | `RUNTIME_DRIFT` (config + código) |
+| `settings-cascade` | `true`                | `false`               | membership-gated                                                                                                               | —                                                                                                                                                 | `RUNTIME_DRIFT` (config)          |
+| `vector-rag`       | `true`                | `false`               | lexical-hash determinístico                                                                                                    | —                                                                                                                                                 | `RUNTIME_DRIFT` (config)          |
+| `pagbank-connect`  | `true`                | `false`               | OAuth allowlist                                                                                                                | —                                                                                                                                                 | `RUNTIME_DRIFT` (config)          |
+| `pagbank-order`    | `true`                | `false`               | quote-driven, `claim_pagbank_order` atômico, valor da quote consumida, `x-idempotency-key` persistido+reusado, ambíguo ≠ falha | usa `create_pagbank_order`, aceita `amountCents` do request, referência `Date.now()`, fallback sintético item/tax_id, **sem** `x-idempotency-key` | `RUNTIME_DRIFT` (config + código) |
+| `pagbank-webhook`  | `false` (design)      | `false`               | ECDSA DER/P1363 fail-closed                                                                                                    | —                                                                                                                                                 | `verify_jwt` confere com o design |
+
+### Migration ledger
+
+- `observed_latest`: `20261022002300` · `observed_applied_count`: 17 · `in_sync_applied`: 17/17
+- `expected_pending`: `20261022053203_billing_pricebook_usage_metering` → **NÃO aplicada**
+- **Todas as 13 tabelas de billing AUSENTES** no remoto (`products` … `billing_audit`).
+
+### RPCs
+
+- Observados: 20 públicos (4 DEFINER — os mesmos 4 flags do advisor: `apply_setting_cascade`, `create_pagbank_order`, `get_tenant_payment_kpis`, `record_media_object`) + 7 `app_private`.
+- Esperados (novos, da migração): `issue_quote`, `issue_manual_quote`, `consume_quote`, `release_consumed_quote`, `record_usage_event`, `claim_pagbank_order`, `attach_psp_idempotency`, `has_platform_role` (caller-only) + `app_private.has_platform_role(text,uuid)` — **todos AUSENTES** (migração não aplicada).
+
+### Vercel
+
+- Observado: projeto listado (`prj_cgIw3xCnho9TNi37gH5e3VmiwtXC`, equipe `cestari-studio`); leitura de detalhes/domínios/env → `404`; listagem de deployments → `403`; `linkedProjects: []`.
+- Estado: `BLOCKED — owner action required` (vínculo Git não comprovado; **não** criar projeto duplicado).
