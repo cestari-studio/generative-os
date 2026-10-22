@@ -38,7 +38,7 @@ initializeTheme();
  * cause a brief flash of English (the fallback language) before the
  * correct translations appear.
  */
-const { initialI18nStore, initialLanguage, initialThemeSetting, initialHeaderInverse } =
+const { initialI18nStore, initialLanguage, initialThemeSetting, initialHeaderInverse, initialServerUser } =
   window.__INITIAL_I18N_STATE__ || {};
 
 if (initialI18nStore && initialLanguage) {
@@ -55,7 +55,11 @@ hydrateRoot(
   <StrictMode>
     <I18nextProvider i18n={i18n}>
       <BrowserRouter>
-        <Router initialThemeSetting={initialThemeSetting} initialHeaderInverse={initialHeaderInverse} />
+        <Router
+          initialThemeSetting={initialThemeSetting}
+          initialHeaderInverse={initialHeaderInverse}
+          serverUser={initialServerUser ?? null}
+        />
       </BrowserRouter>
     </I18nextProvider>
   </StrictMode>,

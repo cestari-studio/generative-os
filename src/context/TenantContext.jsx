@@ -12,14 +12,17 @@ import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
 import { getThemeSettings, setHeaderInverse, setThemeSetting } from '../utils/theme.js';
 import { TenantContext } from './useTenant.js';
 
-export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInverse }) => {
+export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInverse, initialServerUser = null }) => {
   const { i18n } = useTranslation();
   const i18nRef = useRef(i18n);
   useEffect(() => {
     i18nRef.current = i18n;
   }, [i18n]);
 
-  const [user, setUser] = useState(null);
+  // Seed from the server-validated user (SSR). The client revalidates via
+  // supabase.auth.getSession()/onAuthStateChange on mount — this initial
+  // value only prevents an unauthenticated flash during hydration.
+  const [user, setUser] = useState(initialServerUser);
   const [person, setPerson] = useState(null);
   const [persons, setPersons] = useState([]);
   const [organizations, setOrganizations] = useState([]);
@@ -421,6 +424,35 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
     [refreshTenantData],
   );
 
+  /**
+   * Loads the persisted onboarding progress for the authenticated person.
+   * Returns the normalized onboarding object or null when none exists.
+   * Errors propagate — callers decide how to surface them.
+   */
+  const loadOnboardingProgress = useCallback(async () => {
+    const supabase = getSupabaseBrowserClient();
+    const currentUser = userRef.current;
+    if (!currentUser?.id) return null;
+    const { data, error } = await supabase
+      .from('persons')
+      .select('additional_property')
+      .eq('id', currentUser.id)
+      .maybeSingle();
+    if (error) {
+      setStatusMessage(error.message);
+      throw error;
+    }
+    const onboarding = data?.additional_property?.onboarding;
+    if (!onboarding || typeof onboarding !== 'object') return null;
+    return {
+      accountType: onboarding.account_type ?? null,
+      countryCode: onboarding.country_code ?? null,
+      currentStep: typeof onboarding.current_step === 'number' ? onboarding.current_step : null,
+      status: onboarding.status ?? null,
+      stepData: onboarding.step_data && typeof onboarding.step_data === 'object' ? onboarding.step_data : {},
+    };
+  }, []);
+
   const createOrUpdateCorporateTenant = useCallback(
     async ({
       name,
@@ -766,6 +798,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       authenticateWithPasskey,
       refreshTenantData,
       saveOnboardingProgress,
+      loadOnboardingProgress,
       createOrUpdateCorporateTenant,
     }),
     [
@@ -812,6 +845,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       authenticateWithPasskey,
       refreshTenantData,
       saveOnboardingProgress,
+      loadOnboardingProgress,
       createOrUpdateCorporateTenant,
     ],
   );
@@ -823,4 +857,8 @@ TenantProvider.propTypes = {
   children: PropTypes.node,
   initialThemeSetting: PropTypes.string,
   initialHeaderInverse: PropTypes.bool,
+  initialServerUser: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    email: PropTypes.string,
+  }),
 };

@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { CreateFullPage, CreateFullPageStep } from '@carbon/ibm-products';
@@ -162,6 +162,7 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
     switchActiveContext,
     applySettingCascade,
     saveOnboardingProgress,
+    loadOnboardingProgress,
     createOrUpdateCorporateTenant,
   } = useTenant();
 
@@ -201,6 +202,57 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [progressLoaded, setProgressLoaded] = useState(false);
+
+  // Rehydrate persisted onboarding progress once per authenticated session so
+  // a reload, logout/login or interrupted flow resumes with the saved data.
+  useEffect(() => {
+    if (progressLoaded || !user?.id) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const progress = await loadOnboardingProgress();
+        if (cancelled || !progress) {
+          if (!cancelled) setProgressLoaded(true);
+          return;
+        }
+        const sd = progress.stepData || {};
+        if (progress.accountType) setAccountType(progress.accountType);
+        if (progress.countryCode) setCountryCode(progress.countryCode);
+        if (sd.language) setPreferredLanguage(sd.language);
+        if (sd.full_name) setFullName(sd.full_name);
+        if (sd.birth_date) setBirthDate(sd.birth_date);
+        if (sd.tax_id) {
+          if (progress.accountType === 'organization_member') {
+            setPjTaxId(sd.tax_id);
+          } else {
+            setPfTaxId(sd.tax_id);
+          }
+        }
+        if (sd.national_identity) setPfSecId(sd.national_identity);
+        if (sd.corporate_name) setLegalName(sd.corporate_name);
+        if (sd.trade_name) setTradeName(sd.trade_name);
+        if (sd.registration_number) setPjSecId(sd.registration_number);
+        if (sd.size_category) setSizeCategory(sd.size_category);
+        if (sd.legal_representative?.name) setRepName(sd.legal_representative.name);
+        if (sd.legal_representative?.role) setRepRole(sd.legal_representative.role);
+        if (sd.legal_representative?.document) setRepDoc(sd.legal_representative.document);
+        if (sd.address?.postal_code) setPostalCode(sd.address.postal_code);
+        if (sd.address?.street_address) setStreetAddress(sd.address.street_address);
+        if (sd.address?.locality) setLocality(sd.address.locality);
+        if (sd.address?.region) setRegion(sd.address.region);
+        if (!cancelled) setProgressLoaded(true);
+      } catch {
+        // Progress could not be loaded; the wizard starts fresh and the error
+        // is already surfaced via context statusMessage.
+        if (!cancelled) setProgressLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, progressLoaded]);
 
   const docConfig = COUNTRY_DOC_CONFIG[countryCode] || COUNTRY_DOC_CONFIG.BR;
   const filteredWorkspaces = workspaces.filter((ws) => ws.organization_id === selectedOrgId);
@@ -245,85 +297,72 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
   };
 
   // Intermediate Step Progress Savers
-  const handleStep1Next = async () => {
+  /**
+   * Saves onboarding progress for the given step. Failures are blocking:
+   * the error is surfaced to the user and re-thrown so the wizard does not
+   * advance on unconfirmed persistence.
+   */
+  const persistStep = async (step, stepData) => {
+    setErrorMessage('');
     try {
       await saveOnboardingProgress({
         accountType,
         countryCode,
-        currentStep: 1,
-        stepData: {
-          account_type: accountType,
-          country_code: countryCode,
-          language: preferredLanguage,
-        },
-        isCompleted: false,
-      });
-    } catch (err) {
-      console.warn('Progress save warning (step 1):', err);
-    }
-  };
-
-  const handleStep2Next = async () => {
-    try {
-      const stepData =
-        accountType === 'individual'
-          ? { full_name: fullName, tax_id: pfTaxId, national_identity: pfSecId, birth_date: birthDate }
-          : { corporate_name: legalName, trade_name: tradeName, tax_id: pjTaxId, registration_number: pjSecId };
-
-      await saveOnboardingProgress({
-        accountType,
-        countryCode,
-        currentStep: 2,
+        currentStep: step,
         stepData,
         isCompleted: false,
       });
     } catch (err) {
-      console.warn('Progress save warning (step 2):', err);
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : t('onboarding.saveFailed', 'Could not save your progress. Check your connection and try again.');
+      setErrorMessage(
+        t('onboarding.saveFailedWithReason', 'Could not save your progress: {{reason}}', { reason: message }),
+      );
+      throw err;
     }
+  };
+
+  const handleStep1Next = async () => {
+    await persistStep(1, {
+      account_type: accountType,
+      country_code: countryCode,
+      language: preferredLanguage,
+    });
+  };
+
+  const handleStep2Next = async () => {
+    const stepData =
+      accountType === 'individual'
+        ? { full_name: fullName, tax_id: pfTaxId, national_identity: pfSecId, birth_date: birthDate }
+        : { corporate_name: legalName, trade_name: tradeName, tax_id: pjTaxId, registration_number: pjSecId };
+
+    await persistStep(2, stepData);
   };
 
   const handleStep3Next = async () => {
     if (accountType !== 'organization_member') return;
-    try {
-      await saveOnboardingProgress({
-        accountType,
-        countryCode,
-        currentStep: 3,
-        stepData: {
-          size_category: sizeCategory,
-          legal_representative: {
-            name: repName || fullName || initialName,
-            role: repRole,
-            document: repDoc,
-          },
-        },
-        isCompleted: false,
-      });
-    } catch (err) {
-      console.warn('Progress save warning (step 3):', err);
-    }
+    await persistStep(3, {
+      size_category: sizeCategory,
+      legal_representative: {
+        name: repName || fullName || initialName,
+        role: repRole,
+        document: repDoc,
+      },
+    });
   };
 
   const handleStep4Next = async () => {
-    try {
-      await saveOnboardingProgress({
-        accountType,
-        countryCode,
-        currentStep: 4,
-        stepData: {
-          address: {
-            postal_code: postalCode,
-            street_address: streetAddress,
-            locality,
-            region,
-            country: countryCode,
-          },
-        },
-        isCompleted: false,
-      });
-    } catch (err) {
-      console.warn('Progress save warning (step 4):', err);
-    }
+    await persistStep(4, {
+      address: {
+        postal_code: postalCode,
+        street_address: streetAddress,
+        locality,
+        region,
+        country: countryCode,
+      },
+    });
   };
 
   // Final Onboarding Completion Handler
@@ -352,16 +391,13 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
             address: addressData,
           },
           isCompleted: true,
-        }).catch(() => {});
+        });
 
-        await Promise.race([
-          switchActiveContext({
-            organizationId: selectedOrgId,
-            workspaceId: selectedWsId,
-            projectId: selectedPrjId,
-          }),
-          new Promise((resolve) => setTimeout(resolve, 3000)),
-        ]);
+        await switchActiveContext({
+          organizationId: selectedOrgId,
+          workspaceId: selectedWsId,
+          projectId: selectedPrjId,
+        });
       } else {
         const slug = (tradeName || legalName || 'corp')
           .toLowerCase()
@@ -381,7 +417,7 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
           inLanguage: preferredLanguage || 'en',
           workspaceName: `${tradeName || legalName || 'Corporate'} Workspace`,
           projectName: 'Default Project',
-        }).catch(() => {});
+        });
 
         await saveOnboardingProgress({
           accountType: 'organization_member',
@@ -401,20 +437,17 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
             address: addressData,
           },
           isCompleted: true,
-        }).catch(() => {});
+        });
 
         const targetOrgId = tenantResult?.organization_id || selectedOrgId;
         const targetWsId = tenantResult?.workspace_id || selectedWsId;
         const targetPrjId = tenantResult?.project_id || selectedPrjId;
 
-        await Promise.race([
-          switchActiveContext({
-            organizationId: targetOrgId,
-            workspaceId: targetWsId,
-            projectId: targetPrjId,
-          }),
-          new Promise((resolve) => setTimeout(resolve, 3000)),
-        ]);
+        await switchActiveContext({
+          organizationId: targetOrgId,
+          workspaceId: targetWsId,
+          projectId: targetPrjId,
+        });
       }
 
       if (user && preferredLanguage) {
@@ -429,9 +462,15 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
       closeOnboardingFlow();
       navigate('/dashboard');
     } catch (err) {
-      console.error('Onboarding submission error:', err);
-      closeOnboardingFlow();
-      navigate('/dashboard');
+      // Completion failed — stay on the wizard and surface the error so the
+      // user can retry. Never navigate away on unconfirmed persistence.
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : t('onboarding.completeFailed', 'Could not complete onboarding. Check your connection and try again.');
+      setErrorMessage(
+        t('onboarding.completeFailedWithReason', 'Could not complete onboarding: {{reason}}', { reason: message }),
+      );
     } finally {
       setIsLoading(false);
     }

@@ -61,6 +61,7 @@ export const DEFAULT_CONTEXT_VALUE = {
   authenticateWithPasskey: async () => {},
   refreshTenantData: async () => {},
   saveOnboardingProgress: async () => {},
+  loadOnboardingProgress: async () => null,
   createOrUpdateCorporateTenant: async () => {},
 };
 

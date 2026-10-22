@@ -15,10 +15,14 @@ import { TenantProvider } from '../context/TenantContext.jsx';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute.jsx';
 import { CARBON_V12_FLAGS } from '../config/carbon-flags.js';
 
-export const Router = ({ initialThemeSetting, initialHeaderInverse }) => {
+export const Router = ({ initialThemeSetting, initialHeaderInverse, serverUser = null }) => {
   return (
     <FeatureFlags flags={CARBON_V12_FLAGS}>
-      <TenantProvider initialThemeSetting={initialThemeSetting} initialHeaderInverse={initialHeaderInverse}>
+      <TenantProvider
+        initialThemeSetting={initialThemeSetting}
+        initialHeaderInverse={initialHeaderInverse}
+        initialServerUser={serverUser}
+      >
         <Suspense
           fallback={
             <div className="cs--route-loading-container">
@@ -50,4 +54,8 @@ export const Router = ({ initialThemeSetting, initialHeaderInverse }) => {
 Router.propTypes = {
   initialThemeSetting: PropTypes.string,
   initialHeaderInverse: PropTypes.bool,
+  serverUser: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    email: PropTypes.string,
+  }),
 };

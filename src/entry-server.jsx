@@ -20,12 +20,16 @@ import { getThemeFromCookies } from './utils/cookies.js';
 /**
  * @param {string} url
  * @param {import('i18next').i18n} i18n
- * @param {import('react-dom/server').RenderToPipeableStreamOptions} [options]
+ * @param {import('react-dom/server').RenderToPipeableStreamOptions & { serverUser?: { id: string, email?: string } | null }} [options]
  * @param {string} [cookies] - Cookie string from request headers
  */
 export function render(_url, i18n, options, cookies) {
   const url = `/${_url}`;
   const statusCode = getStatusCodeForPath(url);
+
+  // Server-validated user (§9.1) — proof of authentication obtained via
+  // supabase.auth.getUser() on the server, never from client state.
+  const serverUser = options?.serverUser ?? null;
 
   // Get theme values from cookies
   const { themeSetting, headerInverse } = getThemeFromCookies(cookies);
@@ -37,7 +41,7 @@ export function render(_url, i18n, options, cookies) {
     <StrictMode>
       <I18nextProvider i18n={i18n}>
         <StaticRouter location={url}>
-          <Router initialThemeSetting={themeSetting} initialHeaderInverse={headerInverse} />
+          <Router initialThemeSetting={themeSetting} initialHeaderInverse={headerInverse} serverUser={serverUser} />
         </StaticRouter>
       </I18nextProvider>
     </StrictMode>,
@@ -55,6 +59,7 @@ export function render(_url, i18n, options, cookies) {
     initialLanguage: i18n.language,
     initialThemeSetting: themeSetting,
     initialHeaderInverse: headerInverse,
+    initialServerUser: serverUser,
   };
 
   /**

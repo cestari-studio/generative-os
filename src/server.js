@@ -14,6 +14,7 @@ import { getRoutes } from './routes/routes.js';
 import { base, getServerConfig } from './config/server-config.js';
 import i18nextMiddleware from 'i18next-http-middleware';
 import i18n from './i18n.server.js';
+import { createSupabaseServerClient } from './lib/supabase.server.js';
 
 // Constants
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -80,6 +81,22 @@ app.use('*all', async (req, res) => {
     // Get cookies from request
     const cookies = req.headers.cookie || '';
 
+    // Server-side session validation (§9.1): the React session object is UX
+    // state, not proof of authorization. Validate the user on the server per
+    // request before rendering. Failure must never become an anonymous user
+    // with privileges — it simply renders the unauthenticated experience.
+    let serverUser = null;
+    try {
+      const supabase = createSupabaseServerClient(req, res);
+      const { data, error } = await supabase.auth.getUser();
+      if (!error && data?.user) {
+        serverUser = { id: data.user.id, email: data.user.email };
+      }
+    } catch (authError) {
+      // Missing/invalid configuration or token: render unauthenticated.
+      console.warn('SSR auth validation skipped:', authError.message);
+    }
+
     /** @type {string} */
     let template;
     /** @type {import('./entry-server.jsx').render} */
@@ -111,6 +128,7 @@ app.use('*all', async (req, res) => {
       url,
       req.i18n,
       {
+        serverUser,
         onShellError(error) {
           // Improved error handling with debugging context
           console.error('Shell rendering error:', {
