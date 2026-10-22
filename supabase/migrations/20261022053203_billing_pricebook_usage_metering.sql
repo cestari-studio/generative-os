@@ -181,7 +181,8 @@ CREATE TABLE IF NOT EXISTS public.quotes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   schema_type TEXT NOT NULL DEFAULT 'Order' CHECK (schema_type = 'Order'),
   organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-  price_book_id UUID NOT NULL REFERENCES public.price_books(id) ON DELETE RESTRICT,
+  quote_kind TEXT NOT NULL DEFAULT 'catalog' CHECK (quote_kind IN ('catalog', 'manual')),
+  price_book_id UUID REFERENCES public.price_books(id) ON DELETE RESTRICT,
   idempotency_key TEXT NOT NULL UNIQUE,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'issued', 'accepted', 'expired', 'cancelled')),
   currency TEXT NOT NULL CHECK (char_length(currency) = 3),
@@ -193,9 +194,13 @@ CREATE TABLE IF NOT EXISTS public.quotes (
   issued_by UUID REFERENCES public.persons(id) ON DELETE SET NULL,
   additional_property JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT quotes_kind_consistency CHECK (
+    (quote_kind = 'catalog' AND price_book_id IS NOT NULL)
+    OR (quote_kind = 'manual' AND price_book_id IS NULL)
+  )
 );
-COMMENT ON TABLE public.quotes IS 'Server-issued quotes bound to an immutable price-book version; totals never client-supplied.';
+COMMENT ON TABLE public.quotes IS 'Server-issued quotes (catalog price-book or audited manual amounts); totals never client-supplied.';
 
 CREATE TABLE IF NOT EXISTS public.quote_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -251,13 +256,22 @@ CREATE TABLE IF NOT EXISTS public.billing_audit (
 COMMENT ON TABLE public.billing_audit IS 'Audit trail for catalog, price, bundle, entitlement and role changes.';
 
 -- ---------------------------------------------------------------------------
--- 9. Helper: platform role check (SECURITY INVOKER)
+-- 9. Helper: platform role check
 -- ---------------------------------------------------------------------------
+-- SECURITY DEFINER justification (required by the §7.4 checklist):
+--   * Why DEFINER: this helper is evaluated inside RLS policies ON
+--     platform_role_assignments itself; under SECURITY INVOKER that causes
+--     infinite policy recursion (policy -> function -> table -> policy).
+--     DEFINER bypasses RLS for this single internal lookup, breaking the
+--     recursion. SECURITY INVOKER is therefore NOT sufficient here.
+--   * Hardening: SET search_path = ''; fully qualified objects; auth.uid()
+--     inside the body; EXECUTE revoked from PUBLIC/anon; no table grants are
+--     widened — the function only READS platform_role_assignments.
 CREATE OR REPLACE FUNCTION public.has_platform_role(p_role_name text, p_person_id uuid DEFAULT NULL)
 RETURNS boolean
 LANGUAGE plpgsql
 STABLE
-SECURITY INVOKER
+SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
@@ -277,11 +291,22 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.has_platform_role(text, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.has_platform_role(text, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.has_platform_role(text, uuid) TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 10. RPC: issue_quote — server-side total calculation from price book
 -- ---------------------------------------------------------------------------
+-- SECURITY DEFINER justification (§7.4 checklist):
+--   * Why DEFINER: quotes, quote_items and billing_audit deliberately have NO
+--     client INSERT/UPDATE policies — otherwise any authenticated user could
+--     insert fabricated totals via PostgREST, bypassing server-side price
+--     calculation. Only this RPC may write them, after validating the caller,
+--     the tenant and the price data. SECURITY INVOKER cannot write here
+--     without opening a direct-write policy, which is the larger risk.
+--   * Hardening: SET search_path = ''; fully qualified objects; auth.uid()
+--     and organization membership re-validated in the body; EXECUTE revoked
+--     from PUBLIC and anon.
 CREATE OR REPLACE FUNCTION public.issue_quote(
   p_organization_id uuid,
   p_price_book_id uuid,
@@ -292,7 +317,7 @@ CREATE OR REPLACE FUNCTION public.issue_quote(
 )
 RETURNS jsonb
 LANGUAGE plpgsql
-SECURITY INVOKER
+SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
@@ -305,6 +330,12 @@ DECLARE
   v_line_amount bigint;
   v_subtotal bigint := 0;
   v_total bigint;
+  -- progressive tier walk
+  v_tier jsonb;
+  v_cap numeric;
+  v_prev_cap numeric;
+  v_remaining numeric;
+  v_units numeric;
 BEGIN
   IF v_caller IS NULL THEN
     RAISE EXCEPTION 'Authentication required.' USING ERRCODE = '42501';
@@ -341,10 +372,10 @@ BEGIN
   END IF;
 
   INSERT INTO public.quotes (
-    organization_id, price_book_id, idempotency_key, status, currency,
+    organization_id, quote_kind, price_book_id, idempotency_key, status, currency,
     tax_cents, expires_at, issued_by
   ) VALUES (
-    p_organization_id, p_price_book_id, p_idempotency_key, 'issued', v_book.currency,
+    p_organization_id, 'catalog', p_price_book_id, p_idempotency_key, 'issued', v_book.currency,
     greatest(p_tax_cents, 0), now() + p_expires_in, v_caller
   ) RETURNING id INTO v_quote_id;
 
@@ -365,14 +396,46 @@ BEGIN
     END IF;
 
     -- Server computes the line amount from the published component price.
-    -- Tiered pricing walks the tiers JSONB: [{up_to, amount_cents}].
     IF v_component.pricing_model = 'tiered' THEN
-      SELECT coalesce(pg_catalog.sum((t ->> 'amount_cents')::bigint), 0)
-      INTO v_line_amount
-      FROM pg_catalog.jsonb_array_elements(v_component.tiers) t;
-      v_line_amount := (v_line_amount * v_quantity)::bigint;
+      -- Progressive per-bracket pricing. tiers JSONB is an ordered list:
+      --   [{"up_to": 10, "amount_cents": 250}, {"up_to": 50, "amount_cents": 200},
+      --    {"up_to": null, "amount_cents": 150}]
+      -- The first 10 units are billed at 250, the next 40 at 200 and any
+      -- remainder at the unbounded bracket price. up_to = null means unbounded.
+      IF pg_catalog.jsonb_array_length(v_component.tiers) = 0 THEN
+        RAISE EXCEPTION 'Tiered component % has no tiers defined', v_component.id USING ERRCODE = '22023';
+      END IF;
+
+      v_remaining := v_quantity;
+      v_prev_cap := 0;
+      v_line_amount := 0;
+
+      FOR v_tier IN SELECT * FROM pg_catalog.jsonb_array_elements(v_component.tiers)
+      LOOP
+        EXIT WHEN v_remaining <= 0;
+
+        v_cap := NULLIF(pg_catalog.btrim(v_tier ->> 'up_to'), '')::numeric;
+
+        IF v_cap IS NULL THEN
+          v_units := v_remaining;
+        ELSE
+          v_units := least(v_remaining, greatest(v_cap - v_prev_cap, 0));
+        END IF;
+
+        v_line_amount := v_line_amount + round(v_units * (v_tier ->> 'amount_cents')::numeric);
+        v_remaining := v_remaining - v_units;
+
+        IF v_cap IS NOT NULL THEN
+          v_prev_cap := v_cap;
+        END IF;
+      END LOOP;
+
+      IF v_remaining > 0 THEN
+        RAISE EXCEPTION 'Quantity % exceeds all pricing tiers for component %', v_quantity, v_component.id
+          USING ERRCODE = '22023';
+      END IF;
     ELSE
-      v_line_amount := (v_component.amount_cents * v_quantity)::bigint;
+      v_line_amount := round(v_component.amount_cents * v_quantity)::bigint;
     END IF;
 
     INSERT INTO public.quote_items (
@@ -403,11 +466,15 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.issue_quote(uuid, uuid, jsonb, text, interval, bigint) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.issue_quote(uuid, uuid, jsonb, text, interval, bigint) FROM anon;
 GRANT EXECUTE ON FUNCTION public.issue_quote(uuid, uuid, jsonb, text, interval, bigint) TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 11. RPC: record_usage_event — idempotent meter ingestion
 -- ---------------------------------------------------------------------------
+-- SECURITY DEFINER justification: usage_events has no client INSERT policy
+-- (metering must not be freely writable via PostgREST); only this RPC writes,
+-- after validating caller and tenant. Same hardening as issue_quote.
 CREATE OR REPLACE FUNCTION public.record_usage_event(
   p_event_id text,
   p_organization_id uuid,
@@ -424,7 +491,7 @@ CREATE OR REPLACE FUNCTION public.record_usage_event(
 )
 RETURNS jsonb
 LANGUAGE plpgsql
-SECURITY INVOKER
+SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
@@ -464,10 +531,189 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.record_usage_event(text, uuid, text, numeric, uuid, uuid, uuid, text, text, text, text, timestamptz) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.record_usage_event(text, uuid, text, numeric, uuid, uuid, uuid, text, text, text, text, timestamptz) FROM anon;
 GRANT EXECUTE ON FUNCTION public.record_usage_event(text, uuid, text, numeric, uuid, uuid, uuid, text, text, text, text, timestamptz) TO authenticated;
 
 -- ---------------------------------------------------------------------------
+-- 11b. RPC: issue_manual_quote — audited operator-entered amount
+-- ---------------------------------------------------------------------------
+-- A custom/manual charge still must not trust a browser amount field at the
+-- payment step. This RPC records the operator-proposed amount as a
+-- server-issued quote with an audit entry; the payment flow then consumes
+-- this quote exactly like a catalog quote. DEFINER for the same reason as
+-- issue_quote (no direct client writes to quotes/billing_audit).
+CREATE OR REPLACE FUNCTION public.issue_manual_quote(
+  p_organization_id uuid,
+  p_amount_cents bigint,
+  p_currency text,
+  p_description text,
+  p_idempotency_key text,
+  p_expires_in interval DEFAULT interval '7 days'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_caller uuid := (SELECT auth.uid());
+  v_quote_id uuid;
+BEGIN
+  IF v_caller IS NULL THEN
+    RAISE EXCEPTION 'Authentication required.' USING ERRCODE = '42501';
+  END IF;
+
+  IF p_amount_cents IS NULL OR p_amount_cents <= 0 THEN
+    RAISE EXCEPTION 'Manual quote requires a positive amount_cents' USING ERRCODE = '22023';
+  END IF;
+
+  IF p_currency IS NULL OR char_length(p_currency) <> 3 THEN
+    RAISE EXCEPTION 'Manual quote requires an ISO 4217 currency code' USING ERRCODE = '22023';
+  END IF;
+
+  IF NOT (
+    public.has_platform_role('billing_admin')
+    OR EXISTS (
+      SELECT 1 FROM public.organization_members om
+      WHERE om.organization_id = p_organization_id AND om.member_id = v_caller
+    )
+  ) THEN
+    RAISE EXCEPTION 'Access denied: not a member of organization %', p_organization_id
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- Idempotency: return the existing quote for this key
+  SELECT id INTO v_quote_id FROM public.quotes WHERE idempotency_key = p_idempotency_key;
+  IF FOUND THEN
+    RETURN (SELECT pg_catalog.jsonb_build_object(
+      'quote_id', q.id, 'status', q.status, 'total_cents', q.total_cents,
+      'currency', q.currency, 'idempotent_replay', true
+    ) FROM public.quotes q WHERE q.id = v_quote_id);
+  END IF;
+
+  INSERT INTO public.quotes (
+    organization_id, quote_kind, price_book_id, idempotency_key, status, currency,
+    subtotal_cents, total_cents, expires_at, issued_by, additional_property
+  ) VALUES (
+    p_organization_id, 'manual', NULL, p_idempotency_key, 'issued', p_currency,
+    p_amount_cents, p_amount_cents, now() + p_expires_in, v_caller,
+    pg_catalog.jsonb_build_object('description', left(coalesce(p_description, ''), 500))
+  ) RETURNING id INTO v_quote_id;
+
+  INSERT INTO public.billing_audit (entity_type, entity_id, action, actor_id, reason, after_state)
+  VALUES ('quote', v_quote_id, 'create', v_caller, 'issue_manual_quote',
+          pg_catalog.jsonb_build_object('total_cents', p_amount_cents, 'currency', p_currency));
+
+  RETURN pg_catalog.jsonb_build_object(
+    'quote_id', v_quote_id, 'status', 'issued', 'total_cents', p_amount_cents,
+    'currency', p_currency, 'idempotent_replay', false
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.issue_manual_quote(uuid, bigint, text, text, text, interval) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.issue_manual_quote(uuid, bigint, text, text, text, interval) FROM anon;
+GRANT EXECUTE ON FUNCTION public.issue_manual_quote(uuid, bigint, text, text, text, interval) TO authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 11c. RPC: consume_quote — validate + atomically accept a quote for payment
+-- ---------------------------------------------------------------------------
+-- The payment boundary (pagbank-order) calls this to bind a charge to a
+-- server-issued quote. It validates tenant ownership, status and expiry and
+-- flips status to 'accepted' with a compare-and-swap so a quote cannot be
+-- consumed twice. Callable by the authenticated tenant member/admin and by
+-- the service role (trusted backend that already authorized the request).
+CREATE OR REPLACE FUNCTION public.consume_quote(
+  p_quote_id uuid,
+  p_organization_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_caller uuid := (SELECT auth.uid());
+  v_role text := coalesce(
+    NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role',
+    ''
+  );
+  v_quote public.quotes;
+  v_updated uuid;
+BEGIN
+  IF v_caller IS NULL AND v_role <> 'service_role' THEN
+    RAISE EXCEPTION 'Authentication required.' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT * INTO v_quote FROM public.quotes WHERE id = p_quote_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Quote % not found', p_quote_id USING ERRCODE = 'P0002';
+  END IF;
+
+  IF v_quote.organization_id <> p_organization_id THEN
+    RAISE EXCEPTION 'Quote % does not belong to organization %', p_quote_id, p_organization_id
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- Tenant authorization: service role (trusted backend) or member/admin.
+  IF v_role <> 'service_role' AND NOT (
+    public.has_platform_role('billing_admin')
+    OR EXISTS (
+      SELECT 1 FROM public.organization_members om
+      WHERE om.organization_id = p_organization_id AND om.member_id = v_caller
+    )
+  ) THEN
+    RAISE EXCEPTION 'Access denied: not a member of organization %', p_organization_id
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF v_quote.status <> 'issued' THEN
+    RAISE EXCEPTION 'Quote % is not consumable (status: %)', p_quote_id, v_quote.status
+      USING ERRCODE = '22023';
+  END IF;
+
+  IF v_quote.expires_at <= now() THEN
+    UPDATE public.quotes SET status = 'expired', updated_at = now()
+    WHERE id = p_quote_id AND status = 'issued';
+    RAISE EXCEPTION 'Quote % is expired', p_quote_id USING ERRCODE = '22023';
+  END IF;
+
+  -- Compare-and-swap: exactly one consumer may flip issued -> accepted.
+  UPDATE public.quotes
+  SET status = 'accepted', updated_at = now()
+  WHERE id = p_quote_id AND status = 'issued'
+  RETURNING id INTO v_updated;
+
+  IF v_updated IS NULL THEN
+    RAISE EXCEPTION 'Quote % was already consumed', p_quote_id USING ERRCODE = '22023';
+  END IF;
+
+  RETURN pg_catalog.jsonb_build_object(
+    'quote_id', v_quote.id,
+    'quote_kind', v_quote.quote_kind,
+    'subtotal_cents', v_quote.subtotal_cents,
+    'tax_cents', v_quote.tax_cents,
+    'discount_cents', v_quote.discount_cents,
+    'total_cents', v_quote.total_cents,
+    'currency', v_quote.currency
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.consume_quote(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.consume_quote(uuid, uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION public.consume_quote(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.consume_quote(uuid, uuid) TO service_role;
+
+-- ---------------------------------------------------------------------------
 -- 12. Row Level Security
+-- ---------------------------------------------------------------------------
+-- Write model: usage_events, quotes, quote_items, credit_ledger and
+-- billing_audit have NO direct client INSERT/UPDATE/DELETE policies — all
+-- writes flow through the SECURITY DEFINER RPCs above, which validate the
+-- caller, tenant and payloads server-side. Catalog tables are writable only
+-- by billing_admin (draft → publish flow). Everything else is read-only for
+-- org members.
 -- ---------------------------------------------------------------------------
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.product_versions ENABLE ROW LEVEL SECURITY;
@@ -560,3 +806,48 @@ CREATE POLICY platform_role_assignments_write_admin ON public.platform_role_assi
 -- Audit: billing_admin/platform_admin read; inserts via RPC/functions.
 CREATE POLICY billing_audit_select_admin ON public.billing_audit FOR SELECT TO authenticated
   USING (public.has_platform_role('billing_admin') OR public.has_platform_role('platform_admin'));
+
+-- ---------------------------------------------------------------------------
+-- 13. Table-level grants (Data API exposure)
+-- ---------------------------------------------------------------------------
+-- RLS policies filter WHICH rows are visible; GRANTS determine WHETHER the
+-- role may touch the table at all. Read access for authenticated members per
+-- the SELECT policies above. No INSERT/UPDATE/DELETE grants on tenant
+-- metering/quote/audit tables — writes are RPC-only by design.
+GRANT SELECT ON public.products TO authenticated;
+GRANT SELECT ON public.product_versions TO authenticated;
+GRANT SELECT ON public.price_books TO authenticated;
+GRANT SELECT ON public.price_components TO authenticated;
+GRANT SELECT ON public.bundles TO authenticated;
+GRANT SELECT ON public.bundle_items TO authenticated;
+GRANT SELECT ON public.usage_events TO authenticated;
+GRANT SELECT ON public.usage_aggregates TO authenticated;
+GRANT SELECT ON public.credit_ledger TO authenticated;
+GRANT SELECT ON public.quotes TO authenticated;
+GRANT SELECT ON public.quote_items TO authenticated;
+GRANT SELECT ON public.platform_role_assignments TO authenticated;
+GRANT SELECT ON public.billing_audit TO authenticated;
+
+-- Catalog write path for billing_admin (draft → publish), per the *_write_admin policies.
+GRANT INSERT, UPDATE, DELETE ON public.products TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.product_versions TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.price_books TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.price_components TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.bundles TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.bundle_items TO authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.platform_role_assignments TO authenticated;
+
+-- Backend (service role) full access for trusted boundaries (Edge Functions).
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.products TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.product_versions TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.price_books TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.price_components TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.bundles TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.bundle_items TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.usage_events TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.usage_aggregates TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.credit_ledger TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.quotes TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.quote_items TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.platform_role_assignments TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.billing_audit TO service_role;
