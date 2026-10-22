@@ -98,7 +98,7 @@ test('renders the normative product catalog from the backend with all 5 suites a
 
   // 4 Tabs
   expect(screen.getByText('Product Suites (5)')).toBeInTheDocument();
-  expect(screen.getByText('Brand DNA Profiles (12)')).toBeInTheDocument();
+  expect(screen.getByText('Brand DNA Profiles')).toBeInTheDocument();
   expect(screen.getByText('Platform Services & Capabilities')).toBeInTheDocument();
   expect(screen.getByText('Schema.org Taxonomy Graph')).toBeInTheDocument();
 
@@ -137,13 +137,20 @@ test('shows the factual unprovisioned empty state when the catalog is not provis
   expect(screen.queryByText('Content Factory')).not.toBeInTheDocument();
 });
 
-// Heavy render (5 suites + 12 Brand DNA profiles + interactive search) can
-// exceed the 5s default timeout on shared CI runners — allow 20s.
-test('interacts with Brand DNA catalog and search', { timeout: 20000 }, async () => {
+test('does not expose bundled Brand DNA profiles without a tenant-scoped persisted source', async () => {
   const user = userEvent.setup();
+  vi.spyOn(catalogModule, 'useNormativeCatalog').mockReturnValue({
+    status: 'ready',
+    products: normativeProducts,
+    subproductsByProduct: {},
+    capabilities: [],
+    platformServices: [],
+    error: null,
+    retry: vi.fn(),
+  });
   const authContext = {
     ...DEFAULT_CONTEXT_VALUE,
-    user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'admin@genos.cloud' },
+    user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'signed-in@example.invalid' },
   };
 
   renderWithoutProviders(
@@ -154,15 +161,54 @@ test('interacts with Brand DNA catalog and search', { timeout: 20000 }, async ()
     </MemoryRouter>,
   );
 
-  // Switch to Brand DNA tab
-  const brandTab = screen.getByText('Brand DNA Profiles (12)');
-  await user.click(brandTab);
+  await user.click(screen.getByText('Brand DNA Profiles'));
+  expect(screen.getByText('Brand DNA profiles are not provisioned')).toBeInTheDocument();
+  expect(screen.getByText(/No persisted, tenant-scoped Brand DNA resource is configured/i)).toBeInTheDocument();
+  expect(screen.queryByText('PUTTINATO')).not.toBeInTheDocument();
+  expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+});
 
-  expect(screen.getByText('Brand DNA Multi-Tenant Catalog')).toBeInTheDocument();
-  expect(screen.getAllByText('Cestari Studio Agency').length).toBeGreaterThanOrEqual(1);
+test('shows catalog access restrictions honestly', () => {
+  vi.spyOn(catalogModule, 'useNormativeCatalog').mockReturnValue({
+    status: 'forbidden',
+    products: [],
+    subproductsByProduct: {},
+    capabilities: [],
+    platformServices: [],
+    error: 'permission denied',
+    retry: vi.fn(),
+  });
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider value={DEFAULT_CONTEXT_VALUE}>
+        <ProductsCatalogPage />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
 
-  // Search filter
-  const searchInput = screen.getByRole('searchbox');
-  await user.type(searchInput, 'PUTTINATO');
-  expect(screen.getByText('PUTTINATO')).toBeInTheDocument();
+  expect(screen.getAllByText('Catalog access restricted').length).toBeGreaterThan(0);
+});
+
+test('retries a catalog request error when the user chooses retry', async () => {
+  const user = userEvent.setup();
+  const retry = vi.fn();
+  vi.spyOn(catalogModule, 'useNormativeCatalog').mockReturnValue({
+    status: 'error',
+    products: [],
+    subproductsByProduct: {},
+    capabilities: [],
+    platformServices: [],
+    error: 'network failure',
+    retry,
+  });
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider value={DEFAULT_CONTEXT_VALUE}>
+        <ProductsCatalogPage />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
+
+  await user.click(screen.getAllByRole('button', { name: 'Retry catalog request' })[0]);
+  expect(retry).toHaveBeenCalledTimes(1);
 });
