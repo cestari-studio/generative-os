@@ -111,9 +111,7 @@ const ProductsCatalogPage = () => {
         ? [
             {
               '@type': 'Organization',
-              ...(activeOrganization?.identifier
-                ? { '@id': `urn:genos:org:${activeOrganization.identifier}` }
-                : {}),
+              ...(activeOrganization?.identifier ? { '@id': `urn:genos:org:${activeOrganization.identifier}` } : {}),
               ...(activeOrganization?.name ? { name: activeOrganization.name } : {}),
               ...(activeOrganization?.url ? { url: activeOrganization.url } : {}),
               owns: catalog.products.map((prod) => ({
@@ -161,11 +159,9 @@ const ProductsCatalogPage = () => {
             style={{ color: 'var(--cds-text-secondary, #6f6f6f)', padding: '0.25rem 0' }}
           >
             {[
-              activeOrganization?.name,
-              activeWorkspace?.name,
-              activeProject?.name,
-              'schema:Product',
-            ].filter(Boolean).join(' • ')}
+              activeOrganization?.name, activeWorkspace?.name, activeProject?.name, 'schema:Product'
+            ].filter(Boolean)
+              .join(' • ')}
           </p>
         }
       />
