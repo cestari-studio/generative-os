@@ -5,11 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { useEffect, useState } from 'react';
 import { Button, Column, Grid, Heading, Section, Tile } from '@carbon/react';
 import { Purchase, Wallet } from '@carbon/icons-react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useTenant } from '../../context/useTenant';
+import { getSupabaseBrowserClient } from '../../lib/supabase.client.js';
 
 export const DashboardSubscriptionsTab = () => {
   const { t } = useTranslation();
@@ -18,8 +20,35 @@ export const DashboardSubscriptionsTab = () => {
 
   // The active plan tier comes from the organization record. Prices, limits
   // and bundles are served by the versioned billing catalog API; until the
-  // catalog is configured for this organization there is no price to show.
+  // catalog is configured there is no price to show (never a fabricated one).
   const planTier = (activeOrganization?.plan_tier || '').toUpperCase() || null;
+
+  const [catalog, setCatalog] = useState({ state: 'loading', priceBooks: [] });
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const { data, error } = await supabase
+          .from('price_books')
+          .select('id, identifier, version, currency, status')
+          .eq('status', 'published')
+          .order('effective_from', { ascending: false });
+        if (cancelled) return;
+        if (error) {
+          setCatalog({ state: 'unavailable', priceBooks: [] });
+          return;
+        }
+        setCatalog({ state: 'ready', priceBooks: Array.isArray(data) ? data : [] });
+      } catch {
+        if (!cancelled) setCatalog({ state: 'unavailable', priceBooks: [] });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <Section as="section" className="cs--dashboard-tab-pane" aria-labelledby="subscriptions-tab-heading">
@@ -79,18 +108,28 @@ export const DashboardSubscriptionsTab = () => {
           </Tile>
         </Column>
 
-        {/* Catalog empty state — no fabricated tiers or prices */}
+        {/* Catalog section — published price books when configured, honest empty state otherwise */}
         <Column sm={4} md={8} lg={16}>
           <Tile className="cs--dashboard-plan-catalog-empty">
             <Heading className="cs--dashboard-plan-section-title">
               {t('dashboard.subscriptions.plansHeading', 'Subscription Plans')}
             </Heading>
-            <p className="cs--dashboard-plan-section-subtitle">
-              {t(
-                'dashboard.subscriptions.pricingNotConfigured',
-                'Pricing is not configured for this organization yet. Plans, prices and limits are published by the platform administrator through the versioned billing catalog.',
-              )}
-            </p>
+            {catalog.state === 'ready' && catalog.priceBooks.length > 0 ? (
+              <ul className="cs--dashboard-plan-catalog-list">
+                {catalog.priceBooks.map((book) => (
+                  <li key={book.id}>
+                    {book.identifier} · v{book.version} · {book.currency}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="cs--dashboard-plan-section-subtitle">
+                {t(
+                  'dashboard.subscriptions.pricingNotConfigured',
+                  'Pricing is not configured for this organization yet. Plans, prices and limits are published by the platform administrator through the versioned billing catalog.',
+                )}
+              </p>
+            )}
           </Tile>
         </Column>
       </Grid>
