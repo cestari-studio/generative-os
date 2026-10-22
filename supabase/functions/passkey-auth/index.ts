@@ -44,28 +44,35 @@ Deno.serve(async (req: Request) => {
     const body = req.method === 'POST' ? await req.json() : {};
     const action = body.action ?? 'list';
 
-    // 1. WebAuthn Challenge generation (for registration or authentication ceremony)
+    // 1. WebAuthn Challenge generation — authenticated users only.
+    // A challenge is bound to the identified user and ceremony; issuing one to
+    // an anonymous caller would let anyone mint unbound challenges (§9.2).
     if (action === 'challenge') {
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Authentication required to request a WebAuthn challenge.' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const challenge = generateRandomChallenge();
       const rpId = body.rpId ?? new URL(req.url).hostname;
       const ceremonyType = body.ceremony === 'authentication' ? 'authentication' : 'registration';
 
-      if (user) {
-        await supabase.from('webauthn_challenges').insert({
-          person_id: user.id,
-          challenge,
-          ceremony_type: ceremonyType,
-          rp_id: rpId,
-          origin: req.headers.get('origin') ?? `https://${rpId}`,
-        });
-      }
+      await supabase.from('webauthn_challenges').insert({
+        person_id: user.id,
+        challenge,
+        ceremony_type: ceremonyType,
+        rp_id: rpId,
+        origin: req.headers.get('origin') ?? `https://${rpId}`,
+      });
 
       return new Response(
         JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'AuthorizeAction',
           challenge,
-          rp: { name: 'Generative OS', id: rpId },
+          rp: { name: 'genOS', id: rpId },
           pubKeyCredParams: [
             { type: 'public-key', alg: -7 },
             { type: 'public-key', alg: -257 },
@@ -113,7 +120,8 @@ Deno.serve(async (req: Request) => {
     // 4. List passkey credentials - requires authenticated session
     if (action === 'list') {
       if (!user) {
-        return new Response(JSON.stringify({ credentials: [] }), {
+        return new Response(JSON.stringify({ error: 'Authentication required.' }), {
+          status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

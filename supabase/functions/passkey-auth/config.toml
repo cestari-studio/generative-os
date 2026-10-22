@@ -1,0 +1,4 @@
+# Authenticated user endpoint: the gateway validates the Supabase JWT before
+# the request reaches the handler. The handler still re-validates the user and
+# tenant membership server-side (defense in depth).
+verify_jwt = true
