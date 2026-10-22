@@ -6,11 +6,11 @@
  */
 
 import { describe, expect, test, vi } from 'vitest';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 import { renderWithoutProviders } from '../test/test-utils';
-import { TenantProvider } from '../context/TenantContext';
+import { TenantContext, DEFAULT_CONTEXT_VALUE } from '../context/useTenant';
 import PaymentManagementPage from '../pages/payments/PaymentManagementPage';
 
 // Mock Supabase browser client functions
@@ -68,15 +68,24 @@ vi.mock('../lib/supabase.client', () => ({
   }),
 }));
 
+const testTenantContext = {
+  ...DEFAULT_CONTEXT_VALUE,
+  user: { id: '00000000-0000-4000-8000-000000000001', email: 'billing-test@example.invalid' },
+  activeOrganization: { id: '00000000-0000-4000-8000-000000000002', identifier: 'billing-test-org', name: 'Billing Test Organization' },
+};
+
+const renderPaymentPage = (context = testTenantContext) =>
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider value={context}>
+        <PaymentManagementPage />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
+
 describe('PaymentManagementPage UI & PagBank Integration', () => {
   test('renders page header, KPI tiles, and functional tabs', async () => {
-    renderWithoutProviders(
-      <MemoryRouter>
-        <TenantProvider>
-          <PaymentManagementPage />
-        </TenantProvider>
-      </MemoryRouter>,
-    );
+    renderPaymentPage();
 
     expect(screen.getByText('PagBank Multi-Tenant & FDW Engine')).toBeInTheDocument();
     expect(screen.getByText('Total Transacted Volume')).toBeInTheDocument();
@@ -91,16 +100,10 @@ describe('PaymentManagementPage UI & PagBank Integration', () => {
   });
 
   test('opens instant charge modal and shows payment method radio options', async () => {
-    renderWithoutProviders(
-      <MemoryRouter>
-        <TenantProvider>
-          <PaymentManagementPage />
-        </TenantProvider>
-      </MemoryRouter>,
-    );
+    renderPaymentPage();
 
     const openModalBtn = screen.getByRole('button', { name: /New Instant Charge/i });
-    expect(openModalBtn).toBeInTheDocument();
+    await waitFor(() => expect(openModalBtn).toBeEnabled());
 
     fireEvent.click(openModalBtn);
 
@@ -111,14 +114,20 @@ describe('PaymentManagementPage UI & PagBank Integration', () => {
     expect(screen.getByLabelText(/Boleto Bancario/i)).toBeInTheDocument();
   });
 
+  test('does not show fabricated zero totals or empty ledgers without an organization scope', async () => {
+    renderPaymentPage(DEFAULT_CONTEXT_VALUE);
+
+    await waitFor(() => {
+      expect(screen.getByText('Organization not selected')).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /New Instant Charge/i })).toBeDisabled();
+    expect(screen.queryByText(/No transactions found/i)).not.toBeInTheDocument();
+  });
+
   test('renders FDW architecture and Schema.org taxonomy overview in tab', async () => {
-    renderWithoutProviders(
-      <MemoryRouter>
-        <TenantProvider>
-          <PaymentManagementPage />
-        </TenantProvider>
-      </MemoryRouter>,
-    );
+    renderPaymentPage();
 
     const fdwTab = screen.getByRole('tab', { name: /Supabase Wrappers/i });
     fireEvent.click(fdwTab);
