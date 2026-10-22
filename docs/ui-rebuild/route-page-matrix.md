@@ -82,3 +82,27 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 | Anti-contaminação                   | `AGENTS.md` criado no destino com as 10 regras duras e gaps conhecidos                                                                                                                                                             | `AGENTS.md` na raiz                                                                                                                                                          |
 
 **Continua pendente:** revisão humana independente nas PRs, deploy/reconciliação Supabase (gated), Vercel Git integration + Preview da Fase 7, evidência WCAG 2.2 AA, merge (ordem #8 → #1 → #2 → ... → #7, merge commit).
+
+---
+
+## 5. Log de Verificação — Crosswalk Normativo + Integrações (22 de outubro de 2026, rodada Fase 1)
+
+**SHA de referência:** `948fe48` (e cascades). Artefatos: `registry-coverage-matrix.json`, `functional-crosswalk.md`, `page-settings-config-matrix.md`, `tools-mcp-sdk-api-registry.md`.
+
+### Reconciliação normativa (fonte `genOS` read-only)
+
+- Counts canônicos: **5/30/9/6/225/30/100/60/200/4** — todos `MATCH` com os registries.
+- Divergência **100 vs 85 operation IDs RESOLVIDA**: 85 superfície Edge (12 bundles) + 15 internas (private_rpc ×8, worker ×4, scheduled_worker ×3, ci_signing ×1). Classificação, não gap.
+- Cobertura de bindings por feature: **206/225 sem `page_keys`**, **149/225 sem `operation_ids`** — a maioria é nível de especificação. Todas as 60 páginas, 100 operações e 200 configs são referenciadas pela traceability matrix.
+- v0.9.1 EDGE_RUNTIME_GAP_MATRIX: 4 bundles auditadas, maioria das operações `fail-closed` (typed persistence/control-plane ausentes). 12 release blockers registrados.
+
+### Integrações / shell
+
+- `genOsCatalog.js`: **100% taxonomicamente reconciliado** com o normativo (5 produtos/30 subprodutos, zero divergência de chaves) — `IMPLEMENTED_UNVERIFIED` como fonte de dados (constante JS, não backend/CMS).
+- Shell: `WorkspaceSwitcherPanel` agora wired no `ProfilePanel` (seletor real tenant/workspace/projeto). 198/198 testes ✅.
+- MCPs: carbon `conectada`, supabase `conectada` (projeto alvo correto), github `conectada`, vercel `parcial` (vínculo não comprovado).
+
+### Estado das páginas (sem alteração funcional nesta rodada)
+
+- As 9 rotas físicas permanecem `IMPLEMENTED` (wiring real de PRs anteriores); **nenhuma `VALIDATED`** — Fase 7 (Preview E2E/screenshots/WCAG) continua `BLOCKED — owner action required`.
+- A cobertura normativa (60 páginas/100 operações/225 features) é backlog de vertical slices, não implementado no destino.
