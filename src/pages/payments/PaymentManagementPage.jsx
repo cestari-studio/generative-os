@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   CodeSnippet,
@@ -51,6 +51,21 @@ import { Footer } from '../../components/footer/Footer';
 import { useTenant } from '../../context/useTenant';
 import { getSupabaseBrowserClient } from '../../lib/supabase.client';
 
+const classifyPaymentReadError = (error) => {
+  const code = String(error?.code || '').toUpperCase();
+  const status = Number(error?.status || error?.statusCode || 0);
+  const message = String(error?.message || '');
+
+  if ([401, 403].includes(status) || ['42501', 'PGRST301'].includes(code)) return 'forbidden';
+  if (
+    ['42P01', 'PGRST202', 'PGRST205'].includes(code) ||
+    /relation .* does not exist|could not find the table .* schema cache|function .* does not exist/i.test(message)
+  ) {
+    return 'unprovisioned';
+  }
+  return 'error';
+};
+
 export default function PaymentManagementPage() {
   const { t } = useTranslation();
   const { activeOrganization, activeWorkspace, activeProject } = useTenant();
@@ -59,13 +74,10 @@ export default function PaymentManagementPage() {
   const workspaceId = activeWorkspace?.id || null;
   const projectId = activeProject?.id || null;
 
-  // KPIs
-  const [kpis, setKpis] = useState({
-    total_transacted_cents: 0,
-    paid_charges_count: 0,
-    pending_charges_count: 0,
-    active_sellers_count: 0,
-  });
+  // KPI values remain absent until the real scoped query succeeds.
+  const [kpis, setKpis] = useState(null);
+  const [paymentLoadState, setPaymentLoadState] = useState({ status: 'loading', error: null });
+  const paymentRequestVersion = useRef(0);
 
   // Data collections
   const [charges, setCharges] = useState([]);
@@ -86,102 +98,124 @@ export default function PaymentManagementPage() {
   // Active Instant Charge Result
   const [activePaymentResult, setActivePaymentResult] = useState(null);
 
-  // Fetch KPI metrics and recent charges
+  // Read the complete payment view as one scoped unit. Any failed query
+  // blocks the empty-table and zero-KPI states, so an access/schema error is
+  // never misrepresented as a tenant with no financial activity.
   const loadPaymentData = useCallback(async () => {
+    const requestVersion = ++paymentRequestVersion.current;
+    const isCurrent = () => requestVersion === paymentRequestVersion.current;
+
+    if (!organizationId) {
+      setKpis(null);
+      setCharges([]);
+      setSellers([]);
+      setAuditEvents([]);
+      setPaymentLoadState({ status: 'no-scope', error: null });
+      return;
+    }
+
+    setPaymentLoadState({ status: 'loading', error: null });
+    setKpis(null);
+    setCharges([]);
+    setSellers([]);
+    setAuditEvents([]);
+
     try {
       const supabase = getSupabaseBrowserClient();
-
-      // Load KPIs
-      const { data: kpiData, error: kpiErr } = await supabase.rpc('get_tenant_payment_kpis', {
-        p_organization_id: organizationId,
-      });
-      if (!kpiErr && kpiData) {
-        setKpis(kpiData);
-      }
-
-      // Load Charges
-      const { data: chargesData, error: chargesErr } = await supabase
-        .from('payment_charges')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (!chargesErr && chargesData) {
-        setCharges(chargesData);
-      }
-
-      // Load Connected Sellers
-      const { data: sellersData, error: sellersErr } = await supabase
-        .from('connected_seller_accounts')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .order('created_at', { ascending: false });
-
-      if (!sellersErr && sellersData) {
-        setSellers(sellersData);
-      }
-
-      // Load Audit Actions for Payments
-      const { data: auditData, error: auditErr } = await supabase
-        .from('audit_actions')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .in('object_type', ['Order', 'PaymentCharge', 'ConnectedSellerAccount'])
-        .order('start_time', { ascending: false })
-        .limit(10);
-
-      if (!auditErr && auditData) {
-        setAuditEvents(auditData);
-      }
-    } catch (err) {
-      console.error('Failed to load payments data', err);
-    }
-  }, [organizationId]);
-
-  useEffect(() => {
-    let ignore = false;
-    const fetchInitialData = async () => {
-      try {
-        const supabase = getSupabaseBrowserClient();
-        const { data: kpiData } = await supabase.rpc('get_tenant_payment_kpis', {
-          p_organization_id: organizationId,
-        });
-        if (!ignore && kpiData) setKpis(kpiData);
-
-        const { data: chargesData } = await supabase
+      const [kpiResult, chargesResult, sellersResult, auditResult] = await Promise.all([
+        supabase.rpc('get_tenant_payment_kpis', { p_organization_id: organizationId }),
+        supabase
           .from('payment_charges')
           .select('*')
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: false })
-          .limit(20);
-        if (!ignore && chargesData) setCharges(chargesData);
-
-        const { data: sellersData } = await supabase
+          .limit(20),
+        supabase
           .from('connected_seller_accounts')
           .select('*')
           .eq('organization_id', organizationId)
-          .order('created_at', { ascending: false });
-        if (!ignore && sellersData) setSellers(sellersData);
-
-        const { data: auditData } = await supabase
+          .order('created_at', { ascending: false }),
+        supabase
           .from('audit_actions')
           .select('*')
           .eq('organization_id', organizationId)
           .in('object_type', ['Order', 'PaymentCharge', 'ConnectedSellerAccount'])
           .order('start_time', { ascending: false })
-          .limit(10);
-        if (!ignore && auditData) setAuditEvents(auditData);
-      } catch (err) {
-        console.error('Failed to fetch initial payment data', err);
-      }
-    };
+          .limit(10),
+      ]);
 
-    fetchInitialData();
-    return () => {
-      ignore = true;
-    };
+      if (!isCurrent()) return;
+
+      const failedResult = [kpiResult, chargesResult, sellersResult, auditResult].find((result) => result?.error);
+      if (failedResult?.error) {
+        const error = failedResult.error;
+        setPaymentLoadState({
+          status: classifyPaymentReadError(error),
+          error: error.message || 'Payment data request failed.',
+        });
+        return;
+      }
+
+      if (!kpiResult?.data || typeof kpiResult.data !== 'object' || Array.isArray(kpiResult.data)) {
+        setPaymentLoadState({
+          status: 'error',
+          error: 'The payment KPI service returned no usable record.',
+        });
+        return;
+      }
+
+      setKpis(kpiResult.data);
+      setCharges(Array.isArray(chargesResult?.data) ? chargesResult.data : []);
+      setSellers(Array.isArray(sellersResult?.data) ? sellersResult.data : []);
+      setAuditEvents(Array.isArray(auditResult?.data) ? auditResult.data : []);
+      setPaymentLoadState({ status: 'ready', error: null });
+    } catch (error) {
+      if (!isCurrent()) return;
+      setKpis(null);
+      setCharges([]);
+      setSellers([]);
+      setAuditEvents([]);
+      setPaymentLoadState({
+        status: classifyPaymentReadError(error),
+        error: error instanceof Error ? error.message : 'Payment data request failed.',
+      });
+    }
   }, [organizationId]);
+
+  useEffect(() => {
+    void loadPaymentData();
+    return () => {
+      paymentRequestVersion.current += 1;
+    };
+  }, [loadPaymentData]);
+
+  const paymentLoadMessage = {
+    loading: {
+      kind: 'info',
+      title: t('payments.loadingTitle', 'Loading payment data'),
+      subtitle: t('payments.loadingDesc', 'Retrieving payment totals, orders, seller accounts, and audit events for the active organization.'),
+    },
+    'no-scope': {
+      kind: 'warning',
+      title: t('payments.noOrganizationTitle', 'Organization not selected'),
+      subtitle: t('payments.noOrganizationDesc', 'Select an organization to view financial records or initiate a payment.'),
+    },
+    forbidden: {
+      kind: 'error',
+      title: t('payments.paymentAccessDeniedTitle', 'Payment access restricted'),
+      subtitle: t('payments.paymentAccessDeniedDesc', 'The current session is not authorized to read payment data for this organization.'),
+    },
+    unprovisioned: {
+      kind: 'warning',
+      title: t('payments.paymentSchemaMissingTitle', 'Payment data is not provisioned'),
+      subtitle: t('payments.paymentSchemaMissingDesc', 'The payment schema or read endpoint is not provisioned in this environment. No empty ledger or zero totals are inferred.'),
+    },
+    error: {
+      kind: 'error',
+      title: t('payments.paymentLoadErrorTitle', 'Payment data could not be loaded'),
+      subtitle: paymentLoadState.error || t('payments.paymentLoadErrorDesc', 'The payment data request failed. Retry after investigating the service response.'),
+    },
+  }[paymentLoadState.status];
 
   // Handle Instant Charge Creation
   // Flow: (1) the server issues an audited quote for the operator-entered
@@ -366,6 +400,16 @@ export default function PaymentManagementPage() {
         />
       )}
 
+      {paymentLoadState.status !== 'ready' && paymentLoadMessage && (
+        <InlineNotification
+          kind={paymentLoadMessage.kind}
+          title={paymentLoadMessage.title}
+          subtitle={paymentLoadMessage.subtitle}
+          lowContrast
+          style={{ marginBlockEnd: '1rem' }}
+        />
+      )}
+
       {/* KPI Tiles */}
       <Grid className="cs--payment-management__kpi-grid">
         <Column sm={4} md={2} lg={4}>
@@ -374,20 +418,22 @@ export default function PaymentManagementPage() {
               {t('payments.kpiTotal', 'Total Transacted Volume')}
             </span>
             <span className="cs--payment-management__kpi-value">
-              R$ {((kpis.total_transacted_cents || 0) / 100).toFixed(2)}
+              {paymentLoadState.status === 'ready' && kpis?.total_transacted_cents != null
+                ? `R$ ${(Number(kpis.total_transacted_cents) / 100).toFixed(2)}`
+                : '—'}
             </span>
           </Tile>
         </Column>
         <Column sm={4} md={2} lg={4}>
           <Tile className="cs--payment-management__kpi-tile">
             <span className="cs--payment-management__kpi-label">{t('payments.kpiPaid', 'Paid Charges')}</span>
-            <span className="cs--payment-management__kpi-value">{kpis.paid_charges_count || 0}</span>
+            <span className="cs--payment-management__kpi-value">{paymentLoadState.status === 'ready' && kpis?.paid_charges_count != null ? kpis.paid_charges_count : '—'}</span>
           </Tile>
         </Column>
         <Column sm={4} md={2} lg={4}>
           <Tile className="cs--payment-management__kpi-tile">
             <span className="cs--payment-management__kpi-label">{t('payments.kpiPending', 'Pending Charges')}</span>
-            <span className="cs--payment-management__kpi-value">{kpis.pending_charges_count || 0}</span>
+            <span className="cs--payment-management__kpi-value">{paymentLoadState.status === 'ready' && kpis?.pending_charges_count != null ? kpis.pending_charges_count : '—'}</span>
           </Tile>
         </Column>
         <Column sm={4} md={2} lg={4}>
@@ -395,7 +441,7 @@ export default function PaymentManagementPage() {
             <span className="cs--payment-management__kpi-label">
               {t('payments.kpiSellers', 'Connected Sellers (Split)')}
             </span>
-            <span className="cs--payment-management__kpi-value">{kpis.active_sellers_count || 0}</span>
+            <span className="cs--payment-management__kpi-value">{paymentLoadState.status === 'ready' && kpis?.active_sellers_count != null ? kpis.active_sellers_count : '—'}</span>
           </Tile>
         </Column>
       </Grid>
@@ -472,110 +518,123 @@ export default function PaymentManagementPage() {
                 <Button kind="ghost" size="sm" renderIcon={Renew} onClick={loadPaymentData}>
                   {t('payments.refresh', 'Refresh')}
                 </Button>
-                <Button kind="primary" size="sm" renderIcon={Add} onClick={() => setIsModalOpen(true)}>
+                <Button
+                  kind="primary"
+                  size="sm"
+                  renderIcon={Add}
+                  disabled={!organizationId || paymentLoadState.status !== 'ready'}
+                  onClick={() => setIsModalOpen(true)}
+                >
                   {t('payments.newCharge', 'New Instant Charge')}
                 </Button>
               </div>
             </div>
 
-            <DataTable rows={chargeRows} headers={chargeHeaders}>
-              {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-                <TableContainer
-                  title={t('payments.chargesTableTitle', 'Charges and Orders')}
-                  description={t('payments.chargesTableDesc', 'Transactions governed by tenant RLS policy')}
-                >
-                  <Table {...getTableProps()}>
-                    <TableHead>
-                      <TableRow>
-                        {headers.map((header) => (
-                          <TableHeader {...getHeaderProps({ header })} key={header.key}>
-                            {header.header}
-                          </TableHeader>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows.length === 0 ? (
+            {paymentLoadState.status === 'ready' ? (
+              <DataTable rows={chargeRows} headers={chargeHeaders}>
+                {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
+                  <TableContainer
+                    title={t('payments.chargesTableTitle', 'Charges and Orders')}
+                    description={t('payments.chargesTableDesc', 'Transactions governed by tenant RLS policy')}
+                  >
+                    <Table {...getTableProps()}>
+                      <TableHead>
                         <TableRow>
-                          <TableCell colSpan={headers.length} className="cs--data-table__empty-cell">
-                            <p className="cs--data-table__empty-text">
-                              {t(
-                                'payments.emptyCharges',
-                                'No transactions found. Click "New Instant Charge" to create one.',
-                              )}
-                            </p>
-                          </TableCell>
+                          {headers.map((header) => (
+                            <TableHeader {...getHeaderProps({ header })} key={header.key}>
+                              {header.header}
+                            </TableHeader>
+                          ))}
                         </TableRow>
-                      ) : (
-                        rows.map((row) => (
-                          <TableRow {...getRowProps({ row })} key={row.id}>
-                            {row.cells.map((cell) => (
-                              <TableCell key={cell.id}>{cell.value}</TableCell>
-                            ))}
+                      </TableHead>
+                      <TableBody>
+                        {rows.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={headers.length} className="cs--data-table__empty-cell">
+                              <p className="cs--data-table__empty-text">
+                                {t(
+                                  'payments.emptyCharges',
+                                  'No transactions found. Click "New Instant Charge" to create one.',
+                                )}
+                              </p>
+                            </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </DataTable>
+                        ) : (
+                          rows.map((row) => (
+                            <TableRow {...getRowProps({ row })} key={row.id}>
+                              {row.cells.map((cell) => (
+                                <TableCell key={cell.id}>{cell.value}</TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </DataTable>
+            ) : null}
           </TabPanel>
 
           {/* TAB 2: Connect & Split */}
           <TabPanel>
             <div className="cs--payment-management__action-bar">
               <h5>{t('payments.connectHeading', 'Connected Accounts & Payout Split Engine')}</h5>
-              <Button kind="primary" size="sm" renderIcon={Launch} onClick={handleConnectSeller}>
+              <Button
+                kind="primary"
+                size="sm"
+                renderIcon={Launch}
+                disabled={!organizationId || paymentLoadState.status !== 'ready'}
+                onClick={handleConnectSeller}
+              >
                 {t('payments.authorizeSeller', 'Authorize PagBank Seller')}
               </Button>
             </div>
 
-            <DataTable rows={sellerRows} headers={sellerHeaders}>
-              {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
-                <TableContainer
-                  title={t('payments.sellersTableTitle', 'Authorized Sellers')}
-                  description={t(
-                    'payments.sellersTableDesc',
-                    'Connected sub-accounts eligible for automated split payouts',
-                  )}
-                >
-                  <Table {...getTableProps()}>
-                    <TableHead>
-                      <TableRow>
-                        {headers.map((header) => (
-                          <TableHeader {...getHeaderProps({ header })} key={header.key}>
-                            {header.header}
-                          </TableHeader>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rows.length === 0 ? (
+            {paymentLoadState.status === 'ready' ? (
+              <DataTable rows={sellerRows} headers={sellerHeaders}>
+                {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
+                  <TableContainer
+                    title={t('payments.sellersTableTitle', 'Authorized Sellers')}
+                    description={t(
+                      'payments.sellersTableDesc',
+                      'Connected sub-accounts eligible for automated split payouts',
+                    )}
+                  >
+                    <Table {...getTableProps()}>
+                      <TableHead>
                         <TableRow>
-                          <TableCell colSpan={headers.length} className="cs--data-table__empty-cell">
-                            <p className="cs--data-table__empty-text">
-                              {t(
-                                'payments.emptyCharges',
-                                'No transactions found. Click "New Instant Charge" to create one.',
-                              )}
-                            </p>
-                          </TableCell>
+                          {headers.map((header) => (
+                            <TableHeader {...getHeaderProps({ header })} key={header.key}>
+                              {header.header}
+                            </TableHeader>
+                          ))}
                         </TableRow>
-                      ) : (
-                        rows.map((row) => (
-                          <TableRow {...getRowProps({ row })} key={row.id}>
-                            {row.cells.map((cell) => (
-                              <TableCell key={cell.id}>{cell.value}</TableCell>
-                            ))}
+                      </TableHead>
+                      <TableBody>
+                        {rows.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={headers.length} className="cs--data-table__empty-cell">
+                              <p className="cs--data-table__empty-text">
+                                {t('payments.emptySellers', 'No connected seller accounts are recorded for this organization.')}
+                              </p>
+                            </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </DataTable>
+                        ) : (
+                          rows.map((row) => (
+                            <TableRow {...getRowProps({ row })} key={row.id}>
+                              {row.cells.map((cell) => (
+                                <TableCell key={cell.id}>{cell.value}</TableCell>
+                              ))}
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </DataTable>
+            ) : null}
           </TabPanel>
 
           {/* TAB 3: Supabase Wrappers (FDW) */}
@@ -594,12 +653,15 @@ export default function PaymentManagementPage() {
                     className="cds--type-caption"
                     style={{ color: 'var(--cds-text-secondary, #6f6f6f)', marginBlockStart: '0.5rem' }}
                   >
-                    Extension: wrappers (Active) • FDW: wasm_wrapper • Vault: supabase_vault Encrypted
+                    {t(
+                      'payments.fdwNotVerified',
+                      'Runtime status of wrappers, FDW connectivity, and Vault encryption is not verified by this page.',
+                    )}
                   </p>
                 </Tile>
 
                 <Tile>
-                  <h6>{t('payments.taxonomyHeading', 'Schema.org Taxonomy Implemented:')}</h6>
+                  <h6>{t('payments.taxonomyHeading', 'Schema.org Taxonomy Mapping (contract example):')}</h6>
                   <CodeSnippet type="multi">
                     {`{
   "@context": "https://schema.org",
@@ -632,8 +694,8 @@ export default function PaymentManagementPage() {
           <TabPanel>
             <h5>{t('payments.auditHeading', 'Real-Time Audit Ledger Events (public.audit_actions)')}</h5>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBlockStart: '1rem' }}>
-              {auditEvents.length === 0 ? (
-                <p>{t('payments.noAuditEvents', 'No payment audit events recorded yet.')}</p>
+              {paymentLoadState.status !== 'ready' ? null : auditEvents.length === 0 ? (
+                <p>{t('payments.noAuditEvents', 'No payment audit events recorded for this organization yet.')}</p>
               ) : (
                 auditEvents.map((evt) => (
                   <Tile key={evt.id}>
