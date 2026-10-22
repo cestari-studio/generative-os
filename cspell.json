@@ -220,6 +220,15 @@
     "Fase",
     "unprovisioned",
     "svcs",
-    "Katalogquelle"
+    "Katalogquelle",
+    "Postg",
+    "PGUSER",
+    "PGHOST",
+    "PGPORT",
+    "regclass",
+    "prereq",
+    "pricebook",
+    "subproduct",
+    "subproducts"
   ]
 }

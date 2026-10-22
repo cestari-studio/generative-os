@@ -126,3 +126,23 @@
 
 - Observado: projeto listado (`prj_cgIw3xCnho9TNi37gH5e3VmiwtXC`, equipe `cestari-studio`); leitura de detalhes/domínios/env → `404`; listagem de deployments → `403`; `linkedProjects: []`.
 - Estado: `BLOCKED — owner action required` (vínculo Git não comprovado; **não** criar projeto duplicado).
+
+---
+
+## 10. Security Advisor findings (read-only, 2026-10-22)
+
+Confirmed by remote advisor query. These are warnings to review (grants + authorization code), **not** proof of exploitability, and do not justify automatic revocation without mapping consumers.
+
+| Finding                                              | Objeto                    | Estado                     | Ação                                                                                                                                                                                                              |
+| ---------------------------------------------------- | ------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authenticated_security_definer_function_executable` | `apply_setting_cascade`   | `SECURITY DEFINER` público | Revisar grants + justificativa DEFINER; validar `auth.uid()` + tenant membership no corpo; considerar revoke de `anon`/roles desnecessárias **apenas após mapear consumidores** (não quebrar o fluxo de settings) |
+| `authenticated_security_definer_function_executable` | `create_pagbank_order`    | `SECURITY DEFINER` público | Idem — é o path legado de criação de ordem; o novo fluxo usa `claim_pagbank_order` (não aplicado). Mapear consumidores antes de restringir.                                                                       |
+| `authenticated_security_definer_function_executable` | `get_tenant_payment_kpis` | `SECURITY DEFINER` público | Idem — KPIs de pagamentos; validar escopo tenant no corpo.                                                                                                                                                        |
+| `authenticated_security_definer_function_executable` | `record_media_object`     | `SECURITY DEFINER` público | Idem — registro de mídia; validar tenant.                                                                                                                                                                         |
+| `auth_leaked_password_protection` (desativada)       | Supabase Auth             | **desativada**             | Habilitar leaked-password protection **antes** de liberar autenticação para produção, após confirmar política de Auth + testes de signup/reset. Referência: Supabase password security.                           |
+
+**Regra:** nenhuma revogação automática; cada função exige (a) justificativa documentada de DEFINER vs INVOKER, (b) `search_path=''`, (c) grants mínimos, (d) validação `auth.uid()`/tenant no corpo, (e) testes por role. `service_role` nunca é prova de RLS.
+
+## 11. Correção do estado de CI da PR #8 (2026-10-22)
+
+A execução oficial anterior de #8 em `f1de94f3` (run `39739746838`) terminou em **`failure` no lint** (build/testes ignorados) — **não é** "PENDING sem status". A API combined status vazia não significa ausência de execuções de Actions; há uma execução real e falha registrada. A CI verde de #9 **não valida** o SHA oficial de #8; a execução antiga permanece falha até que a integração autorizada de #9→#8 produza um novo SHA e uma nova CI verde nele.
