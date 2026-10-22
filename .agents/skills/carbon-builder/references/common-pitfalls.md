@@ -193,10 +193,7 @@ Always verify:
 
 ```html
 <!-- ❌ Wrong — third-party CDN, not permitted -->
-<link
-  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans..."
-  rel="stylesheet"
-/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans..." rel="stylesheet" />
 ```
 
 For **React SCSS projects** — no font CDN link is needed at all. IBM Plex is delivered
@@ -206,15 +203,9 @@ For **CDN/quick-start / Web Components (no bundler)** — use the IBM CDN exclus
 
 ```html
 <!-- ✅ Correct — IBM CDN for Plex fonts -->
-<link
-  rel="stylesheet"
-  href="https://1.www.s81c.com/common/carbon/plex/sans.css"
-/>
+<link rel="stylesheet" href="https://1.www.s81c.com/common/carbon/plex/sans.css" />
 <!-- Or for full Plex package (excluding jp and kr): -->
-<link
-  rel="stylesheet"
-  href="https://1.www.s81c.com/common/carbon/plex/plex-full.css"
-/>
+<link rel="stylesheet" href="https://1.www.s81c.com/common/carbon/plex/plex-full.css" />
 ```
 
 ### 8) Loading Carbon components from a non-IBM CDN
@@ -226,10 +217,7 @@ For **CDN/quick-start / Web Components (no bundler)** — use the IBM CDN exclus
 
 ```html
 <!-- ✅ Correct — IBM CDN with specific version (replace v2.24.0 with current version) -->
-<script
-  type="module"
-  src="https://1.www.s81c.com/common/carbon/web-components/version/v2.24.0/button.min.js"
-></script>
+<script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.24.0/button.min.js"></script>
 ```
 
 ---
