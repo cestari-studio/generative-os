@@ -52,15 +52,34 @@ CREATE TABLE IF NOT EXISTS public.organization_members (
 GRANT SELECT ON public.organization_members TO authenticated;
 ALTER TABLE public.organization_members ENABLE ROW LEVEL SECURITY;
 
+-- Authoritative payment_orders shape (verified against the target project
+-- 2026-10-22): gateway_reference_id UNIQUE, status CHECK in
+-- ('draft','waiting_payment','paid','canceled','refunded').
 CREATE TABLE IF NOT EXISTS public.payment_orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id uuid NOT NULL REFERENCES public.organizations(id),
-  reference_id text,
+  organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  workspace_id uuid,
+  project_id uuid,
+  customer_person_id uuid,
+  gateway_reference_id text NOT NULL UNIQUE,
   pagbank_order_id text,
-  status text
+  currency text NOT NULL DEFAULT 'BRL',
+  amount_cents bigint NOT NULL CHECK (amount_cents > 0),
+  status text NOT NULL DEFAULT 'draft'
+    CHECK (status = ANY (ARRAY['draft','waiting_payment','paid','canceled','refunded'])),
+  customer_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  items_snapshot jsonb NOT NULL DEFAULT '[]'::jsonb,
+  quote_id uuid,
+  psp_idempotency_key text,
+  psp_payload_fingerprint text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 -- The write path for orders is backend-only (service role / admin client in
--- the real system). The test harness inserts orders as postgres to simulate
--- the backend, so no authenticated grant is given here.
+-- the real system, verified 2026-10-22). Members never read/write directly.
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.payment_orders TO service_role;
 ALTER TABLE public.payment_orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS payment_orders_service_all ON public.payment_orders;
+CREATE POLICY payment_orders_service_all ON public.payment_orders FOR ALL TO service_role
+  USING (true) WITH CHECK (true);

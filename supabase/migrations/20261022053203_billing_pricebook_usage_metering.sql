@@ -257,43 +257,69 @@ CREATE TABLE IF NOT EXISTS public.billing_audit (
 COMMENT ON TABLE public.billing_audit IS 'Audit trail for catalog, price, bundle, entitlement and role changes.';
 
 -- ---------------------------------------------------------------------------
--- 9. Helper: platform role check
+-- 9. Platform role check — internal helper + caller-only public API
 -- ---------------------------------------------------------------------------
--- SECURITY DEFINER justification (required by the §7.4 checklist):
---   * Why DEFINER: this helper is evaluated inside RLS policies ON
---     platform_role_assignments itself; under SECURITY INVOKER that causes
---     infinite policy recursion (policy -> function -> table -> policy).
---     DEFINER bypasses RLS for this single internal lookup, breaking the
---     recursion. SECURITY INVOKER is therefore NOT sufficient here.
---   * Hardening: SET search_path = ''; fully qualified objects; auth.uid()
---     inside the body; EXECUTE revoked from PUBLIC/anon; no table grants are
---     widened — the function only READS platform_role_assignments.
-CREATE OR REPLACE FUNCTION public.has_platform_role(p_role_name text, p_person_id uuid DEFAULT NULL)
+-- Design (closes the A-vs-B enumeration surface found in review):
+--   * app_private.has_platform_role(text, uuid) is the privileged internal
+--     lookup. It runs in a schema NOT exposed via the Data API and is NOT
+--     executable by API roles — only by service_role and by definer-owned
+--     functions (the EXECUTE check evaluates against the definer's role).
+--   * public.has_platform_role(text) is the ONLY API-facing signature. It is
+--     caller-only: identity comes exclusively from auth.uid(), so a caller
+--     can never probe another person's roles. The old two-argument public
+--     signature is removed (see the DROP below); no overload is kept.
+--   * DEFINER is required in both: the lookup is evaluated inside RLS
+--     policies ON platform_role_assignments itself; under INVOKER that
+--     recurses infinitely (policy -> function -> table -> policy).
+--   * Hardening: SET search_path = ''; fully qualified objects; EXECUTE
+--     revoked from PUBLIC/anon everywhere; minimum grants.
+CREATE SCHEMA IF NOT EXISTS app_private;
+
+CREATE OR REPLACE FUNCTION app_private.has_platform_role(p_role_name text, p_person_id uuid)
 RETURNS boolean
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-  v_caller uuid := coalesce(p_person_id, (SELECT auth.uid()));
 BEGIN
-  IF v_caller IS NULL THEN
+  IF p_person_id IS NULL THEN
     RETURN false;
   END IF;
   RETURN EXISTS (
     SELECT 1
     FROM public.platform_role_assignments pra
-    WHERE pra.person_id = v_caller
+    WHERE pra.person_id = p_person_id
       AND pra.role_name = p_role_name
       AND pra.revoked_at IS NULL
   );
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.has_platform_role(text, uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.has_platform_role(text, uuid) FROM anon;
-GRANT EXECUTE ON FUNCTION public.has_platform_role(text, uuid) TO authenticated;
+REVOKE ALL ON FUNCTION app_private.has_platform_role(text, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION app_private.has_platform_role(text, uuid) FROM anon;
+REVOKE ALL ON FUNCTION app_private.has_platform_role(text, uuid) FROM authenticated;
+GRANT EXECUTE ON FUNCTION app_private.has_platform_role(text, uuid) TO service_role;
+
+-- Remove the vulnerable public two-argument signature and its grants BEFORE
+-- creating the caller-only replacement (all consumers use the 1-arg form).
+DROP FUNCTION IF EXISTS public.has_platform_role(text, uuid);
+
+CREATE OR REPLACE FUNCTION public.has_platform_role(p_role_name text)
+RETURNS boolean
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  RETURN app_private.has_platform_role(p_role_name, (SELECT auth.uid()));
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.has_platform_role(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.has_platform_role(text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.has_platform_role(text) TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 10. RPC: issue_quote — server-side total calculation from price book
@@ -772,11 +798,13 @@ BEGIN
       USING ERRCODE = '22023';
   END IF;
 
-  -- Never release a quote with a live or settled order.
+  -- Never release a quote with a live, in-flight or settled order. Only a
+  -- 'canceled' order (the sole terminal non-paid state in the authoritative
+  -- CHECK constraint) allows release; 'draft'/'waiting_payment' still block.
   SELECT count(*) INTO v_active_orders
   FROM public.payment_orders po
   WHERE po.quote_id = p_quote_id
-    AND coalesce(po.status, '') NOT IN ('failed', 'cancelled', 'declined');
+    AND coalesce(po.status, '') NOT IN ('canceled');
 
   IF v_active_orders > 0 THEN
     RAISE EXCEPTION 'Quote % has an active payment order and cannot be released', p_quote_id
@@ -800,13 +828,170 @@ REVOKE ALL ON FUNCTION public.release_consumed_quote(uuid, text) FROM anon;
 GRANT EXECUTE ON FUNCTION public.release_consumed_quote(uuid, text) TO authenticated;
 
 -- ---------------------------------------------------------------------------
--- 11e. Link payment orders to the quote that authorized them
+-- 11e. Link payment orders to the quote that authorized them + PSP idempotency
 -- ---------------------------------------------------------------------------
--- payment_orders predates this migration (created out-of-band); add the
--- reference additively so each charge traces to a single server-issued quote
--- and payment retries can idempotently return the existing order.
+-- payment_orders predates this migration (created out-of-band, verified
+-- 2026-10-22): authoritative columns are gateway_reference_id (UNIQUE) and
+-- status CHECK in ('draft','waiting_payment','paid','canceled','refunded').
+-- Additive columns: the authorizing quote, the persisted PSP idempotency key
+-- and the payload fingerprint used to validate safe retries.
 ALTER TABLE public.payment_orders ADD COLUMN IF NOT EXISTS quote_id uuid REFERENCES public.quotes(id) ON DELETE SET NULL;
+ALTER TABLE public.payment_orders ADD COLUMN IF NOT EXISTS psp_idempotency_key text;
+ALTER TABLE public.payment_orders ADD COLUMN IF NOT EXISTS psp_payload_fingerprint text;
+
+-- One charge per quote, enforced atomically by the database (a plain index
+-- does not prove uniqueness). Partial: many orders may have NULL quote_id.
+CREATE UNIQUE INDEX IF NOT EXISTS payment_orders_quote_id_key
+  ON public.payment_orders(quote_id) WHERE quote_id IS NOT NULL;
+
 CREATE INDEX IF NOT EXISTS idx_payment_orders_quote_id ON public.payment_orders(quote_id);
+
+-- ---------------------------------------------------------------------------
+-- 11f. RPC: claim_pagbank_order — atomic create-or-get for one payment attempt
+-- ---------------------------------------------------------------------------
+-- Two concurrent requests for the same quote must not create two orders nor
+-- start two independent PSP submissions. The unique partial index on quote_id
+-- plus INSERT ... ON CONFLICT DO NOTHING makes the claim atomic: exactly one
+-- caller wins 'claimed = true'; everyone else gets the existing order back
+-- with 'claimed = false' (idempotent replay, never a duplicate).
+--
+-- The amount is derived from the consumed quote itself — never from the
+-- caller. The caller must be the trusted backend (service_role) because
+-- pagbank-order already authorized the request; members may not claim
+-- directly. A claim for an unconsumed (not 'accepted') quote, a quote of a
+-- different tenant, or a mismatched amount is rejected.
+CREATE OR REPLACE FUNCTION public.claim_pagbank_order(
+  p_organization_id uuid,
+  p_workspace_id uuid,
+  p_project_id uuid,
+  p_quote_id uuid,
+  p_reference_id text,
+  p_customer_person_id uuid,
+  p_customer_snapshot jsonb,
+  p_items_snapshot jsonb DEFAULT '[]'::jsonb
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_quote public.quotes;
+  v_order_id uuid;
+  v_existing public.payment_orders;
+  v_claimed boolean;
+BEGIN
+  SELECT * INTO v_quote FROM public.quotes WHERE id = p_quote_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Quote % not found', p_quote_id USING ERRCODE = 'P0002';
+  END IF;
+
+  IF v_quote.organization_id <> p_organization_id THEN
+    RAISE EXCEPTION 'Quote % does not belong to organization %', p_quote_id, p_organization_id
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF v_quote.status <> 'accepted' THEN
+    RAISE EXCEPTION 'Quote % must be consumed (accepted) before claiming an order (status: %)',
+      p_quote_id, v_quote.status USING ERRCODE = '22023';
+  END IF;
+
+  IF p_reference_id IS NULL OR length(btrim(p_reference_id)) = 0 THEN
+    RAISE EXCEPTION 'reference_id is required' USING ERRCODE = '22004';
+  END IF;
+
+  -- Atomic claim: exactly one insert wins per quote_id.
+  INSERT INTO public.payment_orders (
+    organization_id, workspace_id, project_id, customer_person_id,
+    gateway_reference_id, amount_cents, status, customer_snapshot, items_snapshot,
+    quote_id
+  ) VALUES (
+    p_organization_id, p_workspace_id, p_project_id, p_customer_person_id,
+    p_reference_id, v_quote.total_cents, 'draft', p_customer_snapshot, p_items_snapshot,
+    p_quote_id
+  )
+  ON CONFLICT (quote_id) WHERE quote_id IS NOT NULL DO NOTHING
+  RETURNING id INTO v_order_id;
+
+  v_claimed := v_order_id IS NOT NULL;
+
+  IF NOT v_claimed THEN
+    SELECT * INTO v_existing FROM public.payment_orders WHERE quote_id = p_quote_id;
+    -- Guard: a replay with a DIFFERENT business reference on the same quote
+    -- is rejected (a consumed quote binds to one payment attempt).
+    IF v_existing.gateway_reference_id <> p_reference_id THEN
+      RAISE EXCEPTION 'Quote % is already claimed by another payment reference', p_quote_id
+        USING ERRCODE = '22023';
+    END IF;
+    v_order_id := v_existing.id;
+  END IF;
+
+  RETURN pg_catalog.jsonb_build_object(
+    'order_id', v_order_id,
+    'claimed', v_claimed,
+    'amount_cents', v_quote.total_cents,
+    'currency', v_quote.currency
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.claim_pagbank_order(uuid, uuid, uuid, uuid, text, uuid, jsonb, jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.claim_pagbank_order(uuid, uuid, uuid, uuid, text, uuid, jsonb, jsonb) FROM anon;
+GRANT EXECUTE ON FUNCTION public.claim_pagbank_order(uuid, uuid, uuid, uuid, text, uuid, jsonb, jsonb) TO service_role;
+
+-- ---------------------------------------------------------------------------
+-- 11g. RPC: attach_psp_idempotency — persist the stable PSP key + fingerprint
+-- ---------------------------------------------------------------------------
+-- The PSP idempotency key is generated once per payment attempt, persisted
+-- BEFORE the first external submission, and reused on every retry. A retry
+-- with the same key but an incompatible payload fingerprint is rejected.
+CREATE OR REPLACE FUNCTION public.attach_psp_idempotency(
+  p_order_id uuid,
+  p_organization_id uuid,
+  p_psp_idempotency_key text,
+  p_psp_payload_fingerprint text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_order public.payment_orders;
+BEGIN
+  SELECT * INTO v_order FROM public.payment_orders WHERE id = p_order_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Order % not found', p_order_id USING ERRCODE = 'P0002';
+  END IF;
+
+  IF v_order.organization_id <> p_organization_id THEN
+    RAISE EXCEPTION 'Order % does not belong to organization %', p_order_id, p_organization_id
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- Key already attached: only accept the SAME key + SAME fingerprint.
+  IF v_order.psp_idempotency_key IS NOT NULL THEN
+    IF v_order.psp_idempotency_key <> p_psp_idempotency_key
+       OR v_order.psp_payload_fingerprint IS DISTINCT FROM p_psp_payload_fingerprint THEN
+      RAISE EXCEPTION 'Order % already has a different PSP idempotency key/payload', p_order_id
+        USING ERRCODE = '22023';
+    END IF;
+    RETURN pg_catalog.jsonb_build_object('order_id', v_order.id, 'attached', false, 'idempotent_replay', true);
+  END IF;
+
+  UPDATE public.payment_orders
+  SET psp_idempotency_key = p_psp_idempotency_key,
+      psp_payload_fingerprint = p_psp_payload_fingerprint,
+      updated_at = now()
+  WHERE id = p_order_id;
+
+  RETURN pg_catalog.jsonb_build_object('order_id', v_order.id, 'attached', true, 'idempotent_replay', false);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.attach_psp_idempotency(uuid, uuid, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.attach_psp_idempotency(uuid, uuid, text, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.attach_psp_idempotency(uuid, uuid, text, text) TO service_role;
 
 -- ---------------------------------------------------------------------------
 -- 12. Row Level Security
