@@ -14,6 +14,7 @@ import { ThemeSettings, ThemeMenuComplement, ThemeSwitcher } from '@carbon-labs/
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useTenant } from '../../context/useTenant';
+import { WorkspaceSwitcherPanel } from '../workspaceSwitcher/WorkspaceSwitcherPanel';
 
 export const ProfilePanel = ({ className, onClose }) => {
   const { t, i18n } = useTranslation();
@@ -162,10 +163,17 @@ export const ProfilePanel = ({ className, onClose }) => {
         />
       </ThemeSettings>
 
-      {/* 3. Dynamic Read-Only Tenant Account Information (No hardcoded values) */}
+      {/* 3. Tenant / workspace / project context switcher (authenticated) */}
+      {user && (
+        <div className="cs--profile-section">
+          <WorkspaceSwitcherPanel />
+        </div>
+      )}
+
+      {/* 4. Dynamic Read-Only Tenant Account Information (No hardcoded values) */}
       {user && readOnlyItems.length > 0 && <Profile.ReadOnly items={readOnlyItems} />}
 
-      {/* 4. Language Selection */}
+      {/* 5. Language Selection */}
       <div className="cs--profile-section">
         <Select
           id="profile-language-select"
