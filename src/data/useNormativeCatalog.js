@@ -13,11 +13,13 @@ import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
  * services) from the backend catalog store (migration
  * 20261022060000_catalog_normative_source + seed).
  *
- * Returns an honest provisioning state instead of fabricating a fallback:
- *   - 'loading'  — query in flight
- *   - 'ready'    — catalog present in the backend
- *   - 'unprovisioned' — the catalog store is not provisioned (tables missing
- *     or empty); the caller renders the factual empty state, never a fake.
+ * Returns honest backend states instead of fabricating a fallback:
+ *   - 'loading'       — query in flight
+ *   - 'ready'         — product catalog present in the backend
+ *   - 'empty'         — tables are reachable but contain no product records
+ *   - 'unprovisioned' — catalog tables are missing
+ *   - 'forbidden'     — the current session is not authorized to read the catalog
+ *   - 'error'         — an unexpected request or service failure
  *
  * Content comes exclusively from the DB; the static genOsCatalog.js remains
  * the verified static taxonomy reference but is NOT a runtime fallback.
@@ -53,6 +55,7 @@ export function useNormativeCatalog() {
 
   useEffect(() => {
     let cancelled = false;
+    setState((current) => ({ ...current, status: 'loading', error: null }));
 
     (async () => {
       try {
