@@ -43,8 +43,8 @@
 
 - **Fase 2 (Gate 2):** Design Foundation & Shared Shell (revisão de tokens, grid, navegação, header, switcher de workspace e menu de perfil).
 - **Fase 3 (Gate 3):** Reconstrução vertical dos fluxos críticos:
-  1. Sign-in & Auth Modal
-  2. Onboarding Wizard com `ProgressIndicator`
+  1. **Onboarding & Identidade (`/onboarding`):** `OnboardingPage.jsx` refatorada para renderizar o wizard multi-etapa `OnboardingFullPage` em modo `standalone={true}` nativo com `ProgressIndicator` em vez de redirecionamento nulo. Mensagem explícita sobre certificação FIDO2 adicionada ao fluxo de passkeys. Suíte de testes dedicada criada (`src/__tests__/OnboardingPage.test.jsx`).
+  2. Sign-in & Auth Modal
   3. Dashboard & Telemetria
   4. Catálogo de Produtos & Brand DNA
   5. Knowledge Corpus & Vector RAG

@@ -5,20 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { useTenant } from '../../context/useTenant';
+import { OnboardingFullPage } from '../../components/onboarding/OnboardingFullPage';
 
 export const OnboardingPage = () => {
-  const navigate = useNavigate();
-  const { openOnboardingFlow } = useTenant();
-
-  useEffect(() => {
-    openOnboardingFlow(0);
-    navigate('/dashboard', { replace: true });
-  }, [openOnboardingFlow, navigate]);
-
-  return null;
+  return <OnboardingFullPage standalone={true} />;
 };
 
 export default OnboardingPage;

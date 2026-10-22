@@ -259,8 +259,11 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
             : 'Biometric Touch ID';
       await registerPasskey(deviceLabel);
       setPasskeyRegistered(true);
-    } catch {
-      // Handled via tenant status message
+    } catch (err) {
+      setErrorMessage(
+        err?.message ||
+          'Passkey registration is currently under FIDO2 certification and disabled for security compliance.',
+      );
     }
   };
 
