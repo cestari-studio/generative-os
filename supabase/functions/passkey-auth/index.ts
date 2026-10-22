@@ -7,6 +7,7 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { handleChallengeAction } from '../_shared/passkey-challenge.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,39 +45,24 @@ Deno.serve(async (req: Request) => {
     const body = req.method === 'POST' ? await req.json() : {};
     const action = body.action ?? 'list';
 
-    // 1. WebAuthn Challenge generation (for registration or authentication ceremony)
+    // 1. WebAuthn Challenge generation — authenticated users only, challenge
+    // bound to the identified user and ceremony. Persistence is mandatory:
+    // an unpersisted challenge is never returned (fail closed).
     if (action === 'challenge') {
-      const challenge = generateRandomChallenge();
-      const rpId = body.rpId ?? new URL(req.url).hostname;
-      const ceremonyType = body.ceremony === 'authentication' ? 'authentication' : 'registration';
-
-      if (user) {
-        await supabase.from('webauthn_challenges').insert({
-          person_id: user.id,
-          challenge,
-          ceremony_type: ceremonyType,
-          rp_id: rpId,
-          origin: req.headers.get('origin') ?? `https://${rpId}`,
-        });
-      }
-
-      return new Response(
-        JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'AuthorizeAction',
-          challenge,
-          rp: { name: 'Generative OS', id: rpId },
-          pubKeyCredParams: [
-            { type: 'public-key', alg: -7 },
-            { type: 'public-key', alg: -257 },
-          ],
-          timeout: 60000,
-          attestation: 'none',
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      const outcome = await handleChallengeAction(user ? { id: user.id } : null, body, {
+        generateChallenge: generateRandomChallenge,
+        hostname: new URL(req.url).hostname,
+        originHeader: req.headers.get('origin'),
+        insertChallenge: async (row) => {
+          const { error } = await supabase.from('webauthn_challenges').insert(row);
+          return { error: error ? { message: error.message } : null };
         },
-      );
+      });
+
+      return new Response(JSON.stringify(outcome.body), {
+        status: outcome.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // 2. Register passkey credential - disabled until full WebAuthn attestation ceremony is implemented
@@ -113,7 +99,8 @@ Deno.serve(async (req: Request) => {
     // 4. List passkey credentials - requires authenticated session
     if (action === 'list') {
       if (!user) {
-        return new Response(JSON.stringify({ credentials: [] }), {
+        return new Response(JSON.stringify({ error: 'Authentication required.' }), {
+          status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
