@@ -1,0 +1,865 @@
+{
+  "auth": {
+    "protected": {
+      "allCategoriesSubtitle": "The following modular setting domains are managed under verified tenant governance:",
+      "allCategoriesTitle": "Tenant-Level Settings Categories",
+      "cardCategoryPrompt": "You are attempting to access {{category}}. This area is restricted to authenticated members of organization workspaces.",
+      "cardDefaultPrompt": "This area is restricted to authenticated members of organization workspaces.",
+      "cardHeading": "Authenticated Tenant Session Required",
+      "privateCategory": "Private",
+      "returnHome": "Return to Public Welcome",
+      "signInButton": "Sign in to Tenant Workspace",
+      "subtitle": "All application workspaces, services, and operational configurations belong to Tenant-Level Settings categories and require an authenticated session.",
+      "targetCategory": "Target",
+      "title": "Tenant-Level Settings Access Restricted",
+      "validating": "Validating tenant session...",
+      "warningSubtitle": "Guest visitors cannot read or alter multi-tenant configurations, pgvector embeddings, or financial records.",
+      "warningTitle": "Access Gate Active"
+    }
+  },
+  "cascadeSettings": {
+    "allScopes": "All Domains",
+    "applyButton": "Save & Cascade",
+    "auditHeading": "Cascade Audit Ledger (Schema.org Action)",
+    "auditSubtitle": "Live PostgreSQL public.audit_actions events recorded by RPC and Edge Functions.",
+    "filterScopeLabel": "Filter by Domain",
+    "hubDesc": "All platform modules and operational services operate as Tenant-Level Settings, isolated to your active organization context.",
+    "hubTitle": "Tenant-Level Settings Categories",
+    "inheritedFrom": "Effective from: {{level}}",
+    "jsonLdDesc": "Unified multi-tier Schema.org entity graph dynamically composed from active Organization, Workspace, and CreativeWork project hierarchy.",
+    "jsonLdPreview": "Schema.org JSON-LD Snapshot",
+    "lockedBadge": "LOCKED by {{level}}",
+    "openCategory": "Open Setting",
+    "privateBadge": "Private",
+    "purgeChildrenLabel": "Clear lower-tier overrides when applying",
+    "ruleLabel": "Cascade Rule",
+    "subtitle": "Granular 4-tier settings engine (Organization → Workspace → Project → Person) with Schema.org PropertyValue taxonomy and inheritance rules.",
+    "tabAudit": "Audit Ledger",
+    "tabCategories": "Tenant Settings Hub",
+    "tabJsonLd": "Schema.org JSON-LD",
+    "tabMatrix": "Policy Matrix",
+    "tabsAriaLabel": "Cascade Governance Sections",
+    "tierSelectorLabel": "Editing Scope Tier",
+    "title": "Multi-Tenant Cascade Settings",
+    "valueLabel": "Setting Value"
+  },
+  "common": {
+    "actions": "Action",
+    "cancel": "Cancel",
+    "close": "Close",
+    "error": "Error",
+    "loading": "Authenticating...",
+    "next": "Next processor",
+    "organization": "Organization",
+    "previous": "Previous processor",
+    "project": "Project",
+    "refresh": "Refresh",
+    "select": "Select",
+    "selected": "Active",
+    "workspace": "Workspace",
+    "back": "Back",
+    "finish": "Finish",
+    "on": "On",
+    "off": "Off"
+  },
+  "commonHeader": {
+    "logoAlt": "Cestari Studio logo"
+  },
+  "dashboard": {
+    "actions": {
+      "cascade": "Cascade Governance Engine",
+      "cascadeDesc": "Inspect and enforce LOCKED, INHERIT_OVERRIDABLE, and MERGE rules across 4 tiers.",
+      "identity": "Identity & Multi-Country PF/PJ",
+      "identityDesc": "Enterprise onboarding with 9-country validation, tax registry, and FIDO2 passkeys.",
+      "ingest": "Ingest Knowledge Corpus",
+      "ingestDesc": "Chunk and index multi-tier Schema.org DigitalDocument assets into isolated vector spaces.",
+      "search": "Semantic Vector Search",
+      "searchDesc": "Query 384-dimensional pgvector HNSW embeddings with real-time cosine distance."
+    },
+    "activity": {
+      "networkActivity": "Network activity",
+      "networkNotifications": "Network notifications"
+    },
+    "charts": {
+      "actionsAxis": "Actions recorded",
+      "activityDesc": "Audited actions recorded in public.audit_actions across active horizons.",
+      "activityTitle": "Tenant Activity & Audit Timeline",
+      "cascadeDesc": "Breakdown of active settings by inheritance and locking directives.",
+      "cascadeTitle": "Cascade Governance Rule Distribution",
+      "corpusDesc": "Breakdown of indexed Schema.org DigitalDocument and MediaObject files.",
+      "corpusTitle": "Knowledge & Media Assets by Format",
+      "itemsCount": "Count",
+      "rulesTotal": "Effective rules",
+      "timelineAxis": "Timeline"
+    },
+    "chartsRegion": "Telemetry and Governance Analytics",
+    "contextHierarchy": "Tenant hierarchy",
+    "emptyStates": {
+      "clearSearch": "Clear search",
+      "nodesSubtitle": "No nodes match the selected cluster scope or search query. Reset filters to view all online systems.",
+      "nodesTitle": "No matching cluster nodes",
+      "resetFilters": "Reset filters",
+      "searchSubtitle": "No items match \"{{query}}\". Clear search to see all records.",
+      "searchTitle": "No matching results"
+    },
+    "filtersRegion": "Dashboard filters",
+    "kpis": {
+      "assetsLabel": "Knowledge assets",
+      "assetsSub": "Vector embeddings & media objects",
+      "assetsTag": "pgvector & Storage",
+      "membersLabel": "Active members",
+      "membersSub": "Schema.org Persons registered in organization",
+      "membersTag": "Tier 4 Persons",
+      "projectsLabel": "CreativeWork projects",
+      "projectsSub": "Active initiatives across workspaces",
+      "projectsTag": "Tier 3 Projects",
+      "rulesLabel": "Locked cascade rules",
+      "rulesSub": "Enforced policies from higher tiers",
+      "rulesTag": "Strict Governance"
+    },
+    "kpisRegion": "Operational KPIs",
+    "loading": "Loading dashboard...",
+    "nodes": {
+      "heading": "Nodes"
+    },
+    "numberTiles": {
+      "activeProjects": "CreativeWork projects",
+      "activeUsers": "Active users",
+      "assetsBadge": "pgvector HNSW (384-d)",
+      "certifiedDevelopers": "Certified developers",
+      "effectiveSettings": "Effective cascade rules",
+      "industryClients": "Industry clients",
+      "innovationCenters": "Quantum innovation centers",
+      "knowledgeAssets": "Vector & Storage assets",
+      "networkMembers": "Network members",
+      "ninetyDayChange": "90-day change",
+      "projectsBadge": "Tier 3 Projects",
+      "qiskitAdvocates": "Qiskit advocates",
+      "qiskitCourses": "Qiskit courses",
+      "qiskitLearners": "Qiskit learners",
+      "quantumSafeClients": "Quantum-safe clients",
+      "researchPapers": "Total research papers",
+      "settingsBadge_one": "{{count}} LOCKED",
+      "settingsBadge_other": "{{count}} LOCKED",
+      "usersBadge": "Schema.org Persons"
+    },
+    "previewCards": {
+      "blueprintDesc": "Autonomous cognitive loop connecting pgvector retrieval, Granite reasoning, and Schema.org Action execution.",
+      "blueprintTitle": "Neural Agent Workflow Blueprint",
+      "governanceDesc": "Enforce LOCKED, INHERIT_OVERRIDABLE, and MERGE policies across 4 multi-tenant organizational tiers.",
+      "governanceTitle": "Cascade Governance",
+      "graniteDesc": "Granite 3.0 8B Instruct model provisioned in enterprise multi-tenant mode with hardware tensor acceleration, int4 quantization, and end-to-end token auditing.",
+      "graniteTitle": "IBM Granite Foundation Model Deployment",
+      "knowledgeDesc": "Query 384-dimensional pgvector HNSW embeddings with real-time cosine distance across multi-tier schemas.",
+      "knowledgeTitle": "Knowledge & Vector RAG",
+      "monitoringDesc": "99.98% SLA compliance tracking, automated memory leak diagnosis, and real-time Core Web Vitals profiling.",
+      "monitoringTitle": "Continuous Telemetry",
+      "paymentsDesc": "PagBank multi-tenant fiscal processing with real-time audit ledger logging and webhook verification.",
+      "paymentsTitle": "Financial Gateway",
+      "runtimeDesc": "Isolated container nodes running node-v22 serverless workers with sub-14ms startup latencies.",
+      "runtimeTitle": "Virtual Machine Runtime",
+      "tagActive": "Active pipeline"
+    },
+    "processor": {
+      "available": "Available",
+      "label": "Processor"
+    },
+    "shortcuts": {
+      "heading": "Operational Accelerators",
+      "knowledgeDesc": "Query 384-dimensional pgvector HNSW embeddings with real-time cosine distance.",
+      "knowledgeTitle": "Semantic Vector Search",
+      "paymentsDesc": "Manage PagBank multi-tenant splits, seller payouts, and subscription plans.",
+      "paymentsTitle": "Financial & Billing Hub",
+      "productsDesc": "Configure multi-tenant modular product suites and corporate identity attributes.",
+      "productsTitle": "Products & Brand DNA",
+      "settingsDesc": "Inspect and enforce LOCKED, INHERIT_OVERRIDABLE, and MERGE rules across 4 tiers.",
+      "settingsTitle": "Cascade Governance Engine",
+      "subheading": "Direct pathways to core multi-tenant subsystems and governance tools."
+    },
+    "shortcutsRegion": "Quick Action Shortcuts",
+    "sla": "Online · 14ms latency · 99.98% SLA",
+    "subtitle": "Unified operational overview of multi-tenant workspaces, pgvector semantic intelligence, cascade policies, and audit logs.",
+    "tables": {
+      "actionType": "Action @type",
+      "auditDesc": "Immutable multi-tenant operational ledger recorded in PostgreSQL public.audit_actions.",
+      "auditTitle": "Schema.org Audit Action Stream",
+      "cascadeRule": "Cascade rule",
+      "domain": "Domain",
+      "entity": "Entity",
+      "governanceDesc": "Resolved Schema.org PropertyValue parameters computed across 4 hierarchical tiers.",
+      "governanceTitle": "Effective Cascade Governance",
+      "instrument": "Instrument",
+      "propertyId": "Property ID",
+      "searchAudits": "Filter audit actions...",
+      "searchGovernance": "Filter policies...",
+      "sourceTier": "Source tier",
+      "status": "Status"
+    },
+    "tablesRegion": "Operational Ledgers and Governance Matrix",
+    "throughput": {
+      "liveStream": "Live stream",
+      "online": "Online",
+      "pendingJobs": "Pending jobs",
+      "timeSpentTitle": "Time spent in state (%)"
+    },
+    "title": "Dashboard",
+    "toolbar": {
+      "allWorkspaces": "All workspaces",
+      "clusterAll": "All clusters",
+      "clusterScope": "Cluster scope",
+      "export": "Export report",
+      "formAria": "Dashboard filtering toolbar",
+      "horizon24h": "Last 24 hours",
+      "horizon30d": "Last 30 days",
+      "horizon7d": "Last 7 days",
+      "horizon90d": "Last 90 days",
+      "refresh": "Refresh metrics",
+      "refreshing": "Refreshing...",
+      "searchLabel": "Search nodes and telemetry",
+      "searchPlaceholder": "Filter by cluster, ID, or audit action...",
+      "timeHorizon": "Time horizon",
+      "timeHorizonLabel": "Time horizon",
+      "workspaceScopeLabel": "Workspace scope"
+    },
+    "topology": {
+      "title": "System topology"
+    },
+    "urlParameters": {
+      "description": "This demonstrates how to retrieve both path and query parameters from the URL.",
+      "greeting": "Hello {{name}}! 👋",
+      "pathParameter": "Path parameter detected (id):",
+      "queryParameterName": "Query parameter detected (name):",
+      "queryParameterQ": "Query parameter detected (q):",
+      "title": "URL Parameters Example",
+      "tryAccessing": "Try accessing:"
+    },
+    "visualizations": {
+      "auditSubtitle": "Append-only multi-tenant event stream in public.audit_actions.",
+      "auditTitle": "Schema.org Audit Action Stream",
+      "emptyAudits": "No audit actions recorded yet. Operational events will stream here.",
+      "emptySettings": "No active cascade policies resolved for this tenant context.",
+      "settingsSubtitle": "Live Schema.org PropertyValue resolution from Supabase RPC resolve_effective_settings.",
+      "settingsTitle": "Effective Cascade Governance"
+    },
+    "header": {
+      "title": "Tenant Dashboard",
+      "subtitle": "Enterprise multi-tenant telemetry, onboarding orchestration, and governance operations",
+      "actionsButton": "Actions",
+      "actionsOverflow": "More actions"
+    },
+    "breadcrumbs": {
+      "home": "Home"
+    },
+    "tabs": {
+      "ariaLabel": "Dashboard views",
+      "dashboard": "Dashboard",
+      "workspace": "Workspace",
+      "users": "Users",
+      "subscriptions": "Subscriptions",
+      "settings": "Settings"
+    },
+    "onboarding": {
+      "title": "Complete Your Tenant Onboarding",
+      "subtitleWithProgress": "Follow these 4 essential steps to configure and provision your multi-tenant operating system ({{completed}} of 4 completed).",
+      "step1": {
+        "label": "Step 1 of 4",
+        "title": "Configure Tenant DNA & Identity",
+        "desc": "Set legal organization details, multi-country validation, tax registry, and enterprise brand identity."
+      },
+      "step2": {
+        "label": "Step 2 of 4",
+        "title": "Provision Workspaces & Projects",
+        "desc": "Organize creative teams, define project boundaries, and set tenant isolation scopes."
+      },
+      "step3": {
+        "label": "Step 3 of 4",
+        "title": "Index Vector Knowledge & Documents",
+        "desc": "Upload documents to chunk and generate 384-dimensional pgvector embeddings for cognitive RAG."
+      },
+      "step4": {
+        "label": "Step 4 of 4",
+        "title": "Activate Subscription & FinOps",
+        "desc": "Set up PagBank payment processing, select tier limits, and automate tenant fiscal billing."
+      }
+    },
+    "workspaces": {
+      "current": "Active Workspace",
+      "organization": "Organization",
+      "identifier": "ID",
+      "createButton": "Create New Workspace",
+      "tableTitle": "Provisioned Workspaces",
+      "tableDesc": "Isolated multi-tenant execution contexts governed by Schema.org creative work models.",
+      "colName": "Workspace Name",
+      "colIdentifier": "Identifier / ID",
+      "colProjects": "CreativeWork Projects",
+      "colStatus": "Status",
+      "unnamed": "Default Workspace",
+      "nameLabel": "Workspace Name",
+      "slugLabel": "Identifier Slug",
+      "envLabel": "Environment Type"
+    },
+    "users": {
+      "title": "Tenant Members & Permissions",
+      "subtitle": "Schema.org Person entities registered in {{org}} with isolated RBAC scopes.",
+      "inviteButton": "Invite Team Member",
+      "inviteAlert": "Member invitation dialog dispatched.",
+      "tableTitle": "Organization Members",
+      "tableDesc": "Audited personnel authorized under multi-tenant enterprise governance policies.",
+      "colName": "Member Name",
+      "colEmail": "Email Address",
+      "colRole": "Organization Role",
+      "colStatus": "Status",
+      "colId": "Person ID",
+      "roleOwner": "Tenant Owner / Administrator",
+      "roleMember": "Workspace Member",
+      "unnamed": "Anonymous Person"
+    },
+    "subscriptions": {
+      "currentPlan": "Active Subscription: {{tier}}",
+      "subtitle": "PagBank FinOps processing with Schema.org MonetaryGrant auditing and automated billing cycles.",
+      "manageButton": "Manage Billing & PagBank",
+      "membersQuota": "Team Members Quota",
+      "workspacesQuota": "Workspaces Quota",
+      "ragQuota": "Vector Knowledge Documents",
+      "quotaProgress": "Utilization",
+      "upgrade": "Upgrade Plan",
+      "planSelect": "Select Subscription Tier",
+      "billingCycle": "Billing Frequency"
+    },
+    "settings": {
+      "personalTitle": "Personal User Preferences",
+      "personalSubtitle": "Parametrized settings persisted per-user to your Schema.org Person entity in database.",
+      "governanceTitle": "Tenant Cascade Governance",
+      "governanceSubtitle": "Multi-tier policy inheritance: Platform -> Organization -> Workspace -> Person.",
+      "activePolicies": "Active Cascade Rules",
+      "lockedPolicies": "Locked Policies",
+      "openMatrixButton": "Open Cascade Matrix & JSON-LD Graph",
+      "savedTitle": "Settings Saved",
+      "persistedDesc": "Configuration persisted to your personal tenant profile in database.",
+      "saveError": "Failed to persist setting."
+    }
+  },
+  "footer": {
+    "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
+    "disclaimer": "A subscription is required for all software products available under Generative Operating System. For open-source evaluation, please refer to IBM AI Nexus Atlas and IBM Granite Model.",
+    "evaluation": "Learn more about how genOS applications are evaluated at"
+  },
+  "knowledgeVector": {
+    "docContentLabel": "Document Content (Markdown / Text)",
+    "docScopeLabel": "Visibility Tier Scope",
+    "docsTableDesc": "Documents indexed with 384-d HNSW embeddings in public.knowledge_documents.",
+    "docsTableTitle": "Indexed Knowledge Corpus (Schema.org DigitalDocument)",
+    "docTitleLabel": "Document Title (Schema.org name)",
+    "dropzoneLabel": "Drag and drop files here or click to upload to Supabase Storage",
+    "emptyDocs": "No documents indexed in this tenant knowledge corpus yet. Use the form to chunk and index a document.",
+    "emptyMedia": "No media objects uploaded to this bucket yet.",
+    "ingestButton": "Chunk & Index Document",
+    "ingestHeading": "Ingest Knowledge Document",
+    "matchCountLabel": "Max Results",
+    "mediaTableDesc": "Live objects stored across tenant-isolated buckets in public.media_objects.",
+    "mediaTableTitle": "Tenant Storage MediaObjects (Schema.org MediaObject)",
+    "searchButton": "Search Vectors",
+    "searchDescription": "Performs real-time cosine distance matching against pre-computed 384-dimensional embeddings stored in PostgreSQL pgvector tables.",
+    "searchHeading": "Semantic Vector Search",
+    "searchPlaceholder": "Ask a question or search across tenant knowledge chunks...",
+    "similarityThresholdLabel": "Minimum Similarity Threshold",
+    "storagePathLabel": "Isolated Storage Path:",
+    "subtitle": "Multi-tenant Schema.org DigitalDocument storage and 384-dimensional HNSW cosine similarity search.",
+    "suggestionsLabel": "Quick queries:",
+    "tabIngest": "Corpus & Ingestion",
+    "tabsAriaLabel": "Knowledge and Vector RAG Sections",
+    "tabSearch": "Semantic Search",
+    "tabStorage": "Storage Buckets",
+    "title": "Knowledge Base & pgvector RAG",
+    "uploadDescription": "Upload files to isolated tenant storage path",
+    "uploadHeading": "Tenant Storage Buckets"
+  },
+  "nav": {
+    "actions": {
+      "appSwitcher": "Workspace switcher",
+      "search": "Search",
+      "userProfile": "User profile"
+    },
+    "header": {
+      "name": "Studio",
+      "navigationAria": "Primary navigation",
+      "prefix": "Cestari",
+      "shellLabel": "Cestari Studio"
+    },
+    "home": "Home",
+    "links": {
+      "cascadeSettings": "Cascade Settings",
+      "dashboard": "Dashboard",
+      "knowledgeVector": "Knowledge & Vector RAG",
+      "payments": "Billing & FinOps",
+      "placeholder": "Placeholder",
+      "subMenu": "Sub-Menu",
+      "welcome": "Welcome"
+    },
+    "menu": {
+      "close": "Close menu",
+      "open": "Open menu"
+    },
+    "sideNav": {
+      "ariaLabel": "Side navigation"
+    }
+  },
+  "notFound": {
+    "description": "This is not the page you were looking for.",
+    "loading": "Loading error page...",
+    "maintainer": "Maintained by Cestari Studio Inc.",
+    "routeNotRecognized": "The route '{{pathname}}' is not recognized.",
+    "title": "Page not found"
+  },
+  "onboarding": {
+    "accountTypeHeading": "1. Legal Entity Classification",
+    "backButton": "Back",
+    "birthDate": "Date of Birth (YYYY-MM-DD)",
+    "cameraAria": "Facial Recognition / Windows Hello",
+    "cameraAuth": "Facial Recognition",
+    "cancelButton": "Cancel",
+    "cancelModalDesc": "Your progress is progressively stored. You can resume onboarding anytime from your profile.",
+    "cancelModalTitle": "Are you sure you want to exit setup?",
+    "cardPFDesc": "Your account will be provisioned with personal workspace privileges and individual fiscal data.",
+    "cardPFTitle": "Personal Account Workflow",
+    "cardPJDesc": "A corporate tenant hierarchy will be provisioned with legal governance, multiple workspaces, and departmental access.",
+    "cardPJTitle": "Enterprise Tenant Provisioning",
+    "completeButton": "Complete setup & enter",
+    "completing": "Completing setup...",
+    "continueSetup": "Continue setup",
+    "enrollPasskeyBtn": "Enroll WebAuthn Passkey",
+    "exitSetup": "Exit setup",
+    "newTenantDesc": "A dedicated tenant organization will be provisioned with an isolated PostgreSQL schema, initial workspace, and default project.",
+    "newTenantTitle": "Provisioning Target:",
+    "nextButton": "Next",
+    "orgSelectLabel": "Organization (Tier 1)",
+    "passkeyDesc": "Register your hardware device authenticator (Touch ID, Face ID, Windows Hello, or YubiKey) for passwordless multi-factor authentication.",
+    "passkeyHeading": "FIDO2 / WebAuthn Biometric Security",
+    "passkeySuccessDesc": "Your hardware biometric credential is now enrolled for passwordless enterprise sign-in.",
+    "prjSelectLabel": "Project / CreativeWork (Tier 3)",
+    "securityKeyAria": "FIDO2 Security Key / YubiKey",
+    "securityKeyAuth": "FIDO2 Hardware Key",
+    "securityKeyLabel": "Security Key",
+    "steps": {
+      "addressSubtitle": "Registered headquarters or fiscal domicile address",
+      "addressTitle": "Official Address",
+      "classificationSubtitle": "Select account legal category, jurisdiction, and interface language",
+      "classificationTitle": "Account & Jurisdiction",
+      "corporateSubtitle": "Enterprise size classification, legal representative, and signatory role",
+      "corporateTitle": "Corporate Governance & Scale",
+      "identitySubtitle": "Official government registry numbers and legal identification",
+      "identityTitle": "Identity & Fiscal Registration",
+      "workspaceSubtitle": "Multi-tenant hierarchy configuration and FIDO2/WebAuthn enrollment",
+      "workspaceTitle": "Workspace & Security"
+    },
+    "title": "Complete your organization & account setup",
+    "touchAria": "Touch ID / Fingerprint sensor",
+    "touchAuth": "Touch ID / Fingerprint",
+    "workspaceHeading": "Instance & Workspace Hierarchy",
+    "wsSelectLabel": "Workspace / Department (Tier 2)",
+    "validation": {
+      "required": "Organization name is required"
+    }
+  },
+  "payments": {
+    "amountLabel": "Charge Amount (BRL)",
+    "auditHeading": "Real-Time Audit Ledger Events (public.audit_actions)",
+    "authorizeSeller": "Authorize PagBank Seller",
+    "boletoHeading": "Boleto Bancario Generated",
+    "boletoInstructions": "Barcode digital line for settlement:",
+    "chargeError": "Failed to process PagBank charge.",
+    "chargeFailed": "Charge creation failed.",
+    "chargesSectionHeading": "Tenant Transactions Ledger",
+    "chargesTableDesc": "Transactions governed by tenant RLS policy",
+    "chargesTableTitle": "Charges and Orders",
+    "chargeSuccess": "Charge generated successfully!",
+    "colAmount": "Amount",
+    "colChargeId": "Charge ID",
+    "colDate": "Date/Time",
+    "colMethod": "Method",
+    "colSellerAccount": "PagBank Account",
+    "colSellerEmail": "Email",
+    "colSellerName": "Legal Name",
+    "colSellerStatus": "Status",
+    "colSellerTaxId": "Tax ID / CNPJ",
+    "colStatus": "Status",
+    "commissionLabel": "Platform Commission (%)",
+    "connectError": "Error retrieving PagBank Connect URL.",
+    "connectHeading": "Connected Accounts & Payout Split Engine",
+    "connectInitError": "Connect initiation error.",
+    "connectWindowOpened": "PagBank Connect authorization window opened.",
+    "copied": "Copied!",
+    "copyEmv": "Copy PIX Code",
+    "customerEmail": "Customer Email",
+    "customerName": "Customer Name",
+    "emptyCharges": "No transactions found. Click \"New Instant Charge\" to create one.",
+    "fdwDesc": "The wasm_wrapper Foreign Data Wrapper (wrappers v0.6.3) maps PagBank REST endpoints directly to relational PostgreSQL tables isolated in private pagbank_fdw schema.",
+    "fdwHeading": "Supabase Wrappers & Foreign Data Wrapper Architecture",
+    "invalidAmount": "Please enter a valid amount greater than zero.",
+    "kpiPaid": "Paid Charges",
+    "kpiPending": "Pending Charges",
+    "kpiSellers": "Connected Sellers (Split)",
+    "kpiTotal": "Total Transacted Volume",
+    "methodBoleto": "Boleto Bancario",
+    "methodCard": "Credit Card",
+    "methodLegend": "Payment Method",
+    "methodPix": "Instant PIX (EMV QR Code)",
+    "modalCancel": "Cancel",
+    "modalHeading": "Issue New PagBank Charge",
+    "modalSubmit": "Generate Charge",
+    "newCharge": "New Instant Charge",
+    "noAuditEvents": "No payment audit events recorded yet.",
+    "noSplit": "None (100% Platform Tenant)",
+    "pixQrHeading": "Dynamic PIX QR Code Generated",
+    "pixQrInstructions": "Scan with your banking app or copy the EMV digital line:",
+    "printBoleto": "Print / Download Boleto PDF",
+    "refresh": "Refresh",
+    "sellerSplitLabel": "Seller for Payment Split (Optional)",
+    "sellersTableDesc": "Connected sub-accounts eligible for automated split payouts",
+    "sellersTableTitle": "Authorized Sellers",
+    "status": "Status",
+    "subtitle": "Unified financial module: Instant PIX payments, Card, Boleto, Split Marketplace Connect, and Supabase Wrappers.",
+    "tabAudit": "Schema.org Audit",
+    "tabCharges": "Charges & Orders",
+    "tabConnect": "PagBank Connect & Split",
+    "tabFdw": "Supabase Wrappers (FDW)",
+    "taxonomyHeading": "Schema.org Taxonomy Implemented:",
+    "title": "PagBank Multi-Tenant & FDW Engine"
+  },
+  "placeholder": {
+    "description1": "Generally it is not a good idea to have pages under construction.",
+    "description2": "This page helps demonstrate the global navigation.",
+    "loading": "Loading placeholder page...",
+    "maintainer": "Maintained by Cestari Studio Inc.",
+    "routeInfo": "You are at the route '{{pathname}}'.",
+    "title": "This page is not ready yet"
+  },
+  "productsCatalog": {
+    "allEntitled": "5 Suites Active",
+    "brandDnaDesc": "Verbal, visual and behavioral identity models resolved across client tenants under Cestari Studio Agency.",
+    "brandDnaTitle": "Brand DNA Multi-Tenant Catalog",
+    "brandName": "Brand Profile",
+    "brandTableDesc": "Select a profile to inspect Brand DNA semantic tokens, voice guidelines, and positioning.",
+    "brandTableTitle": "Active Tenant Brand Profiles",
+    "brandTokensHeading": "Brand DNA Semantic Tokens",
+    "capabilitiesHeading": "Required Capabilities",
+    "capabilitiesHeadingTitle": "Shared Platform Capabilities",
+    "capabilitiesSub": "Reusable capabilities consumed uniformly across all 5 genOS product suites.",
+    "emptyBrands": "No brand profiles match your search criteria.",
+    "entitledBadge": "Entitled & Active",
+    "inspectTokens": "Inspect",
+    "jsonLdSnippet": "Live Schema.org JSON-LD Context",
+    "locale": "Locale",
+    "marketSegment": "Market Segment",
+    "maturity": "Maturity Status",
+    "openModule": "Open Module",
+    "parentTenant": "Parent Tenant Authority",
+    "searchBrands": "Search Brand Profiles",
+    "searchPlaceholder": "Filter by name, market segment, or category...",
+    "segment": "Market Category",
+    "servicesHeading": "Foundational Platform Services",
+    "servicesSub": "Transversal services underpinning authentication, UI shell, cascading rules, and release gates.",
+    "subproductsHeading": "Subproducts & Components",
+    "subtitle": "Autonomous multi-tenant product suites, Brand DNA profiles, and platform services governed under Schema.org taxonomies.",
+    "suitesDesc": "Five domain-specific product systems operating on shared Helian agent runtime, pgvector RAG, and immutable audit ledgers.",
+    "suitesTitle": "Multi-Tenant genOS Product Suites",
+    "supportedLocales": "Supported Locales",
+    "tabBrandDna": "Brand DNA Profiles (12)",
+    "tabPlatform": "Platform Services & Capabilities",
+    "tabProducts": "Product Suites (5)",
+    "tabsAriaLabel": "Products and Brand DNA Sections",
+    "tabTaxonomy": "Schema.org Taxonomy Graph",
+    "taxonomyDesc": "Formal alignment of all platform pages, entities, and actions to standard Schema.org vocabulary.",
+    "taxonomyTitle": "Schema.org Multi-Tenant Taxonomy Graph",
+    "title": "Products & Brand DNA Catalog",
+    "verifiableOutcomes": "Verifiable Outcomes"
+  },
+  "profile": {
+    "auth": {
+      "emailLabel": "Work email",
+      "guestMode": "Viewing Default Showcase Organization",
+      "heading": "Remote Identity & Passkeys",
+      "languageLabel": "Interface language (Schema.org inLanguage)",
+      "magicLink": "Send magic link",
+      "noPasskeys": "No passkeys registered for this person yet.",
+      "passkeysHeading": "Registered Passkeys (Schema.org SecurityCredential)",
+      "passwordLabel": "Password",
+      "registerPasskey": "Register WebAuthn Passkey",
+      "signedInAs": "Signed in as",
+      "signIn": "Sign in",
+      "signOut": "Logout"
+    },
+    "guest": {
+      "signInPrompt": "Sign in to access your tenant workspace and resources.",
+      "welcome": "Guest Session"
+    },
+    "language": {
+      "label": "Preferred Interface Language"
+    },
+    "links": {
+      "accessKeys": "Access keys",
+      "authSection": "Authentication",
+      "dashboard": "Overview & Analytics",
+      "label": "Profile links",
+      "payments": "Financial gateway & PagBank",
+      "planAndBilling": "Knowledge corpus",
+      "planFormat": "Plan {{plan}}",
+      "products": "Products & Brand DNA",
+      "profileSettings": "Profile Settings",
+      "userManagement": "Tenant cascade & rules",
+      "userProfile": "User profile & onboarding",
+      "workspaceSwitcher": "Workspace & context setup"
+    },
+    "passkeys": {
+      "description": "Passkeys provide cryptographic, phishing-resistant authentication using Touch ID, Face ID, or security keys via W3C WebAuthn.",
+      "deviceNameLabel": "Device or key name",
+      "empty": "No passkey credentials registered yet.",
+      "modalTitle": "Passkeys & Biometric Security",
+      "registerButton": "Register Passkey",
+      "registeredList_one": "Registered credentials ({{count}}):",
+      "registeredList_other": "Registered credentials ({{count}}):"
+    },
+    "readOnly": {
+      "brand": "Brand",
+      "instance": "Instance",
+      "organization": "Organization",
+      "owner": "Instance owner",
+      "workspace": "Workspace / Project",
+      "workspaceId": "Workspace ID"
+    },
+    "settings": {
+      "complementMenuTheme": "Complement menu theme",
+      "themeLegend": "Theme"
+    }
+  },
+  "routes": {
+    "products": "Products & Brand DNA"
+  },
+  "signInModal": {
+    "accountTypePF": "Individual / Natural Person (PF)",
+    "accountTypePJ": "Enterprise / Legal Entity (PJ)",
+    "addressTitle": "Official Address (Postal Address)",
+    "authenticating": "Authenticating...",
+    "changeEmail": "Change",
+    "companySizeLabel": "Company Size",
+    "companySizes": {
+      "ENTERPRISE": "Large Enterprise (250+ employees / Enterprise)",
+      "MEDIUM": "Medium Enterprise (50-249 employees / Medium)",
+      "MICRO": "Micro Enterprise (1-9 employees / Micro)",
+      "SMALL": "Small Business (10-49 employees / Small)"
+    },
+    "completeSetup": "Complete setup & enter",
+    "continue": "Continue",
+    "countries": {
+      "BR": "Brazil (BR)",
+      "CN": "China (CN)",
+      "DE": "Germany (DE)",
+      "ES": "Spain (ES)",
+      "FR": "France (FR)",
+      "GB": "United Kingdom (GB)",
+      "JP": "Japan (JP)",
+      "PT": "Portugal (PT)",
+      "US": "United States (US)"
+    },
+    "countryLabel": "Country of Origin / Jurisdiction",
+    "emailLabel": "IBMid or work email",
+    "error": {
+      "emptyPassword": "Password is required.",
+      "invalidCredentials": "Incorrect IBMid or password. Try again.",
+      "invalidEmail": "Enter a valid IBMid or email address.",
+      "title": "Authentication error"
+    },
+    "fastTrackPasskey": "Sign in with Biometrics (Passkey)",
+    "fastTrackTitle": "Passwordless Biometric MFA:",
+    "fullName": "Full Name",
+    "headerLabel": "Enterprise Authentication & Onboarding",
+    "legalName": "Legal Business Name",
+    "locality": "City / Locality",
+    "logIn": "Log in",
+    "magicLinkBtn": "Email magic link instead",
+    "mfa": {
+      "authenticateBtn": "Authenticate with Biometrics",
+      "authenticating": "Authenticating...",
+      "backToPassword": "Back to Password",
+      "cameraDesc": "Facial Recognition / Windows Hello",
+      "cameraMethod": "Camera Method",
+      "cameraMethodAria": "Camera Method (Facial Recognition / Windows Hello)",
+      "cameraScanPrompt": "Look at your camera to confirm your identity.",
+      "cancelled": "Biometric verification was cancelled. You can retry or choose an alternative method.",
+      "failed": "Biometric authentication failed. Try again or use email verification.",
+      "fallbackMagicLink": "Send Email One-Time Link instead",
+      "heading": "Multi-Factor Biometric Authentication",
+      "ready": "Biometric Authenticator Ready",
+      "scanning": "Awaiting Biometric Sensor Interaction...",
+      "sensorPrompt": "Click Authenticate to trigger your device hardware security check.",
+      "subheading": "Verify your identity using your device sensor via touch or facial recognition camera.",
+      "touchDesc": "Touch ID / Fingerprint sensor",
+      "touchMethod": "Touch Method",
+      "touchMethodAria": "Touch Method (Touch ID / Fingerprint)",
+      "touchScanPrompt": "Touch the fingerprint sensor to confirm your identity.",
+      "verified": "Biometric Signature Verified"
+    },
+    "onboardingIntro": "Select your active Schema.org multi-tenant hierarchy and session preferences before entering the workspace:",
+    "otpSentDesc": "Check your email inbox for the direct login link.",
+    "otpSentTitle": "Magic link sent",
+    "passkeyRegistered": "Passkey credential enrolled",
+    "passwordLabel": "Password",
+    "pfDetailsTitle": "Individual Identity & Documents",
+    "pjDetailsTitle": "Corporate Identity & Company Size",
+    "proceedMfa": "Verify with Biometric MFA →",
+    "quickFillTitle": "Demo Enterprise Identities (Single Click):",
+    "region": "State / Province / Region",
+    "registerPasskey": "Enroll WebAuthn Passkey",
+    "rememberId": "Remember user ID",
+    "repDetailsTitle": "Legal Representative / Signatory",
+    "repDoc": "Personal Identity Document",
+    "repName": "Legal Representative Name",
+    "repPosition": "Executive Role / Position",
+    "settingUp": "Setting up...",
+    "steps": {
+      "credentials": "2. Credentials",
+      "credentialsDesc": "Password & Verify",
+      "identity": "1. Identity",
+      "identityDesc": "User ID",
+      "mfa": "3. Multi-Factor (MFA)",
+      "mfaDesc": "Touch or Camera",
+      "onboarding": "3. Onboarding",
+      "onboardingDesc": "Workspace Setup"
+    },
+    "streetAddress": "Street Address & Number",
+    "title": "Log in to Generative OS",
+    "tradeName": "Brand / Trade Name",
+    "verifiedBadge": "Identity Verified"
+  },
+  "taxonomy": {
+    "billing": {
+      "description": "Financial gateway, PagBank integration, multi-seller splits, invoices, and ledgers.",
+      "label": "Billing & FinOps"
+    },
+    "files": {
+      "description": "Digital documents, media assets, vector RAG embeddings, and tenant storage buckets.",
+      "label": "Files & Knowledge Corpus"
+    },
+    "products": {
+      "description": "Multi-tenant product suites (Content Factory, Client Ops, Schedule Ops, Reputation Ops, Academy Ops) and Brand DNA profiles.",
+      "label": "Products & Brand DNA"
+    },
+    "profile": {
+      "description": "Multi-country corporate identity (PF/PJ), FIDO2 passkeys, and tenant provisioning.",
+      "label": "Profile & Identity"
+    },
+    "reports": {
+      "description": "Operational metrics, telemetry, usage reports, and multi-tenant KPI dashboards.",
+      "label": "Reports & Telemetry"
+    },
+    "settings": {
+      "description": "Four-tier cascading hierarchy, Schema.org PropertyValue taxonomy, and system governance.",
+      "label": "Settings & Governance"
+    }
+  },
+  "tenantSettings": {
+    "categories": {
+      "billing": {
+        "description": "PagBank credentials, multi-seller splits, recurring subscription plans, and payout transfers.",
+        "label": "Financial Gateway & Billings"
+      },
+      "governance": {
+        "description": "Four-tier cascading hierarchy (Organization → Workspace → Project → Person), Schema.org rules, and audit ledger.",
+        "label": "Governance & Cascade Policies"
+      },
+      "identity": {
+        "description": "Multi-country PF/PJ verification, passkeys biometric auth, legal representative records, and organization provisioning.",
+        "label": "Corporate Identity & Onboarding"
+      },
+      "knowledge": {
+        "description": "Corpus documents, pgvector semantic search configurations, embedding models, and storage objects.",
+        "label": "Knowledge & Vector Intelligence"
+      },
+      "overview": {
+        "description": "Tenant workspace health, telemetry, usage metrics, and multi-tenant performance KPIs.",
+        "label": "Overview & Analytics"
+      }
+    }
+  },
+  "welcome": {
+    "about": {
+      "consistency": {
+        "description": "LOCKED, INHERIT_OVERRIDABLE, and MERGE cascade policies enforce visual consistency, WCAG 2.2 AA accessibility, and AI safety guardrails.",
+        "title": "Standards & Governance"
+      },
+      "customize": {
+        "description": "Each workspace and project can customize Carbon themes, languages, and vector knowledge corpora within organization boundary rules.",
+        "title": "Granular Customization"
+      },
+      "heading": "About the Architecture",
+      "purpose": {
+        "description": "Combines React 19 SSR, Carbon Design System v11, and Supabase Multi-Tenant hierarchy (Organization → Workspace → Project → Person).",
+        "title": "Purpose"
+      }
+    },
+    "features": {
+      "designSystemDesc": "Accessible v11 Components & Tokens",
+      "designSystemTitle": "Carbon Design System",
+      "heading": "Features",
+      "multiTenancyDesc": "Schema.org 4-Tier Hierarchy",
+      "multiTenancyTitle": "Multi-Tenancy",
+      "vectorRagDesc": "pgvector 384-d HNSW Embeddings",
+      "vectorRagTitle": "Cognitive RAG"
+    },
+    "fetching": {
+      "apiLayer": "API Layer",
+      "apiLayerDesc": "Client-side functions in api/message.js handle HTTP requests to our Express backend",
+      "comments": "Comments",
+      "exampleHeading": "Blog data retrieval example",
+      "from": "From {{email}}",
+      "heading": "Example: Fetching data",
+      "intro": "Here a message is dynamically loaded from an external API endpoint. This shows how you can fetch data while keeping components clean and network logic separated. How it works:",
+      "postFrom": "Post from {{email}}",
+      "serviceLayer": "Service Layer",
+      "serviceLayerDesc": "Server-side handlers in service/postHandlers.js proxy requests to external APIs.",
+      "summary": "This pattern keeps your components focused on presentation while centralizing data fetching logic for reusability and testability.",
+      "uiLayer": "UI Layer",
+      "uiLayerDesc": "PostComponent.jsx manages React state and renders data using Carbon Design components"
+    },
+    "run": {
+      "heading": "Run the template",
+      "nodeRequirement": "Requires Node v.24"
+    }
+  },
+  "welcomeHeader": {
+    "button": {
+      "enterApp": "Enter Tenant Dashboard",
+      "signIn": "Sign in to Workspace",
+      "useTemplate": "Use this template"
+    },
+    "description1": "Enterprise AI operating system with Schema.org multi-tenant cascade governance, cognitive vector RAG, and PagBank FinOps.",
+    "maintainer": "Engineered with the IBM Carbon Design System v11.",
+    "title": "Welcome to Cestari Studio"
+  },
+  "workspaceSwitcher": {
+    "activeRole": "Active Role",
+    "createOrganization": "Create Organization Hierarchy",
+    "heading": "Multi-Tenant Context (Schema.org)",
+    "modalHeading": "Switch Active Workspace Context",
+    "organizationLabel": "Organization (Tier 1)",
+    "orgIdentifierPlaceholder": "organization-slug",
+    "orgNamePlaceholder": "Organization name",
+    "projectLabel": "Project / CreativeWork (Tier 3)",
+    "statusTitle": "Tenant Context",
+    "workspaceLabel": "Workspace / Department (Tier 2)"
+  },
+  "settings": {
+    "profile": {
+      "orgName": "Organization Name",
+      "legalName": "Legal Registered Name",
+      "country": "Jurisdiction / Country",
+      "postalCode": "Postal Code / ZIP"
+    }
+  },
+  "knowledge": {
+    "modelLabel": "Embedding Model",
+    "chunkSizeLabel": "Document Chunk Size",
+    "metricLabel": "pgvector Distance Metric",
+    "autoIndexLabel": "Auto-chunk and vectorize uploads"
+  }
+}

@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -25,7 +25,7 @@ const NotFound = () => {
               pathname: location.pathname,
             })}
           </>,
-          <>{t('notFound.maintainer', 'Maintained by fed-at-ibm, a chapter of the OIC.')}</>,
+          <>{t('notFound.maintainer', 'Maintained by Cestari Studio Inc.')}</>,
         ]}
       />
     </PageLayout>
