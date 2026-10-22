@@ -1,5 +1,5 @@
 {
-  "manifest_version": "2.0",
+  "manifest_version": "2.1",
   "generated_at": "2026-10-22T00:00:00Z",
   "source": "local-git",
   "commit": "51a93719aa3a4a912169533a40832f93e5869c13",
@@ -71,5 +71,31 @@
       "note": "additive; validated on disposable PostgreSQL 17.11 (44/44 assertions) but never applied to any remote environment"
     }
   ],
-  "gate": "BLOCKED \u2014 explicit owner authorization required before any non-prod deploy, migration apply, or config change. No deploy/db push/remote write performed by the agent."
+  "gate": "BLOCKED \u2014 explicit owner authorization required before any non-prod deploy, migration apply, or config change. No deploy/db push/remote write performed by the agent.",
+  "rehearsal": {
+    "executed_at": "2026-10-22",
+    "environment": "disposable PostgreSQL 17.11 (localhost socket), rehearsal_test database \u2014 NOT the shared remote project",
+    "migration_ledger_reconciliation": {
+      "remote_applied": 17,
+      "local_files": 18,
+      "in_sync": 17,
+      "pending_not_applied": ["20261022053203_billing_pricebook_usage_metering"],
+      "remote_only_drift": [],
+      "result": "17/17 applied migrations match local files exactly; only the billing migration is pending. Zero drift in the applied set."
+    },
+    "billing_replay": {
+      "prereq": "schema mirroring remote (organizations, persons, workspaces, projects, organization_members, payment_orders with gateway_reference_id UNIQUE + status CHECK)",
+      "result": "44/44 billing SQL assertions PASS as authenticated/service_role with RLS enforced"
+    },
+    "rollback_validation": {
+      "result": "CLEAN \u2014 all additive billing objects dropped; payment_orders back to original columns (0 quote/psp columns); 0 billing tables remain",
+      "note": "the role helper has_platform_role requires DROP ... CASCADE because RLS policies depend on it; rollback plan documents this"
+    },
+    "post_deploy_checks_pending": [
+      "list_edge_functions read-back: versions > pre-74c3b87, verify_jwt per config.toml",
+      "migration ledger read-back: 20261022053203 present",
+      "npm run test:billing-sql green against homologation DB",
+      "PagBank Sandbox E2E (PIX, timeout, webhook replay, out-of-order, cancel, decline, split)"
+    ]
+  }
 }
