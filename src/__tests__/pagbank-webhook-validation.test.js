@@ -8,6 +8,43 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import crypto from 'node:crypto';
 
+function derToP1363(sigBytes) {
+  if (sigBytes.length === 64) {
+    return sigBytes;
+  }
+  if (sigBytes[0] === 0x30 && sigBytes.length >= 8) {
+    let offset = 2;
+    if (sigBytes[1] & 0x80) {
+      offset = 2 + (sigBytes[1] & 0x7f);
+    }
+    if (sigBytes[offset] !== 0x02) {
+      throw new Error('Malformed DER signature: expected 0x02 for r');
+    }
+    const rLen = sigBytes[offset + 1];
+    let r = sigBytes.slice(offset + 2, offset + 2 + rLen);
+    offset += 2 + rLen;
+
+    if (sigBytes[offset] !== 0x02) {
+      throw new Error('Malformed DER signature: expected 0x02 for s');
+    }
+    const sLen = sigBytes[offset + 1];
+    let s = sigBytes.slice(offset + 2, offset + 2 + sLen);
+
+    while (r.length > 32 && r[0] === 0) r = r.slice(1);
+    while (s.length > 32 && s[0] === 0) s = s.slice(1);
+
+    if (r.length > 32 || s.length > 32) {
+      throw new Error('Invalid coordinate length in DER signature');
+    }
+
+    const p1363 = Buffer.alloc(64);
+    r.copy(p1363, 32 - r.length);
+    s.copy(p1363, 64 - s.length);
+    return p1363;
+  }
+  return sigBytes;
+}
+
 describe('PagBank Webhook ECDSA P-256 Cryptographic Signature Verification', () => {
   let publicKeyPem;
   let privateKeyPem;
@@ -30,7 +67,15 @@ describe('PagBank Webhook ECDSA P-256 Cryptographic Signature Verification', () 
     });
   });
 
-  function signPayload(body, privateKey) {
+  function signPayloadDer(body, privateKey) {
+    const sign = crypto.createSign('SHA256');
+    sign.update(body);
+    sign.end();
+    // Default OpenSSL format: ASN.1 DER (as emitted by standard Java/PSP APIs)
+    return sign.sign(privateKey).toString('base64');
+  }
+
+  function signPayloadP1363(body, privateKey) {
     const sign = crypto.createSign('SHA256');
     sign.update(body);
     sign.end();
@@ -45,13 +90,31 @@ describe('PagBank Webhook ECDSA P-256 Cryptographic Signature Verification', () 
       .filter(Boolean);
     if (rawSignatures.length === 0) return false;
 
+    const pemContents = pubKeyPem
+      .replace(/-----BEGIN (PUBLIC KEY|CERTIFICATE)-----/g, '')
+      .replace(/-----END (PUBLIC KEY|CERTIFICATE)-----/g, '')
+      .replace(/\s+/g, '');
+    const binaryDer = Buffer.from(pemContents, 'base64');
+    const cryptoKey = await crypto.webcrypto.subtle.importKey(
+      'spki',
+      binaryDer,
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      false,
+      ['verify'],
+    );
+
+    const rawBytes = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody);
+
     for (const candidate of rawSignatures) {
       try {
-        const verify = crypto.createVerify('SHA256');
-        verify.update(rawBody);
-        verify.end();
-        const sigBytes = Buffer.from(candidate, 'base64');
-        const isValid = verify.verify({ key: pubKeyPem, dsaEncoding: 'ieee-p1363' }, sigBytes);
+        const rawCandidateBytes = Buffer.from(candidate, 'base64');
+        const sigBytes = derToP1363(rawCandidateBytes);
+        const isValid = await crypto.webcrypto.subtle.verify(
+          { name: 'ECDSA', hash: { name: 'SHA-256' } },
+          cryptoKey,
+          sigBytes,
+          rawBytes,
+        );
         if (isValid) return true;
       } catch {
         continue;
@@ -60,14 +123,20 @@ describe('PagBank Webhook ECDSA P-256 Cryptographic Signature Verification', () 
     return false;
   }
 
-  it('accepts valid official ECDSA signature over exact raw body', async () => {
-    const signature = signPayload(samplePayload, privateKeyPem);
-    const isValid = await verifySignature(samplePayload, signature, publicKeyPem);
+  it('accepts official ASN.1 DER ECDSA signature over raw body via Web Crypto', async () => {
+    const derSignature = signPayloadDer(samplePayload, privateKeyPem);
+    const isValid = await verifySignature(samplePayload, derSignature, publicKeyPem);
+    expect(isValid).toBe(true);
+  });
+
+  it('accepts IEEE P1363 ECDSA signature over exact raw body', async () => {
+    const p1363Signature = signPayloadP1363(samplePayload, privateKeyPem);
+    const isValid = await verifySignature(samplePayload, p1363Signature, publicKeyPem);
     expect(isValid).toBe(true);
   });
 
   it('rejects if body was modified after signature generation', async () => {
-    const signature = signPayload(samplePayload, privateKeyPem);
+    const signature = signPayloadDer(samplePayload, privateKeyPem);
     const tamperedPayload = JSON.stringify({
       id: 'CHAR_12345678',
       status: 'PAID',
@@ -84,13 +153,13 @@ describe('PagBank Webhook ECDSA P-256 Cryptographic Signature Verification', () 
   });
 
   it('rejects if public key is not configured (fail-closed)', async () => {
-    const signature = signPayload(samplePayload, privateKeyPem);
+    const signature = signPayloadDer(samplePayload, privateKeyPem);
     expect(await verifySignature(samplePayload, signature, '')).toBe(false);
     expect(await verifySignature(samplePayload, signature, null)).toBe(false);
   });
 
   it('accepts during key rotation when one of multiple signatures is valid', async () => {
-    const validSignature = signPayload(samplePayload, privateKeyPem);
+    const validSignature = signPayloadDer(samplePayload, privateKeyPem);
     const dummyOldSignature = Buffer.from('invalid-old-sig-during-rotation').toString('base64');
     const headerMultiple = `${dummyOldSignature}, ${validSignature}`;
 
@@ -107,13 +176,24 @@ describe('PagBank Webhook ECDSA P-256 Cryptographic Signature Verification', () 
     expect(isValid).toBe(false);
   });
 
-  it('enforces monotonic status transition rules (cannot regress PAID to WAITING_PAYMENT)', () => {
+  it('enforces monotonic status transition rules (blocks all transitions from terminal states)', () => {
     const TERMINAL_STATUSES = new Set(['PAID', 'DECLINED', 'CANCELED']);
-    const existingStatus = 'PAID';
-    const attemptedStatus = 'WAITING_PAYMENT';
 
-    const isIllegalRegression = TERMINAL_STATUSES.has(existingStatus) && !TERMINAL_STATUSES.has(attemptedStatus);
-    expect(isIllegalRegression).toBe(true);
+    // Attempting transitions from terminal states:
+    const illegalTransitions = [
+      { from: 'PAID', to: 'WAITING_PAYMENT' },
+      { from: 'PAID', to: 'DECLINED' },
+      { from: 'PAID', to: 'CANCELED' },
+      { from: 'DECLINED', to: 'PAID' },
+      { from: 'DECLINED', to: 'WAITING_PAYMENT' },
+      { from: 'CANCELED', to: 'PAID' },
+      { from: 'CANCELED', to: 'WAITING_PAYMENT' },
+    ];
+
+    for (const { from, to } of illegalTransitions) {
+      const isIllegal = TERMINAL_STATUSES.has(from) && from !== to;
+      expect(isIllegal).toBe(true);
+    }
   });
 
   it('enforces idempotency when identical status is received twice', () => {

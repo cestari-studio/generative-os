@@ -26,13 +26,59 @@ const VALID_PAGBANK_STATUSES = new Set([
 const TERMINAL_STATUSES = new Set(['PAID', 'DECLINED', 'CANCELED']);
 
 /**
+ * Converts standard ASN.1 DER ECDSA signature to IEEE P1363 (64 bytes: r[32] || s[32])
+ * required by Web Crypto API (SubtleCrypto.verify).
+ */
+function derToP1363(sigBytes: Uint8Array): Uint8Array {
+  // If already 64 bytes (IEEE P1363), return directly
+  if (sigBytes.length === 64) {
+    return sigBytes;
+  }
+  // ASN.1 DER SEQUENCE (tag 0x30)
+  if (sigBytes[0] === 0x30 && sigBytes.length >= 8) {
+    let offset = 2;
+    if (sigBytes[1] & 0x80) {
+      offset = 2 + (sigBytes[1] & 0x7f);
+    }
+    // r integer tag 0x02
+    if (sigBytes[offset] !== 0x02) {
+      throw new Error('Malformed DER signature: expected 0x02 for r');
+    }
+    const rLen = sigBytes[offset + 1];
+    let r = sigBytes.slice(offset + 2, offset + 2 + rLen);
+    offset += 2 + rLen;
+
+    // s integer tag 0x02
+    if (sigBytes[offset] !== 0x02) {
+      throw new Error('Malformed DER signature: expected 0x02 for s');
+    }
+    const sLen = sigBytes[offset + 1];
+    let s = sigBytes.slice(offset + 2, offset + 2 + sLen);
+
+    // Strip leading zeroes (e.g. 33 bytes to 32 bytes)
+    while (r.length > 32 && r[0] === 0) r = r.slice(1);
+    while (s.length > 32 && s[0] === 0) s = s.slice(1);
+
+    if (r.length > 32 || s.length > 32) {
+      throw new Error('Invalid coordinate length in DER signature');
+    }
+
+    const p1363 = new Uint8Array(64);
+    p1363.set(r, 32 - r.length);
+    p1363.set(s, 64 - s.length);
+    return p1363;
+  }
+  return sigBytes;
+}
+
+/**
  * Verify cryptographic webhook signatures according to official PagBank specification:
  * Algorithm: ECDSA with SHA-256 (SHA256withECDSA, Curve P-256 / secp256r1)
  * Input: raw, unparsed HTTP request body bytes
  * Header: x-payload-signature (may contain multiple signatures during key rotation)
  */
 async function verifyPagBankEcdsaSignatures(
-  rawBody: string,
+  rawBytes: Uint8Array,
   signatureHeader: string | null,
   publicKeyPem: string,
 ): Promise<boolean> {
@@ -53,9 +99,6 @@ async function verifyPagBankEcdsaSignatures(
       'verify',
     ]);
 
-    const encoder = new TextEncoder();
-    const rawBytes = encoder.encode(rawBody);
-
     // 2. Parse signatures (support comma or whitespace separated during key rotation)
     const rawSignatures = signatureHeader
       .split(/[,;\s]+/)
@@ -69,13 +112,15 @@ async function verifyPagBankEcdsaSignatures(
     // 3. Test each signature candidate: at least one valid signature satisfies authenticity
     for (const sigCandidate of rawSignatures) {
       try {
-        let sigBytes: Uint8Array;
+        let rawCandidateBytes: Uint8Array;
         if (/^[0-9a-fA-F]+$/.test(sigCandidate)) {
           const match = sigCandidate.match(/.{1,2}/g) || [];
-          sigBytes = new Uint8Array(match.map((byte) => parseInt(byte, 16)));
+          rawCandidateBytes = new Uint8Array(match.map((byte) => parseInt(byte, 16)));
         } else {
-          sigBytes = Uint8Array.from(atob(sigCandidate), (c) => c.charCodeAt(0));
+          rawCandidateBytes = Uint8Array.from(atob(sigCandidate), (c) => c.charCodeAt(0));
         }
+
+        const sigBytes = derToP1363(rawCandidateBytes);
 
         const isValid = await crypto.subtle.verify(
           { name: 'ECDSA', hash: { name: 'SHA-256' } },
@@ -111,7 +156,8 @@ Deno.serve(async (req: Request) => {
     const pagbankPublicKey = Deno.env.get('PAGBANK_PUBLIC_KEY') ?? '';
 
     // Read raw body bytes strictly before parsing
-    const rawBody = await req.text();
+    const rawBuffer = await req.arrayBuffer();
+    const rawBytes = new Uint8Array(rawBuffer);
     const payloadSignature = req.headers.get('x-payload-signature');
 
     // P0 SECURITY ENFORCEMENT:
@@ -143,8 +189,8 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Verify ECDSA cryptographic signature over raw request body
-    const isValidSignature = await verifyPagBankEcdsaSignatures(rawBody, payloadSignature, pagbankPublicKey);
+    // Verify ECDSA cryptographic signature over raw request body bytes
+    const isValidSignature = await verifyPagBankEcdsaSignatures(rawBytes, payloadSignature, pagbankPublicKey);
 
     if (!isValidSignature) {
       console.warn('PagBank webhook rejected: cryptographic signature verification failed.');
@@ -161,7 +207,8 @@ Deno.serve(async (req: Request) => {
 
     let body: Record<string, unknown>;
     try {
-      body = JSON.parse(rawBody);
+      const rawText = new TextDecoder().decode(rawBytes);
+      body = JSON.parse(rawText);
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid JSON payload' }), {
         status: 400,
@@ -238,9 +285,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Prevent regressing from terminal state (e.g. PAID cannot revert to WAITING_PAYMENT)
-    if (TERMINAL_STATUSES.has(existingCharge.status) && !TERMINAL_STATUSES.has(status)) {
-      console.warn(`Attempted illegal status regression from ${existingCharge.status} to ${status}`);
+    // Once a charge reaches a terminal state (PAID, DECLINED, CANCELED), it CANNOT transition to any other status.
+    if (TERMINAL_STATUSES.has(existingCharge.status)) {
+      console.warn(`Attempted illegal status transition from terminal status ${existingCharge.status} to ${status}`);
       return new Response(
         JSON.stringify({
           error: `Illegal state transition from terminal status ${existingCharge.status} to ${status}`,

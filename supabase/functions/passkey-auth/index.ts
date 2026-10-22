@@ -79,68 +79,16 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // 2. Register passkey credential - requires authenticated session
+    // 2. Register passkey credential - disabled until full WebAuthn attestation ceremony is implemented
     if (action === 'register') {
-      if (!user) {
-        return new Response(JSON.stringify({ error: 'Authentication required to register passkey' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const {
-        credentialId,
-        publicKey,
-        name = 'Passkey Device',
-        transports = ['internal', 'hybrid'],
-        deviceType = 'multiDevice',
-        backedUp = true,
-        organizationId,
-      } = body;
-
-      if (!credentialId || !publicKey) {
-        return new Response(JSON.stringify({ error: 'credentialId and publicKey are required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const targetOrgId = organizationId || user.user_metadata?.organization_id;
-
-      const { data, error } = await supabase
-        .from('passkey_credentials')
-        .upsert(
-          {
-            person_id: user.id,
-            organization_id: targetOrgId,
-            name,
-            identifier: credentialId,
-            public_key: publicKey,
-            transports,
-            credential_device_type: deviceType,
-            credential_backed_up: backedUp,
-            last_used_at: new Date().toISOString(),
-          },
-          { onConflict: 'identifier' },
-        )
-        .select()
-        .single();
-
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
       return new Response(
         JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'RegisterAction',
-          actionStatus: 'CompletedActionStatus',
-          credential: data,
+          error:
+            'Passkey registration without full FIDO2 attestation and challenge verification is disabled. Feature is experimental and scoped out of production release.',
+          registered: false,
         }),
         {
+          status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         },
       );

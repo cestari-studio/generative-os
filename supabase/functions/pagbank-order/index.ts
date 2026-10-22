@@ -126,25 +126,43 @@ Deno.serve(async (req: Request) => {
 
     const orderId = orderData.order_id;
 
-    // 5. Construct real PagBank Orders API payload
+    // 5. Strict validation of customer and items: Never use synthetic placeholders ('00000000000' or synthetic items)
+    if (!customer || !customer.name || !customer.email || !customer.tax_id) {
+      return new Response(
+        JSON.stringify({
+          error: 'Customer details (name, email, tax_id) are required. Synthetic placeholders are not permitted.',
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const cleanTaxId = String(customer.tax_id).replace(/\D/g, '');
+    if (cleanTaxId.length !== 11 && cleanTaxId.length !== 14) {
+      return new Response(
+        JSON.stringify({
+          error: 'Invalid tax_id: must be a valid CPF (11 digits) or CNPJ (14 digits).',
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: 'At least one item is required in the items array. Synthetic fallback items are not permitted.',
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
     const pagbankPayload: Record<string, unknown> = {
       reference_id: referenceId,
-      customer: customer || {
-        name: user.email?.split('@')[0] || 'Customer',
-        email: user.email,
-        tax_id: '00000000000',
+      customer: {
+        name: customer.name,
+        email: customer.email,
+        tax_id: cleanTaxId,
       },
-      items:
-        items.length > 0
-          ? items
-          : [
-              {
-                reference_id: `item_1`,
-                name: 'Platform Service',
-                quantity: 1,
-                unit_amount: amountCents,
-              },
-            ],
+      items,
       notification_urls: [`${supabaseUrl}/functions/v1/pagbank-webhook`],
     };
 
@@ -221,9 +239,24 @@ Deno.serve(async (req: Request) => {
 
     const pspData = await pspResponse.json();
     const pagbankOrderId = pspData.id;
+    if (!pagbankOrderId) {
+      return new Response(JSON.stringify({ error: 'PagBank PSP order creation response missing authoritative id' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const firstCharge = pspData.charges?.[0];
-    const pagbankChargeId = firstCharge?.id || `CHAR_${pagbankOrderId}`;
-    const initialStatus = firstCharge?.status || 'PENDING';
+    const pagbankChargeId = firstCharge?.id || (paymentMethod === 'PIX' ? pagbankOrderId : null);
+    if (!pagbankChargeId) {
+      return new Response(
+        JSON.stringify({
+          error: `PagBank PSP returned order without authoritative charge id for payment method ${paymentMethod}`,
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    const initialStatus = firstCharge?.status || (paymentMethod === 'PIX' ? 'WAITING_PAYMENT' : 'PENDING');
 
     const pixData = pspData.qr_codes?.[0];
     const pixEmv = pixData?.text || null;

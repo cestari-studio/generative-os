@@ -14,6 +14,28 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
 
+function isAllowedRedirectUri(uri: string): boolean {
+  try {
+    const parsed = new URL(uri);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+    const hostname = parsed.hostname;
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.endsWith('.vercel.app') ||
+      hostname === 'generative-os-bay.vercel.app'
+    ) {
+      return true;
+    }
+    const customOrigins = (Deno.env.get('ALLOWED_REDIRECT_ORIGINS') ?? '').split(',').map((s) => s.trim());
+    return customOrigins.includes(parsed.origin);
+  } catch {
+    return false;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -114,17 +136,31 @@ Deno.serve(async (req: Request) => {
 
       const redirectUri =
         body.redirectUri || `${req.headers.get('origin') || 'http://localhost:5173'}/payments?connect=callback`;
+
+      if (!isAllowedRedirectUri(redirectUri)) {
+        return new Response(
+          JSON.stringify({ error: `Redirect URI is not in the approved allowlist: ${redirectUri}` }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          },
+        );
+      }
+
       const scope = body.scope || 'payments.read payments.create recurring.read recurring.create';
 
-      // Generate cryptographically random state parameter
-      const randomBytes = new Uint8Array(16);
+      // Generate cryptographically random state parameter (32 bytes Base64URL)
+      const randomBytes = new Uint8Array(32);
       crypto.getRandomValues(randomBytes);
-      const nonce = Array.from(randomBytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      const nonce = btoa(String.fromCharCode(...randomBytes))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
       const timestamp = Date.now();
       const state = `${organizationId}:${user.id}:${timestamp}:${nonce}`;
 
       // Persist state in audit_actions to enforce single-use, non-expired, and tenant/user binding
-      await supabaseAdmin.from('audit_actions').insert({
+      const { error: insertStateErr } = await supabaseAdmin.from('audit_actions').insert({
         schema_type: 'AuthorizeAction',
         organization_id: organizationId,
         workspace_id: body.workspaceId || null,
@@ -139,6 +175,13 @@ Deno.serve(async (req: Request) => {
           expires_at: new Date(timestamp + 600000).toISOString(),
         },
       });
+
+      if (insertStateErr) {
+        return new Response(JSON.stringify({ error: `Failed to persist OAuth state: ${insertStateErr.message}` }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
       const authorizeUrl = `${authBaseUrl}/oauth2/authorize?response_type=code&client_id=${encodeURIComponent(
         clientId,
@@ -218,6 +261,16 @@ Deno.serve(async (req: Request) => {
         });
       }
 
+      if (!isAllowedRedirectUri(redirectUri)) {
+        return new Response(
+          JSON.stringify({ error: `Redirect URI is not in the approved allowlist: ${redirectUri}` }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          },
+        );
+      }
+
       if (matchedState.result?.redirectUri && matchedState.result.redirectUri !== redirectUri) {
         return new Response(JSON.stringify({ error: 'redirectUri mismatch against initial authorization request' }), {
           status: 400,
@@ -225,14 +278,26 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      // Consume state immediately to prevent replay
-      await supabaseAdmin
+      // Atomic compare-and-swap consumption: update ONLY if STILL 'PotentialActionStatus'
+      const { data: updatedRows, error: consumeErr } = await supabaseAdmin
         .from('audit_actions')
         .update({
           action_status: 'CompletedActionStatus',
           previous_value: { consumed_at: new Date().toISOString() },
         })
-        .eq('id', matchedState.id);
+        .eq('id', matchedState.id)
+        .eq('action_status', 'PotentialActionStatus')
+        .select('id');
+
+      if (consumeErr || !updatedRows || updatedRows.length !== 1) {
+        return new Response(
+          JSON.stringify({ error: 'OAuth state already consumed or concurrent callback in progress' }),
+          {
+            status: 409,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          },
+        );
+      }
 
       if (!hasValidCredentials) {
         return new Response(
