@@ -1,7 +1,10 @@
 {
   "version": "0.2",
   "language": "en",
-  "dictionaries": ["carbon", "project"],
+  "dictionaries": [
+    "carbon",
+    "project"
+  ],
   "dictionaryDefinitions": [
     {
       "name": "carbon",
@@ -12,7 +15,9 @@
       "path": "./cspell-dictionaries/project.txt"
     }
   ],
-  "import": ["@cspell/dict-de-de/cspell-ext.json"],
+  "import": [
+    "@cspell/dict-de-de/cspell-ext.json"
+  ],
   "overrides": [
     {
       "filename": "**/locales/*.json",
@@ -211,6 +216,7 @@
     "serververifizierte",
     "versionierten",
     "Authentikatoren",
-    "Plattformadministrator"
+    "Plattformadministrator",
+    "Fase"
   ]
 }
