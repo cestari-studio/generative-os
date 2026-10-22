@@ -114,8 +114,23 @@ jobs:
           check_route() {
             local route="$1"
             local expected="$2"
-            local html
-            html=$(curl --fail --silent --show-error --max-time 10 -H 'Accept-Language: en' "http://localhost:5173${route}")
+            local html=""
+            local attempt
+            # The first SSR request on a cold runner can exceed 10s while Vite
+            # optimizes deps (large lazy bundles like /dashboard). Retry with a
+            # longer budget before declaring a content failure — the check
+            # still fails on genuine SSR errors and missing content.
+            for attempt in 1 2 3; do
+              html=$(curl --fail --silent --show-error --max-time 25 -H 'Accept-Language: en' "http://localhost:5173${route}" || true)
+              if [ -n "$html" ]; then
+                break
+              fi
+              sleep 2
+            done
+            if [ -z "$html" ]; then
+              echo "FAIL: ${route} did not return a successful response after retries."
+              exit 1
+            fi
             # React client-render fallback marker: an empty #root means SSR failed silently.
             if printf '%s' "$html" | grep -q '<div id="root"></div>'; then
               echo "FAIL: ${route} returned an empty #root (React fell back to client rendering)."
