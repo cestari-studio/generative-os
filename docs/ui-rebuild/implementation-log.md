@@ -128,3 +128,27 @@
 - CI esperado verde no SHA deste log; **0 reviews humanas** (gate).
 - Runtime Supabase `RUNTIME_DRIFT` (6 functions pré-`74c3b87`); Vercel `linkedProjects: []` (BLOCKED — owner action); identidade `...0010` congelada (BLOCKED — decisão).
 - Próximo: Fase 5 continuação (products catalog source decision — estático vs backend/CMS gap), Fase 7 Preview quando o vínculo Vercel existir.
+
+---
+
+## 7. Log de Execução — P0 manifesto runtime + P1 catálogo normativo (22 de outubro de 2026, ciclo 3)
+
+**SHA de referência:** `594e7c1` (e cascades).
+
+### P0 — expected-vs-observed (manifesto)
+
+- `deploy-manifest.json` v2.2 + `phase6` §9: matriz explícita por função (config + código), migration ledger (17/17 sync), **13 tabelas de billing AUSENTES** no remoto, 20 RPCs públicos (4 advisor DEFINER) + 7 app_private, RPCs de billing esperados AUSENTES, Vercel 404/403. **`RUNTIME_DRIFT` confirmado como config + código** para `passkey-auth` e `pagbank-order`.
+
+### P1 — catálogo normativo (gap estático fechado)
+
+- **Migração aditiva** `20261022060000_catalog_normative_source.sql`: catalog_versions/products/subproducts/capabilities/platform_services com `source_provenance`, RLS (read=authenticated, write=platform_admin), grants.
+- **Seed** `supabase/seed/catalog-normative-seed.sql`: gerado DOS registries normativos genOS (não do genOsCatalog.js) — 5/30/9/6 com conteúdo rico + proveniência; validado em PostgreSQL 17.11 descartável (contagens, links, idempotência de re-seed).
+- **`useNormativeCatalog`**: adapter backend com estados ready/loading/unprovisioned honestos.
+- **ProductsCatalogPage**: tabs de produtos/serviços/capabilities agora leem do catálogo backend com empty state factual "not provisioned" quando não provisionado — **sem fallback estático silencioso**. Tab Brand DNA mantém fonte estática verificada (IMPLEMENTED_UNVERIFIED). JSON-LD usa dados do catálogo.
+- Testes: provisionado mostra 5 suítes; não-provisionado mostra empty state SEM fallback — 208/208 ✅.
+
+### Estado
+
+- Migração + seed aditivas, **NÃO aplicadas a nenhum remoto**; página mostra empty state honesto até deploy do catálogo (gate Fase 6).
+- CI esperado verde no SHA deste log; 0 reviews humanas; runtime Supabase divergente (documentado); Vercel BLOCKED; identidade `...0010` congelada.
+- Próximo: Fase 5 continuação (demais slices normativas: settings/overrides, onboarding read-back, knowledge pipeline description, demais páginas), Fase 6 rehearsal do catálogo+billing, Fase 7 Preview quando o vínculo Vercel existir.
