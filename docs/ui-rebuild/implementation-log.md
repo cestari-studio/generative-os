@@ -78,3 +78,24 @@
 - Fase 1 (leitura/reconciliação normativa): **PASS** para counts + divergência + bindings (evidência nos artefatos acima).
 - Crosswalk `feature → journey → page → operation → resource → config → policy → test` no DESTINO: **NOT_VERIFIED** — o destino tem 9 rotas físicas + 6 Edge Functions; a cobertura normativa (60 páginas/100 operações/225 features) é backlog de vertical slices, não implementado.
 - Nenhuma escrita no repo `genOS` (read-only respeitado); nenhum merge/migration/deploy no destino.
+
+---
+
+## 5. Log de Execução — Fase 2/3 Segurança confirmada + Shell (22 de outubro de 2026)
+
+**SHAs de referência:** #3 `21f4d62` (shell), cascades até #7
+
+### Fase 2 — confirmação de achados já corrigidos (sem reimplementação)
+
+- `has_platform_role`: **confirmado corrigido** — apenas a assinatura caller-only `public.has_platform_role(text)` viva; a `/2` vulnerável existe somente na instrução `DROP`. Helper interno em `app_private` não executável por API roles. Teste A-contra-B presente.
+- Idempotência PagBank: **confirmado corrigido** — `claim_pagbank_order` atômico (unique partial `quote_id` + ON CONFLICT), `attach_psp_idempotency` (chave+fingerprint persistidos), `x-idempotency-key` enviado, `gateway_reference_id` autoritativo. 44/44 SQL + 8/8 unit em `billing-sql` ✅.
+
+### Fase 3 — Carbon MCP + shell
+
+- Carbon MCP **conectado** (code_search real validado — ProgressIndicator v11).
+- **Gap de shell fechado:** `WorkspaceSwitcherPanel` (context switching real org/workspace/project + create-org) existia mas não era renderizado. Wired no `ProfilePanel` para usuários autenticados — a shell privada agora expõe o seletor real de tenant/workspace/projeto exigido pelo contrato. 5/5 testes ProfilePanel ✅, 198/198 total ✅.
+
+### Estado
+
+- Shell privada comum: header (Cestari Studio brand), side nav auth-aware, profile panel (user info, theme, **tenant switcher**, read-only account, language, actions), footer. Templates por arquétipo em uso.
+- Próximo: Fase 4/5 (auth/onboarding/profile/settings persistidos + vertical slices de páginas).
