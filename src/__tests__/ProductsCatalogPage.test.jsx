@@ -54,7 +54,9 @@ test('renders Products & Brand DNA Catalog with all 5 product suites and tabs', 
   expect(screen.getByText('Academy Ops')).toBeInTheDocument();
 });
 
-test('interacts with Brand DNA catalog and search', async () => {
+// Heavy render (5 suites + 12 Brand DNA profiles + interactive search) can
+// exceed the 5s default timeout on shared CI runners — allow 20s.
+test('interacts with Brand DNA catalog and search', { timeout: 20000 }, async () => {
   const user = userEvent.setup();
   const authContext = {
     ...DEFAULT_CONTEXT_VALUE,
