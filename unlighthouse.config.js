@@ -8,7 +8,7 @@
 import { defineUnlighthouseConfig } from 'unlighthouse/config';
 
 export default defineUnlighthouseConfig({
-  urls: ['/', '/dashboard'],
+  urls: ['/', '/dashboard', '/settings', '/knowledge'],
   scanner: {
     device: 'desktop',
   },

@@ -268,11 +268,11 @@ Typography token issues **never carry `autoFix`** regardless of context (inline 
 This is because Carbon typography tokens are Sass maps (`$body-01`, `$heading-03`, etc.), not scalar
 values — they cannot be used directly in CSS properties and will cause compiler errors.
 
-| Context   | What the tool emits                                                                                       |
-| --------- | --------------------------------------------------------------------------------------------------------- |
+| Context   | What the tool emits                                                                                        |
+| --------- | ---------------------------------------------------------------------------------------------------------- |
 | SCSS/Sass | `fix` instructs using `@include type.type-style('body-01')` with `@use '@carbon/react/scss/type' as type;` |
-| CSS       | `fix` instructs applying the `cds--body-01` utility class directly on the element                         |
-| JSX       | `fix` instructs moving to a CSS class using the type-style mixin or `cds--` utility classes               |
+| CSS       | `fix` instructs applying the `cds--body-01` utility class directly on the element                          |
+| JSX       | `fix` instructs moving to a CSS class using the type-style mixin or `cds--` utility classes                |
 
 Do not attempt to construct a token replacement for font-size, font-weight, or line-height issues.
 The `fix` field provides the correct guidance in all cases.
