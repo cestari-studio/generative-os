@@ -217,6 +217,9 @@
     "versionierten",
     "Authentikatoren",
     "Plattformadministrator",
-    "Fase"
+    "Fase",
+    "unprovisioned",
+    "svcs",
+    "Katalogquelle"
   ]
 }

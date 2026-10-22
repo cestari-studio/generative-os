@@ -581,7 +581,11 @@
     "taxonomyDesc": "Formal alignment of all platform pages, entities, and actions to standard Schema.org vocabulary.",
     "taxonomyTitle": "Schema.org Multi-Tenant Taxonomy Graph",
     "title": "Products & Brand DNA Catalog",
-    "verifiableOutcomes": "Verifiable Outcomes"
+    "verifiableOutcomes": "Verifiable Outcomes",
+    "notProvisionedTitle": "Product catalog not provisioned",
+    "notProvisionedDesc": "The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, the product suites, subproducts, capabilities and outcomes will appear here.",
+    "loading": "Loading the normative product catalog…",
+    "suitesCount": "{{count}} Suites"
   },
   "profile": {
     "auth": {

@@ -606,7 +606,11 @@
     "taxonomyDesc": "平台所有页面、实体及动作与标准Schema.org语义词汇的正式对齐。",
     "taxonomyTitle": "Schema.org多租户分类图谱",
     "title": "产品与品牌DNA目录",
-    "verifiableOutcomes": "可验证业务成果"
+    "verifiableOutcomes": "可验证业务成果",
+    "notProvisionedTitle": "产品目录尚未配置",
+    "notProvisionedDesc": "此环境中尚未配置规范性产品目录。应用目录源（迁移 + 种子）后，产品套件、子产品、能力和成果将显示在此处。",
+    "loading": "正在加载规范性产品目录…",
+    "suitesCount": "{{count}} 个套件"
   },
   "profile": {
     "auth": {

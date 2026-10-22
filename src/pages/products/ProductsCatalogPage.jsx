@@ -6,6 +6,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import { useNormativeCatalog } from '../../data/useNormativeCatalog';
 import {
   Button,
   CodeSnippet,
@@ -46,13 +47,19 @@ import { useTranslation } from 'react-i18next';
 import { PageLayout } from '../../layouts/page-layout';
 import { Footer } from '../../components/footer/Footer';
 import { useTenant } from '../../context/useTenant';
-import { BRAND_DNA_PROFILES, GENOS_PRODUCTS, PLATFORM_CAPABILITIES, PLATFORM_SERVICES } from '../../data/genOsCatalog';
+import { BRAND_DNA_PROFILES } from '../../data/genOsCatalog';
 import { RESOURCE_TAXONOMY } from '../../routes/config';
 
 const ProductsCatalogPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { activeOrganization, activeWorkspace, activeProject } = useTenant();
+
+  // Normative catalog from the backend (migration 20261022060000 + seed).
+  // When the catalog store is not provisioned, we show the factual empty
+  // state — never the static constant as a silent runtime fallback.
+  const catalog = useNormativeCatalog();
+  const catalogReady = catalog.status === 'ready';
 
   const [brandSearch, setBrandSearch] = useState('');
   const [selectedBrandSlug, setSelectedBrandSlug] = useState('cestari-studio');
@@ -106,12 +113,12 @@ const ProductsCatalogPage = () => {
             '@id': `urn:genos:org:${activeOrganization?.identifier || 'cestari-studio'}`,
             name: activeOrganization?.name || 'Cestari Studio Agency',
             url: 'https://genos.cloud',
-            owns: GENOS_PRODUCTS.map((prod) => ({
+            owns: catalog.products.map((prod) => ({
               '@type': 'Product',
               name: prod.name,
               identifier: prod.key,
-              description: prod.description,
-              category: 'Autonomous AI Operating System Suite',
+              description: prod.summary,
+              category: 'genOS product suite',
             })),
           },
           ...Object.values(RESOURCE_TAXONOMY).map((res) => ({
@@ -126,7 +133,7 @@ const ProductsCatalogPage = () => {
       null,
       2,
     );
-  }, [activeOrganization]);
+  }, [activeOrganization, catalog.products]);
 
   return (
     <PageLayout className="cs--products-page">
@@ -161,7 +168,7 @@ const ProductsCatalogPage = () => {
         </TabList>
 
         <TabPanels>
-          {/* TAB 1: PRODUCT SUITES */}
+          {/* TAB 1: PRODUCT SUITES (normative catalog from backend) */}
           <TabPanel>
             <Stack gap={6}>
               <Tile className="cs--products-page__banner">
@@ -174,86 +181,106 @@ const ProductsCatalogPage = () => {
                       <p className="cs--products-page__banner-lead">
                         {t(
                           'productsCatalog.suitesDesc',
-                          'Five domain-specific product systems operating on shared Helian agent runtime, pgvector RAG, and immutable audit ledgers.',
+                          'Normative product suites from the versioned catalog source, with subproducts, capabilities and outcomes.',
                         )}
                       </p>
                     </div>
-                    <Tag type="cyan" size="md">
-                      {t('productsCatalog.allEntitled', '5 Suites Active')}
-                    </Tag>
+                    {catalogReady && (
+                      <Tag type="cyan" size="md">
+                        {t('productsCatalog.suitesCount', '{{count}} Suites', { count: catalog.products.length })}
+                      </Tag>
+                    )}
                   </div>
                 </Stack>
               </Tile>
 
-              <Grid narrow>
-                {GENOS_PRODUCTS.map((product) => (
-                  <Column sm={4} md={8} lg={8} key={product.id} className="cs--products-page__product-col">
-                    <Layer level={1}>
-                      <Tile className="cs--products-page__product-card">
-                        <Stack gap={5}>
-                          <div className="cs--products-page__product-card-top">
-                            <div>
-                              <div className="cs--products-page__product-badges">
-                                <Tag size="sm" type="cool-gray">
-                                  {product.shortSchema}
-                                </Tag>
-                                <Tag size="sm" type="green">
-                                  {t('productsCatalog.entitledBadge', 'Entitled & Active')}
-                                </Tag>
-                              </div>
-                              <h4 className="cs--products-page__product-title">{product.name}</h4>
-                              <p className="cs--products-page__product-key">{product.key}</p>
-                            </div>
-                          </div>
-
-                          <p className="cs--products-page__product-tagline">{product.tagline}</p>
-                          <p className="cs--products-page__product-desc">{product.description}</p>
-
-                          <div>
-                            <h5 className="cs--products-page__section-subtitle">
-                              {t('productsCatalog.verifiableOutcomes', 'Verifiable Outcomes')}
-                            </h5>
-                            <div className="cs--products-page__outcomes-list">
-                              {product.outcomes.map((outcome, idx) => (
-                                <div key={idx} className="cs--products-page__outcome-item">
-                                  <CheckmarkFilled size={16} className="cs--products-page__checkmark" />
-                                  <span>{outcome}</span>
+              {!catalogReady ? (
+                <Tile className="cs--products-page__empty">
+                  <Stack gap={3}>
+                    <h3 className="cs--products-page__empty-title">
+                      {t('productsCatalog.notProvisionedTitle', 'Product catalog not provisioned')}
+                    </h3>
+                    <p className="cs--products-page__empty-text">
+                      {catalog.status === 'loading'
+                        ? t('productsCatalog.loading', 'Loading the normative product catalog…')
+                        : t(
+                            'productsCatalog.notProvisionedDesc',
+                            'The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, the five product suites with their subproducts, capabilities and outcomes will appear here.',
+                          )}
+                    </p>
+                  </Stack>
+                </Tile>
+              ) : (
+                <Grid narrow>
+                  {catalog.products.map((product) => {
+                    const subs = catalog.subproductsByProduct[product.key] || [];
+                    return (
+                      <Column sm={4} md={8} lg={8} key={product.key} className="cs--products-page__product-col">
+                        <Layer level={1}>
+                          <Tile className="cs--products-page__product-card">
+                            <Stack gap={5}>
+                              <div className="cs--products-page__product-card-top">
+                                <div>
+                                  <div className="cs--products-page__product-badges">
+                                    <Tag size="sm" type="cool-gray">
+                                      schema:Product
+                                    </Tag>
+                                    {product.status && (
+                                      <Tag size="sm" type="green">
+                                        {product.status}
+                                      </Tag>
+                                    )}
+                                  </div>
+                                  <h4 className="cs--products-page__product-title">{product.name}</h4>
+                                  <p className="cs--products-page__product-key">{product.key}</p>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
+                              </div>
 
-                          <div>
-                            <h5 className="cs--products-page__section-subtitle">
-                              {t('productsCatalog.subproductsHeading', 'Subproducts & Components')}
-                            </h5>
-                            <div className="cs--products-page__subproducts-tags">
-                              {product.subproducts.map((sub) => (
-                                <Tag key={sub.id} size="sm" type="teal" title={sub.description}>
-                                  {sub.name}
-                                </Tag>
-                              ))}
-                            </div>
-                          </div>
+                              <p className="cs--products-page__product-tagline">{product.summary}</p>
+                              {product.value && <p className="cs--products-page__product-desc">{product.value}</p>}
 
-                          <div>
-                            <h5 className="cs--products-page__section-subtitle">
-                              {t('productsCatalog.capabilitiesHeading', 'Required Capabilities')}
-                            </h5>
-                            <div className="cs--products-page__capabilities-tags">
-                              {product.capabilities.map((cap) => (
-                                <Tag key={cap} size="sm" type="purple">
-                                  {cap.replace('capability.', '').replace('product.', '')}
-                                </Tag>
-                              ))}
-                            </div>
-                          </div>
-                        </Stack>
-                      </Tile>
-                    </Layer>
-                  </Column>
-                ))}
-              </Grid>
+                              {Array.isArray(product.outcomes) && product.outcomes.length > 0 && (
+                                <div>
+                                  <h5 className="cs--products-page__section-subtitle">
+                                    {t('productsCatalog.verifiableOutcomes', 'Verifiable Outcomes')}
+                                  </h5>
+                                  <div className="cs--products-page__outcomes-list">
+                                    {product.outcomes.map((outcome, idx) => (
+                                      <div key={idx} className="cs--products-page__outcome-item">
+                                        <CheckmarkFilled size={16} className="cs--products-page__checkmark" />
+                                        <span>
+                                          {typeof outcome === 'string'
+                                            ? outcome
+                                            : outcome?.outcome || JSON.stringify(outcome)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {subs.length > 0 && (
+                                <div>
+                                  <h5 className="cs--products-page__section-subtitle">
+                                    {t('productsCatalog.subproductsHeading', 'Subproducts & Components')}
+                                  </h5>
+                                  <div className="cs--products-page__subproducts-tags">
+                                    {subs.map((sub) => (
+                                      <Tag key={sub.key} size="sm" type="teal" title={sub.summary}>
+                                        {sub.name}
+                                      </Tag>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </Stack>
+                          </Tile>
+                        </Layer>
+                      </Column>
+                    );
+                  })}
+                </Grid>
+              )}
             </Stack>
           </TabPanel>
 
@@ -450,85 +477,107 @@ const ProductsCatalogPage = () => {
             </Stack>
           </TabPanel>
 
-          {/* TAB 3: PLATFORM SERVICES & CAPABILITIES */}
+          {/* TAB 3: PLATFORM SERVICES & CAPABILITIES (normative catalog from backend) */}
           <TabPanel>
-            <Stack gap={6}>
-              <div>
-                <h3 className="cs--products-page__tab-heading">
-                  {t('productsCatalog.servicesHeading', 'Foundational Platform Services')}
-                </h3>
-                <p className="cs--products-page__tab-sub">
-                  {t(
-                    'productsCatalog.servicesSub',
-                    'Transversal services underpinning authentication, UI shell, cascading rules, and release gates.',
-                  )}
-                </p>
+            {!catalogReady ? (
+              <Tile className="cs--products-page__empty">
+                <Stack gap={3}>
+                  <h3 className="cs--products-page__empty-title">
+                    {t('productsCatalog.notProvisionedTitle', 'Product catalog not provisioned')}
+                  </h3>
+                  <p className="cs--products-page__empty-text">
+                    {catalog.status === 'loading'
+                      ? t('productsCatalog.loading', 'Loading the normative product catalog…')
+                      : t(
+                          'productsCatalog.notProvisionedDesc',
+                          'The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, platform services and shared capabilities will appear here.',
+                        )}
+                  </p>
+                </Stack>
+              </Tile>
+            ) : (
+              <Stack gap={6}>
+                <div>
+                  <h3 className="cs--products-page__tab-heading">
+                    {t('productsCatalog.servicesHeading', 'Foundational Platform Services')}
+                  </h3>
+                  <p className="cs--products-page__tab-sub">
+                    {t(
+                      'productsCatalog.servicesSub',
+                      'Transversal services underpinning authentication, UI shell, cascading rules, and release gates.',
+                    )}
+                  </p>
 
-                <Grid narrow className="cs--products-page__services-grid">
-                  {PLATFORM_SERVICES.map((srv) => (
-                    <Column sm={4} md={4} lg={5} key={srv.key} className="cs--products-page__service-col">
-                      <Layer level={1}>
-                        <Tile className="cs--products-page__service-tile">
-                          <Stack gap={3}>
-                            <Tag size="sm" type="cyan">
-                              platform_service
-                            </Tag>
-                            <h4 className="cs--products-page__service-title">{srv.name}</h4>
-                            <p className="cs--products-page__service-key">{srv.key}</p>
-                            <p className="cs--products-page__service-desc">{srv.description}</p>
-                            <div className="cs--products-page__entities-tag-list">
-                              {srv.entities.map((ent) => (
-                                <Tag key={ent} size="sm" type="cool-gray">
-                                  {ent}
-                                </Tag>
-                              ))}
-                            </div>
-                          </Stack>
-                        </Tile>
-                      </Layer>
-                    </Column>
-                  ))}
-                </Grid>
-              </div>
+                  <Grid narrow className="cs--products-page__services-grid">
+                    {catalog.platformServices.map((srv) => (
+                      <Column sm={4} md={4} lg={5} key={srv.key} className="cs--products-page__service-col">
+                        <Layer level={1}>
+                          <Tile className="cs--products-page__service-tile">
+                            <Stack gap={3}>
+                              <Tag size="sm" type="cyan">
+                                platform_service
+                              </Tag>
+                              <h4 className="cs--products-page__service-title">{srv.name}</h4>
+                              <p className="cs--products-page__service-key">{srv.key}</p>
+                              <p className="cs--products-page__service-desc">{srv.summary}</p>
+                              <div className="cs--products-page__entities-tag-list">
+                                {(Array.isArray(srv.entities) ? srv.entities : []).map((ent) => (
+                                  <Tag
+                                    key={typeof ent === 'string' ? ent : JSON.stringify(ent)}
+                                    size="sm"
+                                    type="cool-gray"
+                                  >
+                                    {typeof ent === 'string' ? ent : (ent?.name ?? JSON.stringify(ent))}
+                                  </Tag>
+                                ))}
+                              </div>
+                            </Stack>
+                          </Tile>
+                        </Layer>
+                      </Column>
+                    ))}
+                  </Grid>
+                </div>
 
-              <div>
-                <h3 className="cs--products-page__tab-heading">
-                  {t('productsCatalog.capabilitiesHeadingTitle', 'Shared Platform Capabilities')}
-                </h3>
-                <p className="cs--products-page__tab-sub">
-                  {t(
-                    'productsCatalog.capabilitiesSub',
-                    'Reusable capabilities consumed uniformly across all 5 genOS product suites.',
-                  )}
-                </p>
+                <div>
+                  <h3 className="cs--products-page__tab-heading">
+                    {t('productsCatalog.capabilitiesHeadingTitle', 'Shared Platform Capabilities')}
+                  </h3>
+                  <p className="cs--products-page__tab-sub">
+                    {t(
+                      'productsCatalog.capabilitiesSub',
+                      'Reusable capabilities consumed uniformly across all 5 genOS product suites.',
+                    )}
+                  </p>
 
-                <Grid narrow className="cs--products-page__services-grid">
-                  {PLATFORM_CAPABILITIES.map((cap) => (
-                    <Column sm={4} md={4} lg={5} key={cap.key} className="cs--products-page__service-col">
-                      <Layer level={1}>
-                        <Tile className="cs--products-page__service-tile">
-                          <Stack gap={3}>
-                            <Tag size="sm" type="purple">
-                              shared_capability
-                            </Tag>
-                            <h4 className="cs--products-page__service-title">{cap.name}</h4>
-                            <p className="cs--products-page__service-key">{cap.key}</p>
-                            <p className="cs--products-page__service-desc">{cap.description}</p>
-                            <div className="cs--products-page__entities-tag-list">
-                              {cap.entities.map((ent) => (
-                                <Tag key={ent} size="sm" type="teal">
-                                  {ent}
-                                </Tag>
-                              ))}
-                            </div>
-                          </Stack>
-                        </Tile>
-                      </Layer>
-                    </Column>
-                  ))}
-                </Grid>
-              </div>
-            </Stack>
+                  <Grid narrow className="cs--products-page__services-grid">
+                    {catalog.capabilities.map((cap) => (
+                      <Column sm={4} md={4} lg={5} key={cap.key} className="cs--products-page__service-col">
+                        <Layer level={1}>
+                          <Tile className="cs--products-page__service-tile">
+                            <Stack gap={3}>
+                              <Tag size="sm" type="purple">
+                                shared_capability
+                              </Tag>
+                              <h4 className="cs--products-page__service-title">{cap.name}</h4>
+                              <p className="cs--products-page__service-key">{cap.key}</p>
+                              <p className="cs--products-page__service-desc">{cap.summary}</p>
+                              <div className="cs--products-page__entities-tag-list">
+                                {(Array.isArray(cap.entities) ? cap.entities : []).map((ent) => (
+                                  <Tag key={typeof ent === 'string' ? ent : JSON.stringify(ent)} size="sm" type="teal">
+                                    {typeof ent === 'string' ? ent : (ent?.name ?? JSON.stringify(ent))}
+                                  </Tag>
+                                ))}
+                              </div>
+                            </Stack>
+                          </Tile>
+                        </Layer>
+                      </Column>
+                    ))}
+                  </Grid>
+                </div>
+              </Stack>
+            )}
           </TabPanel>
 
           {/* TAB 4: SCHEMA.ORG TAXONOMY GRAPH */}

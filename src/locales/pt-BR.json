@@ -646,7 +646,11 @@
     "taxonomyDesc": "Alinhamento formal de todas as páginas, entidades e ações da plataforma com o vocabulário padrão Schema.org.",
     "taxonomyTitle": "Grafo de Taxonomia Multi-Tenant Schema.org",
     "title": "Catálogo de Produtos & Brand DNA",
-    "verifiableOutcomes": "Resultados Verificáveis"
+    "verifiableOutcomes": "Resultados Verificáveis",
+    "notProvisionedTitle": "Catálogo de produtos não provisionado",
+    "notProvisionedDesc": "O catálogo normativo de produtos ainda não está provisionado neste ambiente. Quando a fonte do catálogo (migração + seed) for aplicada, as suítes de produtos, subprodutos, capabilities e outcomes aparecerão aqui.",
+    "loading": "Carregando o catálogo normativo de produtos…",
+    "suitesCount": "{{count}} Suítes"
   },
   "profile": {
     "auth": {

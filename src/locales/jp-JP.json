@@ -589,7 +589,11 @@
     "taxonomyDesc": "すべてのプラットフォームページ、エンティティ、アクションの標準Schema.org語彙への適合。",
     "taxonomyTitle": "Schema.orgマルチテナントタクソノミグラフ",
     "title": "プロダクト＆ブランドDNAカタログ",
-    "verifiableOutcomes": "検証可能な成果"
+    "verifiableOutcomes": "検証可能な成果",
+    "notProvisionedTitle": "プロダクトカタログがプロビジョニングされていません",
+    "notProvisionedDesc": "この環境では、規範的なプロダクトカタログがまだプロビジョニングされていません。カタログソース（マイグレーション＋シード）が適用されると、プロダクトスイート、サブプロダクト、ケイパビリティ、アウトカムがここに表示されます。",
+    "loading": "規範的なプロダクトカタログを読み込み中…",
+    "suitesCount": "{{count}} スイート"
   },
   "profile": {
     "auth": {

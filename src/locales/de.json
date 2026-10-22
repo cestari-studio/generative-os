@@ -589,7 +589,11 @@
     "taxonomyDesc": "Formale Ausrichtung aller Plattformseiten, Entitäten und Aktionen an Standard-Schema.org-Vokabularen.",
     "taxonomyTitle": "Schema.org Multi-Tenant-Taxonomiegraph",
     "title": "Produkt- & Brand-DNA-Katalog",
-    "verifiableOutcomes": "Verifizierbare Ergebnisse"
+    "verifiableOutcomes": "Verifizierbare Ergebnisse",
+    "notProvisionedTitle": "Produktkatalog nicht bereitgestellt",
+    "notProvisionedDesc": "Der normative Produktkatalog ist in dieser Umgebung noch nicht bereitgestellt. Sobald die Katalogquelle (Migration + Seed) angewendet wird, erscheinen hier die Produktsuiten, Subprodukte, Capabilities und Outcomes.",
+    "loading": "Normativer Produktkatalog wird geladen…",
+    "suitesCount": "{{count}} Suiten"
   },
   "profile": {
     "auth": {
