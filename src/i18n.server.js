@@ -26,8 +26,8 @@ await i18next
   .init({
     debug: false,
     fallbackLng: 'en',
-    supportedLngs: ['en', 'de', 'pt-BR', 'jp-JP', 'zh-CN'],
-    preload: ['en', 'de', 'pt-BR', 'jp-JP', 'zh-CN'], // Preload all languages on server
+    supportedLngs: ['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'],
+    preload: ['en', 'de', 'pt-BR', 'ja-JP', 'zh-CN'], // Preload all languages on server
 
     // useSuspense controls what happens when useTranslation() is called
     // but translations aren't loaded yet. When true (the default), React

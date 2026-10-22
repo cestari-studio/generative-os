@@ -23,14 +23,15 @@ i18next
       if (language === 'en') {
         return Promise.resolve({});
       }
-      return import(`./locales/${language}.json`);
+      const canonicalLanguage = language === 'jp-JP' ? 'ja-JP' : language;
+      return import(`./locales/${canonicalLanguage}.json`);
     }),
   )
   // Init i18next
   .init({
     debug: false,
     fallbackLng: 'en',
-    supportedLngs: ['en', 'de', 'pt-BR', 'jp-JP', 'zh-CN'],
+    supportedLngs: ['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'],
 
     // useSuspense controls what happens when useTranslation() is called
     // but translations aren't loaded yet. When true (the default), React

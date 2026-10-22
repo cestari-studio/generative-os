@@ -23,6 +23,7 @@ import NotFound from '../pages/not-found/NotFound';
 import enLocale from '../locales/en.json';
 import deLocale from '../locales/de.json';
 import ptBrLocale from '../locales/pt-BR.json';
+import jaJpLocale from '../locales/ja-JP.json';
 import jpJpLocale from '../locales/jp-JP.json';
 
 describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
@@ -111,12 +112,13 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
     expect(screen.getByText('Page not found')).toBeInTheDocument();
   });
 
-  test('validates en, de, pt-BR, and jp-JP locale key parity and ProfilePanel jp-JP selector', () => {
-    expect(Object.keys(jpJpLocale)).toEqual(Object.keys(enLocale));
+  test('validates en, de, pt-BR, and ja-JP / jp-JP locale key parity and ProfilePanel ja-JP selector', () => {
+    expect(Object.keys(jaJpLocale)).toEqual(Object.keys(enLocale));
+    expect(Object.keys(jpJpLocale)).toEqual(Object.keys(jaJpLocale));
     expect(Object.keys(ptBrLocale)).toEqual(Object.keys(enLocale));
     expect(Object.keys(deLocale)).toEqual(Object.keys(enLocale));
-    expect(jpJpLocale.dashboard.title).toBe('ダッシュボード');
-    expect(jpJpLocale.cascadeSettings.title).toBe('マルチテナント・カスケード設定');
+    expect(jaJpLocale.dashboard.title).toBe('ダッシュボード');
+    expect(jaJpLocale.cascadeSettings.title).toBe('マルチテナント・カスケード設定');
 
     renderWithoutProviders(
       <MemoryRouter>
@@ -126,7 +128,7 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('option', { name: '日本語 (jp-JP)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '日本語 (ja-JP)' })).toBeInTheDocument();
   });
 
   test('validates canonical Carbon SCSS foundations and generated archetype classes', () => {

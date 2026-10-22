@@ -171,13 +171,13 @@ export const ProfilePanel = ({ className, onClose }) => {
           id="profile-language-select"
           size="sm"
           labelText={t('profile.auth.languageLabel', 'Interface language')}
-          value={i18n.language || 'en'}
+          value={i18n.language === 'jp-JP' ? 'ja-JP' : i18n.language || 'en'}
           onChange={handleLanguageChange}
         >
           <SelectItem value="en" text="English (en)" />
           <SelectItem value="de" text="Deutsch (de)" />
           <SelectItem value="pt-BR" text="Português (pt-BR)" />
-          <SelectItem value="jp-JP" text="日本語 (jp-JP)" />
+          <SelectItem value="ja-JP" text="日本語 (ja-JP)" />
           <SelectItem value="zh-CN" text="简体中文 (zh-CN)" />
         </Select>
       </div>

@@ -92,7 +92,7 @@ export const INITIAL_SETTINGS = [
     property_id: 'i18n.in_language',
     scope: 'i18n',
     name: 'Interface Language (Schema.org inLanguage)',
-    description: 'BCP-47 language tag (en, de, pt-BR, jp-JP, zh-CN).',
+    description: 'BCP-47 language tag (en, de, pt-BR, ja-JP, zh-CN).',
     effective_value: 'en',
     source_level: 'default',
     effective_cascade_rule: 'INHERIT_OVERRIDABLE',

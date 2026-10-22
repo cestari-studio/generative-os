@@ -51,6 +51,7 @@
     "scripts/**",
     "src/data/genOsCatalog.js",
     "src/locales/pt-BR.json",
+    "src/locales/ja-JP.json",
     "src/locales/jp-JP.json",
     "src/locales/zh-CN.json",
     "supabase/**",

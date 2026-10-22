@@ -161,10 +161,12 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         languageRow &&
         typeof languageRow.effective_value === 'string' &&
         languageRow.source_level !== 'default' &&
-        ['en', 'de', 'pt-BR', 'jp-JP', 'zh-CN'].includes(languageRow.effective_value) &&
-        i18nRef.current?.language !== languageRow.effective_value
+        ['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'].includes(languageRow.effective_value)
       ) {
-        i18nRef.current?.changeLanguage(languageRow.effective_value);
+        const canonicalLanguage = languageRow.effective_value === 'jp-JP' ? 'ja-JP' : languageRow.effective_value;
+        if (i18nRef.current?.language !== canonicalLanguage) {
+          i18nRef.current?.changeLanguage(canonicalLanguage);
+        }
       }
     },
     [updateHeaderInverse, updateThemeSetting],
@@ -494,8 +496,9 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
       // Optimistically apply side effects immediately for seamless UI responsiveness
       if (propertyId === 'i18n.in_language' && typeof value === 'string') {
-        if (['en', 'de', 'pt-BR', 'jp-JP', 'zh-CN'].includes(value)) {
-          i18nRef.current?.changeLanguage(value);
+        if (['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'].includes(value)) {
+          const canonical = value === 'jp-JP' ? 'ja-JP' : value;
+          i18nRef.current?.changeLanguage(canonical);
         }
       } else if (propertyId === 'theme.mode' && typeof value === 'string') {
         if (value === 'g90' || value === 'g100' || value === 'dark') {

@@ -537,13 +537,13 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
             <Select
               id="onboard-lang-select"
               labelText={t('profile.language.label', 'Preferred Interface Language')}
-              value={preferredLanguage}
+              value={preferredLanguage === 'jp-JP' ? 'ja-JP' : preferredLanguage}
               onChange={handleLanguageChange}
             >
               <SelectItem value="en" text="English (en)" />
               <SelectItem value="de" text="Deutsch (de)" />
               <SelectItem value="pt-BR" text="Português (pt-BR)" />
-              <SelectItem value="jp-JP" text="日本語 (jp-JP)" />
+              <SelectItem value="ja-JP" text="日本語 (ja-JP)" />
               <SelectItem value="zh-CN" text="简体中文 (zh-CN)" />
             </Select>
           </div>

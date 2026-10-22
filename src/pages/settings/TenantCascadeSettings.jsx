@@ -392,7 +392,7 @@ const TenantCascadeSettings = () => {
                                   <Select
                                     id={`setting-val-${setting.property_id}`}
                                     labelText={t('cascadeSettings.valueLabel', 'Setting Value')}
-                                    value={currentDraftValue || 'en'}
+                                    value={currentDraftValue === 'jp-JP' ? 'ja-JP' : currentDraftValue || 'en'}
                                     disabled={isLockedForLowerTier}
                                     onChange={(e) =>
                                       setDraftValues((prev) => ({
@@ -404,7 +404,7 @@ const TenantCascadeSettings = () => {
                                     <SelectItem value="en" text="English (en)" />
                                     <SelectItem value="pt-BR" text="Português (pt-BR)" />
                                     <SelectItem value="de" text="Deutsch (de)" />
-                                    <SelectItem value="jp-JP" text="日本語 (jp-JP)" />
+                                    <SelectItem value="ja-JP" text="日本語 (ja-JP)" />
                                     <SelectItem value="zh-CN" text="简体中文 (zh-CN)" />
                                   </Select>
                                 ) : (
