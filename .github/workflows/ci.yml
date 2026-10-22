@@ -28,6 +28,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Supabase public configuration for tests/builds. These are the publishable
+# (browser-safe) project coordinates — not secrets. Override per environment
+# via repository/environment variables; never put service-role keys here.
+env:
+  VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://ldjfjmihdvdmltrptngf.supabase.co' }}
+  VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_placeholder_for_ci' }}
+
 jobs:
   quality:
     name: quality
