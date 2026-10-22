@@ -99,3 +99,32 @@
 
 - Shell privada comum: header (Cestari Studio brand), side nav auth-aware, profile panel (user info, theme, **tenant switcher**, read-only account, language, actions), footer. Templates por arquétipo em uso.
 - Próximo: Fase 4/5 (auth/onboarding/profile/settings persistidos + vertical slices de páginas).
+
+---
+
+## 6. Log de Execução — Fase 5/6/7 em paralelo (22 de outubro de 2026, ciclo 2)
+
+**SHAs de referência:** até `3e11c8e` (e cascades).
+
+### Fase 5 — vertical slices / inventário + wiring
+
+- Inventário integral de views: 9 rotas físicas + categorias virtuais `/operations` `/governance`, tabs em 5 páginas, modais/panels/tearsheets em 7 componentes, wizard steps em sign-in modal + onboarding.
+- **`DashboardWorkspaceTab`**: botão "Switch" agora usa `switchActiveContext` (validado/persistido) em vez do setter local bruto.
+- **`DashboardUsersTab`**: botão "Invite Team Member" não dispara mais `window.alert` fake — agora desabilitado com nota factual (fluxo de convite não provisionado), em 6 locales. Nenhum botão decorativo restante nessas tabs.
+
+### Fase 6 — rehearsal Supabase (local, disposable PostgreSQL 17.11)
+
+- Migration ledger: **17/17 aplicadas remotamente = 17/17 arquivos locais** (zero drift); apenas `20261022053203` (billing) pendente.
+- Billing replay: **44/44 SQL assertions PASS** (rehearsal_test DB).
+- Rollback: **CLEAN** — objetos aditivos removidos, `payment_orders` de volta às colunas originais; `has_platform_role` requer `DROP CASCADE` (policies dependentes) — documentado. `deploy-manifest.json` v2.1.
+
+### Fase 7 — validação local
+
+- **axe-core 4.14.0** (devDep): `a11y-routes.test.jsx` — 9 rotas, **zero serious/critical violations** (`/`, 404, Placeholder, SignInModal, /dashboard, /settings, /knowledge, /payments, /onboarding). Manual keyboard/screen-reader continua gate separado.
+- **Playwright 1.64.1** (devDep): `scripts/capture-screenshots.mjs` — **24/24 rotas capturadas** (8 rotas × 3 viewports: desktop/tablet/mobile) com manifest por SHA, HTTP 200 nas rotas reais, 404 na NotFound. `cspell.json` adicionado a `.prettierignore` (prettier re-escapava palavras UTF-8).
+
+### Estado / pendências
+
+- CI esperado verde no SHA deste log; **0 reviews humanas** (gate).
+- Runtime Supabase `RUNTIME_DRIFT` (6 functions pré-`74c3b87`); Vercel `linkedProjects: []` (BLOCKED — owner action); identidade `...0010` congelada (BLOCKED — decisão).
+- Próximo: Fase 5 continuação (products catalog source decision — estático vs backend/CMS gap), Fase 7 Preview quando o vínculo Vercel existir.
