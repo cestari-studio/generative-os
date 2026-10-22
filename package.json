@@ -22,6 +22,7 @@
     "format:check": "prettier . --check --ignore-unknown --no-error-on-unmatched-pattern --log-level warn --cache --cache-location \"node_modules/.cache/prettier/\"",
     "format:fix": "prettier . --write --ignore-unknown --no-error-on-unmatched-pattern --log-level warn --cache --cache-location \"node_modules/.cache/prettier/\"",
     "lint:spell": "cspell lint --quiet \"**\"",
+    "check:branding": "node scripts/check-product-branding.mjs",
     "copyright:check": "./scripts/check-all-copyrights.sh",
     "copyright:fix": "./scripts/check-all-copyrights.sh --fix",
     "preview:prod": "cross-env NODE_ENV=production node src/server.js",

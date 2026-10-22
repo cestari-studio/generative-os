@@ -8,19 +8,24 @@
 import { createServerClient } from '@supabase/ssr';
 import { parseCookies } from '../utils/cookies.js';
 
-const DEFAULT_SUPABASE_URL = 'https://ldjfjmihdvdmltrptngf.supabase.co';
-const DEFAULT_SUPABASE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkamZqbWloZHZkbWx0cnB0bmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNTcxMjMsImV4cCI6MjEwNzczMzEyM30.T_Vm0nLTj16O-BUc74kXLiC6H13wlrelciVx_ThFW-c';
-
 /**
  * Creates a request-scoped Supabase SSR client for Express 5 / Vercel SSR.
+ *
+ * Configuration is environment-driven; there is no hardcoded project
+ * fallback. Missing configuration is a startup error.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
 export function createSupabaseServerClient(req, res) {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_SUPABASE_KEY;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      'Supabase server configuration missing: set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY for this environment.',
+    );
+  }
 
   const parsedCookies = parseCookies(req?.headers?.cookie || '');
 

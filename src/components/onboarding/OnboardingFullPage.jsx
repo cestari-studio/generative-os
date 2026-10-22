@@ -24,8 +24,6 @@ import {
   Building,
   Checkmark,
   Enterprise,
-  FaceActivated,
-  FingerprintRecognition,
   Identification,
   Location,
   Password,
@@ -162,7 +160,6 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
     isOnboardingOpen,
     closeOnboardingFlow,
     switchActiveContext,
-    registerPasskey,
     applySettingCascade,
     saveOnboardingProgress,
     createOrUpdateCorporateTenant,
@@ -197,12 +194,10 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
   const [locality, setLocality] = useState('');
   const [region, setRegion] = useState('');
 
-  // Step 5 States: Workspace Hierarchy & Passkey
+  // Step 5 States: Workspace Hierarchy
   const [selectedOrgId, setSelectedOrgId] = useState(activeOrganizationId);
   const [selectedWsId, setSelectedWsId] = useState(activeWorkspaceId);
   const [selectedPrjId, setSelectedPrjId] = useState(activeProjectId);
-  const [passkeyModality, setPasskeyModality] = useState('touch'); // 'touch' | 'camera' | 'securityKey'
-  const [passkeyRegistered, setPasskeyRegistered] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -247,24 +242,6 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
 
   const handlePrjChange = (e) => {
     setSelectedPrjId(e.target.value);
-  };
-
-  const handleRegisterPasskey = async () => {
-    try {
-      const deviceLabel =
-        passkeyModality === 'camera'
-          ? 'Facial Recognition / Windows Hello'
-          : passkeyModality === 'securityKey'
-            ? 'FIDO2 Security Key'
-            : 'Biometric Touch ID';
-      await registerPasskey(deviceLabel);
-      setPasskeyRegistered(true);
-    } catch (err) {
-      setErrorMessage(
-        err?.message ||
-          'Passkey registration is currently under FIDO2 certification and disabled for security compliance.',
-      );
-    }
   };
 
   // Intermediate Step Progress Savers
@@ -864,119 +841,20 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
           <div className="cs--onboarding-section">
             <div className="cs--onboarding-section__title">
               <Password size={18} />
-              {t('onboarding.passkeyHeading', 'FIDO2 / WebAuthn Biometric Security')}
+              {t('onboarding.passkeyHeading', 'Passwordless sign-in (Passkeys)')}
             </div>
 
             <Stack gap={4}>
-              <p>
-                {t(
-                  'onboarding.passkeyDesc',
-                  'Register your hardware device authenticator (Touch ID, Face ID, Windows Hello, or YubiKey) for passwordless multi-factor authentication.',
+              <InlineNotification
+                lowContrast
+                hideCloseButton
+                kind="info"
+                title={t('onboarding.passkeyUnavailableTitle', 'Passkeys unavailable in this version')}
+                subtitle={t(
+                  'onboarding.passkeyUnavailableDesc',
+                  'Hardware authenticator enrollment (Touch ID, Face ID, Windows Hello, security keys) will be enabled after server-verified WebAuthn registration is available. You can finish onboarding now and use email and password to sign in.',
                 )}
-              </p>
-
-              {/* Modality selector for Passkey enrollment */}
-              <div className="cs--onboarding-auth-options">
-                <button
-                  type="button"
-                  className={classNames('cs--onboarding-auth-tile', {
-                    'cs--onboarding-auth-tile--active': passkeyModality === 'touch',
-                  })}
-                  onClick={() => setPasskeyModality('touch')}
-                  aria-label={t('onboarding.touchAria', 'Touch ID / Fingerprint sensor')}
-                >
-                  <div className="cs--onboarding-auth-tile-header">
-                    <FingerprintRecognition size={20} />
-                    <Tag size="sm" type={passkeyModality === 'touch' ? 'cyan' : 'cool-gray'}>
-                      {passkeyModality === 'touch' ? t('common.selected', 'Active') : t('common.select', 'Select')}
-                    </Tag>
-                  </div>
-                  <span className="cs--onboarding-auth-tile-name">
-                    {t('signInModal.mfa.touchMethod', 'Touch Method')}
-                  </span>
-                  <span className="cs--onboarding-auth-tile-desc">
-                    {t('onboarding.touchAuth', 'Touch ID / Fingerprint')}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className={classNames('cs--onboarding-auth-tile', {
-                    'cs--onboarding-auth-tile--active': passkeyModality === 'camera',
-                  })}
-                  onClick={() => setPasskeyModality('camera')}
-                  aria-label={t('onboarding.cameraAria', 'Facial Recognition / Windows Hello')}
-                >
-                  <div className="cs--onboarding-auth-tile-header">
-                    <FaceActivated size={20} />
-                    <Tag size="sm" type={passkeyModality === 'camera' ? 'cyan' : 'cool-gray'}>
-                      {passkeyModality === 'camera' ? t('common.selected', 'Active') : t('common.select', 'Select')}
-                    </Tag>
-                  </div>
-                  <span className="cs--onboarding-auth-tile-name">
-                    {t('signInModal.mfa.cameraMethod', 'Camera Method')}
-                  </span>
-                  <span className="cs--onboarding-auth-tile-desc">
-                    {t('onboarding.cameraAuth', 'Facial Recognition')}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className={classNames('cs--onboarding-auth-tile', {
-                    'cs--onboarding-auth-tile--active': passkeyModality === 'securityKey',
-                  })}
-                  onClick={() => setPasskeyModality('securityKey')}
-                  aria-label={t('onboarding.securityKeyAria', 'FIDO2 Security Key / YubiKey')}
-                >
-                  <div className="cs--onboarding-auth-tile-header">
-                    <Password size={20} />
-                    <Tag size="sm" type={passkeyModality === 'securityKey' ? 'cyan' : 'cool-gray'}>
-                      {passkeyModality === 'securityKey'
-                        ? t('common.selected', 'Active')
-                        : t('common.select', 'Select')}
-                    </Tag>
-                  </div>
-                  <span className="cs--onboarding-auth-tile-name">
-                    {t('onboarding.securityKeyLabel', 'Security Key')}
-                  </span>
-                  <span className="cs--onboarding-auth-tile-desc">
-                    {t('onboarding.securityKeyAuth', 'FIDO2 Hardware Key')}
-                  </span>
-                </button>
-              </div>
-
-              <div>
-                <Button
-                  kind="tertiary"
-                  size="md"
-                  renderIcon={
-                    passkeyModality === 'camera'
-                      ? FaceActivated
-                      : passkeyModality === 'touch'
-                        ? FingerprintRecognition
-                        : Password
-                  }
-                  onClick={handleRegisterPasskey}
-                  disabled={passkeyRegistered}
-                >
-                  {passkeyRegistered
-                    ? t('signInModal.passkeyRegistered', 'Passkey credential enrolled')
-                    : t('onboarding.enrollPasskeyBtn', 'Enroll WebAuthn Passkey')}
-                </Button>
-              </div>
-
-              {passkeyRegistered && (
-                <InlineNotification
-                  lowContrast
-                  kind="success"
-                  title={t('signInModal.passkeyRegistered', 'Passkey credential enrolled')}
-                  subtitle={t(
-                    'onboarding.passkeySuccessDesc',
-                    'Your hardware biometric credential is now enrolled for passwordless enterprise sign-in.',
-                  )}
-                />
-              )}
+              />
             </Stack>
           </div>
         </div>

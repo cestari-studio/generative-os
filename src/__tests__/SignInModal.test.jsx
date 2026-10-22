@@ -14,7 +14,7 @@ import { MemoryRouter } from 'react-router';
 import { SignInModal } from '../components/auth/SignInModal';
 import { TenantContext, DEFAULT_CONTEXT_VALUE } from '../context/useTenant';
 
-describe('SignInModal (Fixed-Dimension Enterprise Authentication)', () => {
+describe('SignInModal (Enterprise Authentication)', () => {
   const mockCloseModal = vi.fn();
   const mockSetStep = vi.fn();
   const mockSignIn = vi.fn();
@@ -27,7 +27,7 @@ describe('SignInModal (Fixed-Dimension Enterprise Authentication)', () => {
     mockOpenOnboarding.mockReset();
   });
 
-  test('renders Step 1: Identity with fixed dialog and single-click demo credentials', async () => {
+  test('renders Step 1: Identity without demo credentials or quick-fill identities', async () => {
     const user = userEvent.setup();
     const contextValue = {
       ...DEFAULT_CONTEXT_VALUE,
@@ -45,18 +45,23 @@ describe('SignInModal (Fixed-Dimension Enterprise Authentication)', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Log in to Generative OS')).toBeInTheDocument();
-    expect(screen.getByLabelText('IBMid or work email')).toBeInTheDocument();
+    expect(screen.getByText('Log in to genOS')).toBeInTheDocument();
+    expect(screen.getByLabelText('Work email')).toBeInTheDocument();
     expect(screen.getByLabelText('Remember user ID')).toBeInTheDocument();
-    expect(screen.getByText('Demo Enterprise Identities (Single Click):')).toBeInTheDocument();
 
-    // Click demo identity tag
-    const ruthTag = screen.getByText('Ruth Leach (architect@ibm.com)');
-    await user.click(ruthTag);
+    // No demo identities, quick-fill buttons or hardcoded passwords.
+    expect(screen.queryByText(/Demo Enterprise Identities/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/architect@ibm\.com/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/anne\.profile@ibm\.com/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ruth\.leach@ibm\.com/i)).not.toBeInTheDocument();
 
-    expect(screen.getByDisplayValue('architect@ibm.com')).toBeInTheDocument();
+    // Passkeys are advertised as unavailable, never as an actionable flow.
+    expect(screen.getByText('Passkeys unavailable in this version')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Biometric|Passkey/i })).not.toBeInTheDocument();
 
-    // Click Continue
+    const emailInput = screen.getByLabelText('Work email');
+    await user.type(emailInput, 'person@example.com');
+
     const continueBtn = screen.getByText('Continue');
     await user.click(continueBtn);
 
@@ -65,7 +70,7 @@ describe('SignInModal (Fixed-Dimension Enterprise Authentication)', () => {
 
   test('renders Step 2: Credentials with password input and triggers onboarding when profile is incomplete', async () => {
     const user = userEvent.setup();
-    mockSignIn.mockResolvedValueOnce({ user: { email: 'architect@ibm.com' } });
+    mockSignIn.mockResolvedValueOnce({ user: { email: 'person@example.com' } });
 
     const contextValue = {
       ...DEFAULT_CONTEXT_VALUE,
@@ -91,13 +96,13 @@ describe('SignInModal (Fixed-Dimension Enterprise Authentication)', () => {
     expect(screen.getByText('Change')).toBeInTheDocument();
 
     const passwordInput = screen.getByLabelText('Password');
-    await user.type(passwordInput, 'Carbon2026!');
+    await user.type(passwordInput, 'test-password-123');
 
     const logInBtn = screen.getByRole('button', { name: 'Log in' });
     await user.click(logInBtn);
 
     await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('', 'Carbon2026!');
+      expect(mockSignIn).toHaveBeenCalledWith('', 'test-password-123');
       expect(mockCloseModal).toHaveBeenCalled();
       expect(mockOpenOnboarding).toHaveBeenCalled();
     });
@@ -121,32 +126,23 @@ describe('SignInModal (Fixed-Dimension Enterprise Authentication)', () => {
       </MemoryRouter>,
     );
 
-    const emailInput = screen.getByLabelText('IBMid or work email');
+    const emailInput = screen.getByLabelText('Work email');
     await user.type(emailInput, 'invalid-email');
 
     const continueBtn = screen.getByText('Continue');
     await user.click(continueBtn);
 
-    expect(screen.getByText('Enter a valid IBMid or email address.')).toBeInTheDocument();
+    expect(screen.getByText('Enter a valid email address.')).toBeInTheDocument();
     expect(mockSetStep).not.toHaveBeenCalled();
   });
 
-  test('renders Step 3: Multi-Factor Authentication (MFA) with Touch and Camera modalities and completes biometric verification', async () => {
-    const user = userEvent.setup();
-    const mockAuthPasskey = vi.fn().mockResolvedValueOnce({
-      user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'architect@ibm.com' },
-      person: { account_type: 'PF', name: 'Ruth Leach' },
-      modality: 'touch',
-    });
-
+  test('does not render a biometric/MFA step', () => {
     const contextValue = {
       ...DEFAULT_CONTEXT_VALUE,
       isSignInModalOpen: true,
       signInStep: 2,
       setSignInStep: mockSetStep,
       closeSignInModal: mockCloseModal,
-      authenticateWithPasskey: mockAuthPasskey,
-      person: { account_type: 'PF', name: 'Ruth Leach' },
     };
 
     renderWithoutProviders(
@@ -157,50 +153,8 @@ describe('SignInModal (Fixed-Dimension Enterprise Authentication)', () => {
       </MemoryRouter>,
     );
 
-    // Verify MFA Heading and Biometric Modalities are present
-    expect(screen.getByText('Multi-Factor Biometric Authentication')).toBeInTheDocument();
-    expect(screen.getByText('Touch Method')).toBeInTheDocument();
-    expect(screen.getByText('Camera Method')).toBeInTheDocument();
-    expect(screen.getByText('Biometric Authenticator Ready')).toBeInTheDocument();
-
-    // Select Camera Method
-    const cameraTile = screen.getByRole('button', {
-      name: /Camera Method/i,
-    });
-    await user.click(cameraTile);
-
-    // Click Authenticate with Biometrics
-    const authBtn = screen.getByRole('button', { name: 'Authenticate with Biometrics' });
-    await user.click(authBtn);
-
-    await waitFor(() => {
-      expect(mockAuthPasskey).toHaveBeenCalledWith('architect@ibm.com', 'camera');
-      expect(mockCloseModal).toHaveBeenCalled();
-    });
-  });
-
-  test('allows navigating from Credentials to Biometric MFA step', async () => {
-    const user = userEvent.setup();
-    const contextValue = {
-      ...DEFAULT_CONTEXT_VALUE,
-      isSignInModalOpen: true,
-      signInStep: 1,
-      setSignInStep: mockSetStep,
-      closeSignInModal: mockCloseModal,
-    };
-
-    renderWithoutProviders(
-      <MemoryRouter>
-        <TenantContext.Provider value={contextValue}>
-          <SignInModal />
-        </TenantContext.Provider>
-      </MemoryRouter>,
-    );
-
-    const mfaBtn = screen.getByRole('button', { name: /Verify with Biometric MFA/i });
-    expect(mfaBtn).toBeInTheDocument();
-    await user.click(mfaBtn);
-
-    expect(mockSetStep).toHaveBeenCalledWith(2);
+    // There is no third step content and no passkey action buttons.
+    expect(screen.queryByText(/Multi-Factor Biometric Authentication/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Authenticate with Biometrics/i })).not.toBeInTheDocument();
   });
 });

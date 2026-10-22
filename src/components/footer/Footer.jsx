@@ -25,7 +25,7 @@ export const Footer = () => {
         <p className="cs--footer__disclaimer">
           {t(
             'footer.disclaimer',
-            'A subscription is required for all software products available under Generative Operating System. For open-source evaluation, please refer to IBM AI Nexus Atlas and IBM Granite Model.',
+            'genOS is the generative operational system from Cestari Studio Inc. Access to production workspaces requires an active subscription.',
           )}
         </p>
         <p className="cs--footer__copyright">

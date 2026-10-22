@@ -7,19 +7,29 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 
-const DEFAULT_SUPABASE_URL = 'https://ldjfjmihdvdmltrptngf.supabase.co';
-const DEFAULT_SUPABASE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkamZqbWloZHZkbWx0cnB0bmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNTcxMjMsImV4cCI6MjEwNzczMzEyM30.T_Vm0nLTj16O-BUc74kXLiC6H13wlrelciVx_ThFW-c';
-
-export const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-export const SUPABASE_PUBLISHABLE_KEY = import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY || DEFAULT_SUPABASE_KEY;
+/**
+ * Supabase browser client configuration.
+ *
+ * The target project is defined per environment via Vite env vars; there is
+ * no hardcoded project fallback. Missing configuration is a build/startup
+ * error, never a silent redirect to a default project.
+ */
+export const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL;
+export const SUPABASE_PUBLISHABLE_KEY = import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 let browserClient = null;
 
 /**
  * Returns a singleton Supabase browser client configured for SSR cookie sync.
+ * Throws when the environment is not configured — never falls back to a
+ * hardcoded project.
  */
 export function getSupabaseBrowserClient() {
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error(
+      'Supabase client configuration missing: set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY for this environment.',
+    );
+  }
   if (!browserClient) {
     browserClient = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   }

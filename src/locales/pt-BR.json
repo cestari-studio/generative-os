@@ -317,7 +317,7 @@
     },
     "subscriptions": {
       "currentPlan": "Assinatura Ativa: {{tier}}",
-      "subtitle": "Processamento PagBank FinOps com auditoria MonetaryGrant Schema.org e ciclos automáticos.",
+      "subtitle": "Gestão de billing, uso e assinaturas desta organização.",
       "manageButton": "Gerenciar Cobrança e PagBank",
       "membersQuota": "Cota de Membros",
       "workspacesQuota": "Cota de Workspaces",
@@ -325,7 +325,9 @@
       "quotaProgress": "Utilização",
       "upgrade": "Fazer Upgrade",
       "planSelect": "Selecionar Nível de Assinatura",
-      "billingCycle": "Frequência de Cobrança"
+      "billingCycle": "Frequência de Cobrança",
+      "noPlan": "Nenhuma assinatura ativa",
+      "pricingNotConfigured": "Os preços ainda não estão configurados para esta organização. Planos, preços e limites são publicados pelo administrador da plataforma por meio do catálogo de billing versionado."
     },
     "settings": {
       "personalTitle": "Preferências Pessoais do Usuário",
@@ -342,7 +344,7 @@
   },
   "footer": {
     "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
-    "disclaimer": "É necessária uma assinatura para todos os produtos de software disponíveis no Generative Operating System. Para avaliação de código aberto, consulte o IBM AI Nexus Atlas e o IBM Granite Model.",
+    "disclaimer": "genOS é o sistema operacional generativo da Cestari Studio Inc. O acesso a workspaces de produção requer uma assinatura ativa.",
     "evaluation": "Saiba mais sobre como as aplicações genOS são avaliadas em"
   },
   "knowledgeVector": {
@@ -376,7 +378,8 @@
     "uploadDescription": "Envie arquivos PDF, Markdown ou ativos multimídia para o bucket isolado do inquilino.",
     "uploadHeading": "Upload em Armazenamento de Objetos",
     "taxonomyHeading": "Taxonomia Schema.org Implementada:",
-    "uploadFileLabel": "Arquivo DigitalDocument para Ingestão"
+    "uploadFileLabel": "Arquivo DigitalDocument para Ingestão",
+    "searching": "Buscando no corpus de conhecimento..."
   },
   "nav": {
     "actions": {
@@ -504,7 +507,9 @@
     "taxId": "Identificador Fiscal (CPF / CNPJ / NIF)",
     "validation": {
       "required": "O nome da organização é obrigatório"
-    }
+    },
+    "passkeyUnavailableTitle": "Passkeys indisponíveis nesta versão",
+    "passkeyUnavailableDesc": "O registro de autenticadores de hardware (Touch ID, Face ID, Windows Hello, chaves de segurança) será ativado quando o registro WebAuthn verificado no servidor estiver disponível. Você pode concluir o onboarding agora e entrar com e-mail e senha."
   },
   "payments": {
     "amountLabel": "Valor da Cobrança (BRL)",
@@ -589,7 +594,9 @@
     "colSplit": "Divisão / Split",
     "colTimestamp": "Registro de Data/Hora",
     "colType": "Tipo @type",
-    "connectDesc": "Gerencie contas de parceiros autorizados para split de pagamentos automático no PagBank."
+    "connectDesc": "Gerencie contas de parceiros autorizados para split de pagamentos automático no PagBank.",
+    "invalidCustomer": "Nome e e-mail do cliente são obrigatórios.",
+    "amountPlaceholder": "0,00"
   },
   "placeholder": {
     "description1": "Geralmente não é uma boa ideia manter páginas em construção.",
@@ -728,43 +735,19 @@
       "US": "United States (US)"
     },
     "countryLabel": "País / Jurisdição",
-    "emailLabel": "IBMid ou e-mail corporativo",
+    "emailLabel": "E-mail corporativo",
     "error": {
       "emptyPassword": "A senha é obrigatória.",
-      "invalidCredentials": "IBMid ou senha incorretos. Tente novamente.",
-      "invalidEmail": "Insira um IBMid ou endereço de e-mail válido.",
+      "invalidCredentials": "E-mail ou senha incorretos. Tente novamente.",
+      "invalidEmail": "Insira um endereço de e-mail válido.",
       "title": "Erro de autenticação"
     },
-    "fastTrackPasskey": "Entrar com Biometria (Passkey)",
-    "fastTrackTitle": "MFA Biométrico sem Senha:",
     "fullName": "Nome Completo",
-    "headerLabel": "Autenticação Corporativa & Onboarding",
+    "headerLabel": "Autenticação Cestari Studio",
     "legalName": "Razão Social / Legal Business Name",
     "locality": "Cidade / Município",
     "logIn": "Entrar",
     "magicLinkBtn": "Enviar link mágico por e-mail",
-    "mfa": {
-      "authenticateBtn": "Autenticar com Biometria",
-      "authenticating": "Autenticando...",
-      "backToPassword": "Voltar para Senha",
-      "cameraDesc": "Reconhecimento Facial / Windows Hello",
-      "cameraMethod": "Método Câmera",
-      "cameraMethodAria": "Método por Câmera (Reconhecimento Facial / Windows Hello)",
-      "cameraScanPrompt": "Olhe para a câmera para confirmar sua identidade.",
-      "cancelled": "Verificação biométrica cancelada. Você pode tentar novamente ou escolher um método alternativo.",
-      "failed": "Falha na autenticação biométrica. Tente novamente ou use verificação por e-mail.",
-      "fallbackMagicLink": "Enviar link único por e-mail",
-      "heading": "Autenticação Biométrica Multi-Fator (MFA)",
-      "ready": "Autenticador Biométrico Pronto",
-      "scanning": "Aguardando Interação com Sensor Biométrico...",
-      "sensorPrompt": "Clique em Autenticar para acionar a validação de hardware do seu dispositivo.",
-      "subheading": "Verifique sua identidade usando o sensor biométrico por toque ou câmera de reconhecimento facial.",
-      "touchDesc": "Sensor Touch ID / Impressão Digital",
-      "touchMethod": "Método Toque",
-      "touchMethodAria": "Método por Toque (Touch ID / Impressão Digital)",
-      "touchScanPrompt": "Toque no sensor de impressão digital para confirmar sua identidade.",
-      "verified": "Assinatura Biométrica Verificada"
-    },
     "onboardingIntro": "Selecione sua hierarquia multi-tenant Schema.org ativa e preferências antes de acessar o workspace:",
     "otpSentDesc": "Verifique sua caixa de entrada para o link de acesso direto.",
     "otpSentTitle": "Link mágico enviado",
@@ -772,8 +755,6 @@
     "passwordLabel": "Senha",
     "pfDetailsTitle": "Dados da Pessoa Física",
     "pjDetailsTitle": "Dados da Empresa & Porte",
-    "proceedMfa": "Verificar com MFA Biométrico →",
-    "quickFillTitle": "Identidades Corporativas de Demonstração (1 Clique):",
     "region": "Estado / Província / UF",
     "registerPasskey": "Registrar Passkey WebAuthn",
     "rememberId": "Lembrar ID do usuário",
@@ -793,9 +774,12 @@
       "onboardingDesc": "Configuração do Workspace"
     },
     "streetAddress": "Logradouro / Rua e Número",
-    "title": "Entrar no Generative OS",
+    "title": "Entrar no genOS",
     "tradeName": "Nome Fantasia / Brand Name",
-    "verifiedBadge": "Identidade Verificada"
+    "verifiedBadge": "Identidade Verificada",
+    "emailPlaceholder": "voce@empresa.com",
+    "passkeyUnavailableTitle": "Passkeys indisponíveis nesta versão",
+    "passkeyUnavailableDesc": "O acesso sem senha será ativado quando o registro WebAuthn verificado no servidor estiver disponível."
   },
   "taxonomy": {
     "billing": {
@@ -871,25 +855,6 @@
       "multiTenancyTitle": "Multi-Tenancy",
       "vectorRagDesc": "Embeddings pgvector HNSW de 384 Dimensões",
       "vectorRagTitle": "RAG Cognitivo"
-    },
-    "fetching": {
-      "apiLayer": "Camada de API",
-      "apiLayerDesc": "Funções cliente em api/message.js gerenciam requisições HTTP para o servidor Express",
-      "comments": "Comentários",
-      "exampleHeading": "Exemplo de recuperação de dados do blog",
-      "from": "De {{email}}",
-      "heading": "Exemplo: Busca de dados",
-      "intro": "Demonstração de carregamento dinâmico de dados mantendo componentes limpos e lógica de rede separada:",
-      "postFrom": "Publicação de {{email}}",
-      "serviceLayer": "Camada de Serviço",
-      "serviceLayerDesc": "Handlers no servidor em service/postHandlers.js encaminham chamadas para APIs externas.",
-      "summary": "Esse padrão mantém os componentes focados em apresentação enquanto centraliza a busca de dados.",
-      "uiLayer": "Camada de UI",
-      "uiLayerDesc": "PostComponent.jsx gerencia o estado React e renderiza dados com componentes Carbon"
-    },
-    "run": {
-      "heading": "Executar a plataforma",
-      "nodeRequirement": "Requer Node v.24"
     }
   },
   "welcomeHeader": {
@@ -898,9 +863,9 @@
       "signIn": "Entrar no Workspace",
       "useTemplate": "Usar este template"
     },
-    "description1": "Plataforma multi-tenant baseada no Carbon Design System v11 e Supabase com taxonomia Schema.org, configurações em cascata, Passkeys e busca vetorial.",
-    "maintainer": "Mantido pela Cestari Studio Inc.",
-    "title": "Bem-vindo ao Cestari Studio"
+    "description1": "genOS é o sistema operacional generativo da Cestari Studio Inc.: workspaces multi-tenant com governança em cascata, recuperação de conhecimento e billing integrado.",
+    "title": "genOS by Cestari Studio",
+    "description2": "Entre para acessar sua organização, workspaces e projetos."
   },
   "workspaceSwitcher": {
     "activeRole": "Função Ativa",

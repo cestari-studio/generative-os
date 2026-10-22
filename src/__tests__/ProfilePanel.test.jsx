@@ -58,8 +58,8 @@ test('renders guest profile panel when unauthenticated (tenant info hidden befor
   );
 
   // Tenant/Account info should NOT be visible before signin
-  expect(screen.queryByText('Anne Profile')).not.toBeInTheDocument();
-  expect(screen.queryByText('anne.profile@ibm.com')).not.toBeInTheDocument();
+  expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument();
+  expect(screen.queryByText('jane.doe@example.com')).not.toBeInTheDocument();
 
   // Guest welcome and Log in action should be visible
   expect(screen.getByText('Guest Session')).toBeInTheDocument();
@@ -72,12 +72,12 @@ test('renders guest profile panel when unauthenticated (tenant info hidden befor
 test('renders authenticated profile panel with user and tenant read-only info after signin', () => {
   const authContext = {
     ...DEFAULT_CONTEXT_VALUE,
-    user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'anne.profile@ibm.com' },
-    person: { name: 'Anne Profile', email: 'anne.profile@ibm.com' },
+    user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'jane.doe@example.com' },
+    person: { name: 'Jane Doe', email: 'jane.doe@example.com' },
     activeOrganization: {
-      identifier: 'ibm-cloud',
-      name: 'IBM Cloud Enterprise',
-      legal_name: 'IBM Cloud Corp.',
+      identifier: 'acme-labs',
+      name: 'Acme Labs',
+      legal_name: 'Acme Labs LLC',
       plan_tier: 'enterprise',
     },
     activeWorkspace: { id: 'ws-core-ai-123', name: 'Core AI Platform' },
@@ -94,18 +94,18 @@ test('renders authenticated profile panel with user and tenant read-only info af
   );
 
   // Authenticated user information is displayed
-  expect(screen.getByText('Anne Profile')).toBeInTheDocument();
-  expect(screen.getByText('anne.profile@ibm.com')).toBeInTheDocument();
+  expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+  expect(screen.getByText('jane.doe@example.com')).toBeInTheDocument();
 
   // Read-only tenant details are displayed dynamically without hardcoded values
   expect(screen.getByText('Instance')).toBeInTheDocument();
-  expect(screen.getByText('ibm-cloud')).toBeInTheDocument();
+  expect(screen.getByText('acme-labs')).toBeInTheDocument();
   expect(screen.getByText('Organization')).toBeInTheDocument();
-  expect(screen.getByText('IBM Cloud Enterprise')).toBeInTheDocument();
+  expect(screen.getByText('Acme Labs')).toBeInTheDocument();
   expect(screen.getByText('Workspace ID')).toBeInTheDocument();
   expect(screen.getByText('ws-core-ai-123')).toBeInTheDocument();
   expect(screen.getByText('Brand')).toBeInTheDocument();
-  expect(screen.getByText('IBM Cloud Corp.')).toBeInTheDocument();
+  expect(screen.getByText('Acme Labs LLC')).toBeInTheDocument();
 
   // Profile actions are displayed
   expect(screen.getByText('Profile Settings')).toBeInTheDocument();

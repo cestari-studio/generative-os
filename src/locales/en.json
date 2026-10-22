@@ -316,7 +316,7 @@
     },
     "subscriptions": {
       "currentPlan": "Active Subscription: {{tier}}",
-      "subtitle": "PagBank FinOps processing with Schema.org MonetaryGrant auditing and automated billing cycles.",
+      "subtitle": "Billing, usage and subscription management for this organization.",
       "manageButton": "Manage Billing & PagBank",
       "membersQuota": "Team Members Quota",
       "workspacesQuota": "Workspaces Quota",
@@ -324,7 +324,9 @@
       "quotaProgress": "Utilization",
       "upgrade": "Upgrade Plan",
       "planSelect": "Select Subscription Tier",
-      "billingCycle": "Billing Frequency"
+      "billingCycle": "Billing Frequency",
+      "noPlan": "No active subscription",
+      "pricingNotConfigured": "Pricing is not configured for this organization yet. Plans, prices and limits are published by the platform administrator through the versioned billing catalog."
     },
     "settings": {
       "personalTitle": "Personal User Preferences",
@@ -341,7 +343,7 @@
   },
   "footer": {
     "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
-    "disclaimer": "A subscription is required for all software products available under Generative Operating System. For open-source evaluation, please refer to IBM AI Nexus Atlas and IBM Granite Model.",
+    "disclaimer": "genOS is the generative operational system from Cestari Studio Inc. Access to production workspaces requires an active subscription.",
     "evaluation": "Learn more about how genOS applications are evaluated at"
   },
   "knowledgeVector": {
@@ -372,7 +374,8 @@
     "tabStorage": "Storage Buckets",
     "title": "Knowledge Base & pgvector RAG",
     "uploadDescription": "Upload files to isolated tenant storage path",
-    "uploadHeading": "Tenant Storage Buckets"
+    "uploadHeading": "Tenant Storage Buckets",
+    "searching": "Searching the knowledge corpus..."
   },
   "nav": {
     "actions": {
@@ -459,7 +462,9 @@
     "wsSelectLabel": "Workspace / Department (Tier 2)",
     "validation": {
       "required": "Organization name is required"
-    }
+    },
+    "passkeyUnavailableTitle": "Passkeys unavailable in this version",
+    "passkeyUnavailableDesc": "Hardware authenticator enrollment (Touch ID, Face ID, Windows Hello, security keys) will be enabled after server-verified WebAuthn registration is available. You can finish onboarding now and use email and password to sign in."
   },
   "payments": {
     "amountLabel": "Charge Amount (BRL)",
@@ -524,7 +529,9 @@
     "tabConnect": "PagBank Connect & Split",
     "tabFdw": "Supabase Wrappers (FDW)",
     "taxonomyHeading": "Schema.org Taxonomy Implemented:",
-    "title": "PagBank Multi-Tenant & FDW Engine"
+    "title": "PagBank Multi-Tenant & FDW Engine",
+    "invalidCustomer": "Customer name and email are required.",
+    "amountPlaceholder": "0.00"
   },
   "placeholder": {
     "description1": "Generally it is not a good idea to have pages under construction.",
@@ -662,43 +669,19 @@
       "US": "United States (US)"
     },
     "countryLabel": "Country of Origin / Jurisdiction",
-    "emailLabel": "IBMid or work email",
+    "emailLabel": "Work email",
     "error": {
       "emptyPassword": "Password is required.",
-      "invalidCredentials": "Incorrect IBMid or password. Try again.",
-      "invalidEmail": "Enter a valid IBMid or email address.",
+      "invalidCredentials": "Incorrect email or password. Try again.",
+      "invalidEmail": "Enter a valid email address.",
       "title": "Authentication error"
     },
-    "fastTrackPasskey": "Sign in with Biometrics (Passkey)",
-    "fastTrackTitle": "Passwordless Biometric MFA:",
     "fullName": "Full Name",
-    "headerLabel": "Enterprise Authentication & Onboarding",
+    "headerLabel": "Cestari Studio Authentication",
     "legalName": "Legal Business Name",
     "locality": "City / Locality",
     "logIn": "Log in",
     "magicLinkBtn": "Email magic link instead",
-    "mfa": {
-      "authenticateBtn": "Authenticate with Biometrics",
-      "authenticating": "Authenticating...",
-      "backToPassword": "Back to Password",
-      "cameraDesc": "Facial Recognition / Windows Hello",
-      "cameraMethod": "Camera Method",
-      "cameraMethodAria": "Camera Method (Facial Recognition / Windows Hello)",
-      "cameraScanPrompt": "Look at your camera to confirm your identity.",
-      "cancelled": "Biometric verification was cancelled. You can retry or choose an alternative method.",
-      "failed": "Biometric authentication failed. Try again or use email verification.",
-      "fallbackMagicLink": "Send Email One-Time Link instead",
-      "heading": "Multi-Factor Biometric Authentication",
-      "ready": "Biometric Authenticator Ready",
-      "scanning": "Awaiting Biometric Sensor Interaction...",
-      "sensorPrompt": "Click Authenticate to trigger your device hardware security check.",
-      "subheading": "Verify your identity using your device sensor via touch or facial recognition camera.",
-      "touchDesc": "Touch ID / Fingerprint sensor",
-      "touchMethod": "Touch Method",
-      "touchMethodAria": "Touch Method (Touch ID / Fingerprint)",
-      "touchScanPrompt": "Touch the fingerprint sensor to confirm your identity.",
-      "verified": "Biometric Signature Verified"
-    },
     "onboardingIntro": "Select your active Schema.org multi-tenant hierarchy and session preferences before entering the workspace:",
     "otpSentDesc": "Check your email inbox for the direct login link.",
     "otpSentTitle": "Magic link sent",
@@ -706,8 +689,6 @@
     "passwordLabel": "Password",
     "pfDetailsTitle": "Individual Identity & Documents",
     "pjDetailsTitle": "Corporate Identity & Company Size",
-    "proceedMfa": "Verify with Biometric MFA →",
-    "quickFillTitle": "Demo Enterprise Identities (Single Click):",
     "region": "State / Province / Region",
     "registerPasskey": "Enroll WebAuthn Passkey",
     "rememberId": "Remember user ID",
@@ -727,9 +708,12 @@
       "onboardingDesc": "Workspace Setup"
     },
     "streetAddress": "Street Address & Number",
-    "title": "Log in to Generative OS",
+    "title": "Log in to genOS",
     "tradeName": "Brand / Trade Name",
-    "verifiedBadge": "Identity Verified"
+    "verifiedBadge": "Identity Verified",
+    "emailPlaceholder": "you@company.com",
+    "passkeyUnavailableTitle": "Passkeys unavailable in this version",
+    "passkeyUnavailableDesc": "Passwordless sign-in will be enabled after server-verified WebAuthn registration is available."
   },
   "taxonomy": {
     "billing": {
@@ -805,25 +789,6 @@
       "multiTenancyTitle": "Multi-Tenancy",
       "vectorRagDesc": "pgvector 384-d HNSW Embeddings",
       "vectorRagTitle": "Cognitive RAG"
-    },
-    "fetching": {
-      "apiLayer": "API Layer",
-      "apiLayerDesc": "Client-side functions in api/message.js handle HTTP requests to our Express backend",
-      "comments": "Comments",
-      "exampleHeading": "Blog data retrieval example",
-      "from": "From {{email}}",
-      "heading": "Example: Fetching data",
-      "intro": "Here a message is dynamically loaded from an external API endpoint. This shows how you can fetch data while keeping components clean and network logic separated. How it works:",
-      "postFrom": "Post from {{email}}",
-      "serviceLayer": "Service Layer",
-      "serviceLayerDesc": "Server-side handlers in service/postHandlers.js proxy requests to external APIs.",
-      "summary": "This pattern keeps your components focused on presentation while centralizing data fetching logic for reusability and testability.",
-      "uiLayer": "UI Layer",
-      "uiLayerDesc": "PostComponent.jsx manages React state and renders data using Carbon Design components"
-    },
-    "run": {
-      "heading": "Run the template",
-      "nodeRequirement": "Requires Node v.24"
     }
   },
   "welcomeHeader": {
@@ -832,9 +797,9 @@
       "signIn": "Sign in to Workspace",
       "useTemplate": "Use this template"
     },
-    "description1": "Enterprise AI operating system with Schema.org multi-tenant cascade governance, cognitive vector RAG, and PagBank FinOps.",
-    "maintainer": "Engineered with the IBM Carbon Design System v11.",
-    "title": "Welcome to Cestari Studio"
+    "description1": "genOS is the generative operational system from Cestari Studio Inc.: multi-tenant workspaces with cascade governance, knowledge retrieval and integrated billing.",
+    "title": "genOS by Cestari Studio",
+    "description2": "Sign in to access your organization, workspaces and projects."
   },
   "workspaceSwitcher": {
     "activeRole": "Active Role",

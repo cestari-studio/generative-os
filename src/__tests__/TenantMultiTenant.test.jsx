@@ -42,7 +42,7 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
     expect(screen.getByLabelText('Project / CreativeWork (Tier 3)')).toBeInTheDocument();
   });
 
-  test('renders TenantCascadeSettings with LOCKED, INHERIT_OVERRIDABLE, and MERGE rules and JSON-LD snapshot', () => {
+  test('renders TenantCascadeSettings with an honest empty state when no settings are provisioned', () => {
     renderWithoutProviders(
       <MemoryRouter>
         <TenantProvider>
@@ -52,9 +52,9 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
     );
 
     expect(screen.getByText('Multi-Tenant Cascade Settings')).toBeInTheDocument();
-    expect(screen.getByText('Carbon Theme Mode')).toBeInTheDocument();
-    expect(screen.getByText('Session TTL (Minutes)')).toBeInTheDocument();
-    expect(screen.getByText('LOCKED by organization')).toBeInTheDocument();
+    // No synthetic settings rows are rendered without a backend provisioning them.
+    expect(screen.getByText('No settings configured')).toBeInTheDocument();
+    expect(screen.queryByText('Carbon Theme Mode')).not.toBeInTheDocument();
     expect(screen.getByText('Schema.org JSON-LD Snapshot')).toBeInTheDocument();
     expect(screen.getByText('Cascade Audit Ledger (Schema.org Action)')).toBeInTheDocument();
   });

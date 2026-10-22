@@ -67,12 +67,6 @@ const STORAGE_BUCKETS = [
   },
 ];
 
-const SUGGESTED_QUERIES = [
-  'Schema.org multi-tenant cascade rules and WCAG accessibility',
-  '384-dimensional HNSW vector search cosine distance',
-  'FIDO2 WebAuthn biometric passkey authentication',
-];
-
 const KnowledgeVectorPage = () => {
   const { t, i18n } = useTranslation();
   const {
@@ -88,7 +82,7 @@ const KnowledgeVectorPage = () => {
     refreshTenantData,
   } = useTenant();
 
-  const [searchQuery, setSearchQuery] = useState('Schema.org multi-tenant cascade rules and WCAG accessibility');
+  const [searchQuery, setSearchQuery] = useState('');
   const [similarityThreshold, setSimilarityThreshold] = useState(0.05);
   const [matchCount, setMatchCount] = useState(5);
   const [searchResults, setSearchResults] = useState([]);
@@ -103,7 +97,7 @@ const KnowledgeVectorPage = () => {
       event.preventDefault();
     }
     if (!searchQuery.trim()) return;
-    setStatusMsg('Running 384-d HNSW cosine similarity search...');
+    setStatusMsg(t('knowledgeVector.searching', 'Searching the knowledge corpus...'));
     try {
       const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase.functions.invoke('vector-rag', {
@@ -225,14 +219,14 @@ const KnowledgeVectorPage = () => {
         title={t('knowledgeVector.title', 'Knowledge Base & pgvector RAG')}
         subtitle={t(
           'knowledgeVector.subtitle',
-          'Multi-tenant Schema.org DigitalDocument storage and 384-dimensional HNSW cosine similarity search.',
+          'Multi-tenant Schema.org DigitalDocument storage with deterministic lexical-hash vector retrieval.',
         )}
         className="cs--knowledge-vector__page-header"
       />
 
       <Tabs className="cs--knowledge-vector__tabs">
         <TabList aria-label={t('knowledgeVector.tabsAriaLabel', 'Knowledge and Vector RAG Sections')}>
-          <Tab renderIcon={SearchIcon}>{t('knowledgeVector.tabSearch', 'Semantic Search')}</Tab>
+          <Tab renderIcon={SearchIcon}>{t('knowledgeVector.tabSearch', 'Search')}</Tab>
           <Tab renderIcon={DocumentAdd}>{t('knowledgeVector.tabIngest', 'Corpus & Ingestion')}</Tab>
           <Tab renderIcon={Folder}>{t('knowledgeVector.tabStorage', 'Storage Buckets')}</Tab>
         </TabList>
@@ -246,12 +240,12 @@ const KnowledgeVectorPage = () => {
                     <div className="cs--knowledge-vector__header">
                       <div>
                         <h3 className="cs--knowledge-vector__title">
-                          {t('knowledgeVector.searchHeading', 'Semantic Vector Search')}
+                          {t('knowledgeVector.searchHeading', 'Knowledge Search')}
                         </h3>
                         <p className="cs--knowledge-vector__result-text">
                           {t(
                             'knowledgeVector.searchDescription',
-                            'Performs real-time cosine distance matching against pre-computed 384-dimensional embeddings stored in PostgreSQL pgvector tables.',
+                            'Performs cosine distance matching over deterministic 384-dimensional token-hash vectors stored in PostgreSQL pgvector. This is experimental lexical hashing, not model-based semantic embeddings.',
                           )}
                         </p>
                       </div>
@@ -268,30 +262,13 @@ const KnowledgeVectorPage = () => {
                       </div>
                     </div>
 
-                    <div className="cs--knowledge-vector__query-chips">
-                      <span className="cs--knowledge-vector__chips-label">
-                        {t('knowledgeVector.suggestionsLabel', 'Quick queries:')}
-                      </span>
-                      {SUGGESTED_QUERIES.map((q) => (
-                        <Tag
-                          key={q}
-                          type="cool-gray"
-                          size="sm"
-                          className="cs--knowledge-vector__query-chip"
-                          onClick={() => setSearchQuery(q)}
-                        >
-                          {q}
-                        </Tag>
-                      ))}
-                    </div>
-
                     <Form onSubmit={handleVectorSearch}>
                       <Stack gap={4}>
                         <Layer>
                           <Search
                             id="vector-search-query"
                             size="lg"
-                            labelText={t('knowledgeVector.searchHeading', 'Semantic Vector Search')}
+                            labelText={t('knowledgeVector.searchHeading', 'Knowledge Search')}
                             placeholder={t(
                               'knowledgeVector.searchPlaceholder',
                               'Ask a question or search across tenant knowledge chunks...',
@@ -346,7 +323,7 @@ const KnowledgeVectorPage = () => {
                         lowContrast
                         hideCloseButton
                         kind="info"
-                        title={t('knowledgeVector.searchHeading', 'Semantic Vector Search')}
+                        title={t('knowledgeVector.searchHeading', 'Knowledge Search')}
                         subtitle={statusMsg}
                       />
                     )}
@@ -441,7 +418,7 @@ const KnowledgeVectorPage = () => {
                         )}
                         description={t(
                           'knowledgeVector.docsTableDesc',
-                          'Documents indexed with 384-d HNSW embeddings in public.knowledge_documents.',
+                          'Documents indexed with deterministic 384-d token-hash vectors in public.knowledge_documents.',
                         )}
                       >
                         <Table {...getTableProps()}>

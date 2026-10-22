@@ -330,13 +330,14 @@ export const OnboardingTearsheet = ({ className }) => {
                   <Stack gap={5}>
                     <Select
                       id="onboarding-embed-model"
-                      labelText={t('knowledge.modelLabel', 'Embedding Model')}
+                      labelText={t('knowledge.modelLabel', 'Vector Indexing Pipeline')}
                       value={embeddingModel}
                       onChange={(e) => setEmbeddingModel(e.target.value)}
                     >
-                      <SelectItem value="text-embedding-3-small" text="OpenAI text-embedding-3-small (1536 dims)" />
-                      <SelectItem value="text-embedding-3-large" text="OpenAI text-embedding-3-large (3072 dims)" />
-                      <SelectItem value="granite-embedding-30m" text="IBM Granite Embedding (384 dims)" />
+                      <SelectItem
+                        value="deterministic-lexical-hash"
+                        text={t('knowledge.modelLexicalHash', 'Deterministic lexical hash (384 dims, experimental)')}
+                      />
                     </Select>
 
                     <Select

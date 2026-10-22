@@ -15,32 +15,32 @@ export const WelcomeAboutSection = () => {
   const aboutItems = [
     {
       key: 'purpose',
-      title: t('welcome.about.purpose.title', 'Purpose'),
+      title: t('welcome.about.purpose.title', 'Multi-tenant operations'),
       content: t(
         'welcome.about.purpose.description',
-        'Combines React 19 SSR, Carbon Design System v11, and Supabase Multi-Tenant hierarchy (Organization → Workspace → Project → Person).',
+        'Organizations, workspaces, projects and people in a governed hierarchy, with per-tier settings cascade and audit trail.',
       ),
     },
     {
       key: 'consistency',
-      title: t('welcome.about.consistency.title', 'Standards & Governance'),
+      title: t('welcome.about.consistency.title', 'Governance & accessibility'),
       content: t(
         'welcome.about.consistency.description',
-        'LOCKED, INHERIT_OVERRIDABLE, and MERGE cascade policies enforce visual consistency, WCAG 2.2 AA accessibility, and AI safety guardrails.',
+        'Cascade policies (locked, inheritable, merged) enforce consistent configuration, WCAG 2.2 AA accessibility and AI guardrails across every tier.',
       ),
     },
     {
       key: 'customize',
-      title: t('welcome.about.customize.title', 'Granular Customization'),
+      title: t('welcome.about.customize.title', 'Knowledge & billing'),
       content: t(
         'welcome.about.customize.description',
-        'Each workspace and project can customize Carbon themes, languages, and vector knowledge corpora within organization boundary rules.',
+        'Each workspace keeps its own knowledge corpus and billing configuration, within the boundaries defined by its organization.',
       ),
     },
   ];
 
   return (
-    <WelcomeCallout className="cs--welcome__about" heading={t('welcome.about.heading', 'What is this about?')}>
+    <WelcomeCallout className="cs--welcome__about" heading={t('welcome.about.heading', 'What is genOS?')}>
       {aboutItems.map((item) => (
         <WelcomeHighlightTile key={item.key} title={item.title}>
           {item.content}

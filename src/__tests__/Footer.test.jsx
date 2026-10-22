@@ -30,13 +30,9 @@ test('renders Footer with Cestari Studio copyright, evaluation link, and product
   expect(linkElement).toHaveAttribute('target', '_blank');
   expect(linkElement).toHaveAttribute('rel', 'noopener noreferrer');
 
-  // 2. Subscription & open-source evaluation disclaimer
-  expect(
-    screen.getByText(
-      /A subscription is required for all software products available under Generative Operating System/i,
-    ),
-  ).toBeInTheDocument();
-  expect(screen.getByText(/IBM AI Nexus Atlas and IBM Granite Model/i)).toBeInTheDocument();
+  // 2. Product disclaimer with Cestari Studio / genOS brand
+  expect(screen.getByText(/genOS is the generative operational system from Cestari Studio Inc\./i)).toBeInTheDocument();
+  expect(screen.queryByText(/IBM AI Nexus Atlas|IBM Granite Model/i)).not.toBeInTheDocument();
 
   // 3. Dynamic copyright with current year and Cestari Studio Inc.
   const copyrightPattern = new RegExp(`Copyright © ${currentYear} Cestari Studio Inc\\.`, 'i');

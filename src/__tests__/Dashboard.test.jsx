@@ -107,9 +107,12 @@ describe('Carbon v12 Dashboard Architecture & Components', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     expect(screen.getByText('Tenant Members & Permissions')).toBeInTheDocument();
 
-    // Switch to Subscriptions tab
+    // Switch to Subscriptions tab — without a provisioned plan the tab shows
+    // the honest empty state instead of fabricated pricing.
     fireEvent.click(screen.getByRole('tab', { name: 'Subscriptions' }));
-    expect(screen.getByText(/Active Subscription/i)).toBeInTheDocument();
+    expect(screen.getByText('No active subscription')).toBeInTheDocument();
+    expect(screen.getByText(/Pricing is not configured/i)).toBeInTheDocument();
+    expect(screen.queryByText(/\$0 \/ month|\$49 \/ month|\$199 \/ month/)).not.toBeInTheDocument();
 
     // Switch to Settings tab
     fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
@@ -164,7 +167,7 @@ describe('Carbon v12 Dashboard Architecture & Components', () => {
     expect(screen.getAllByText('Knowledge & Media Assets by Format').length).toBeGreaterThan(0);
   });
 
-  test('renders operational DataTables with search filtering and empty state handling', async () => {
+  test('renders operational DataTables with honest empty states when no data exists', async () => {
     renderWithoutProviders(
       <MemoryRouter>
         <TenantProvider>
@@ -178,21 +181,18 @@ describe('Carbon v12 Dashboard Architecture & Components', () => {
       expect(screen.getByText('Schema.org Audit Action Stream')).toBeInTheDocument();
     });
 
+    // Without provisioned settings/audit data, both ledgers render an honest
+    // empty state instead of synthetic rows.
+    const emptyHeadings = screen.getAllByRole('heading', { name: 'No matching results' });
+    expect(emptyHeadings.length).toBeGreaterThan(0);
+
     const searchInput = screen.getByPlaceholderText('Filter policies...');
     expect(searchInput).toBeInTheDocument();
 
-    // Filter governance policies with non-existent query
+    // Filtering an already-empty ledger keeps the empty state visible.
     fireEvent.change(searchInput, { target: { value: 'non_existent_policy_xyz' } });
-
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'No matching results' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Clear search' })).toBeInTheDocument();
-    });
-
-    // Clear search restores rows
-    fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
-    await waitFor(() => {
-      expect(screen.queryByRole('heading', { name: 'No matching results' })).not.toBeInTheDocument();
+      expect(screen.getAllByRole('heading', { name: 'No matching results' }).length).toBeGreaterThan(0);
     });
   });
 

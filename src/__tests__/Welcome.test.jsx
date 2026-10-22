@@ -19,9 +19,9 @@ beforeEach(() => setupBeforeEach(server));
 afterEach(() => setupAfterEach(server));
 afterAll(() => setupAfterAll(server));
 
-test('renders received message', async () => {
+test('renders genOS institutional welcome page', async () => {
   renderWithAllProviders(<Welcome />);
 
-  // Wait for the expected text to appear
-  expect(await screen.findByText(/Welcome to Cestari Studio/i, {}, { timeout: 10000 })).toBeInTheDocument();
+  // Wait for the expected brand heading to appear
+  expect(await screen.findByText(/genOS by Cestari Studio/i, {}, { timeout: 10000 })).toBeInTheDocument();
 }, 15000);

@@ -316,7 +316,7 @@
     },
     "subscriptions": {
       "currentPlan": "アクティブなサブスクリプション: {{tier}}",
-      "subtitle": "PagBank決済処理と自動請求サイクル。",
+      "subtitle": "この組織の請求、使用状況、サブスクリプション管理。",
       "manageButton": "請求とPagBankの管理",
       "membersQuota": "チームメンバー枠",
       "workspacesQuota": "ワークスペース枠",
@@ -324,7 +324,9 @@
       "quotaProgress": "使用率",
       "upgrade": "プランをアップグレード",
       "planSelect": "サブスクリプションプランの選択",
-      "billingCycle": "請求サイクル"
+      "billingCycle": "請求サイクル",
+      "noPlan": "有効なサブスクリプションはありません",
+      "pricingNotConfigured": "この組織の料金はまだ設定されていません。プラン、料金、上限は、プラットフォーム管理者がバージョン管理された請求カタログを通じて公開します。"
     },
     "settings": {
       "personalTitle": "個人ユーザー設定",
@@ -341,7 +343,7 @@
   },
   "footer": {
     "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
-    "disclaimer": "Generative Operating System で利用可能なすべてのソフトウェア製品にはサブスクリプションが必要です。オープンソース評価については、IBM AI Nexus Atlas および IBM Granite Model を参照してください。",
+    "disclaimer": "genOS は Cestari Studio Inc. のジェネレーティブオペレーティングシステムです。本番ワークスペースへのアクセスには有効なサブスクリプションが必要です。",
     "evaluation": "genOS アプリケーションの評価方法の詳細については、次を参照してください:"
   },
   "knowledgeVector": {
@@ -373,7 +375,8 @@
     "tabStorage": "ストレージバケット",
     "title": "ナレッジベース＆pgvector RAG",
     "uploadDescription": "分離されたテナントストレージパスにファイルをアップロード",
-    "uploadHeading": "テナントストレージ・バケット"
+    "uploadHeading": "テナントストレージ・バケット",
+    "searching": "ナレッジコーパスを検索中..."
   },
   "nav": {
     "actions": {
@@ -465,7 +468,9 @@
     "wsSelectLabel": "ワークスペース / 部門 (第2層)",
     "validation": {
       "required": "組織名は必須です"
-    }
+    },
+    "passkeyUnavailableTitle": "このバージョンではパスキーは利用できません",
+    "passkeyUnavailableDesc": "ハードウェア認証デバイス（Touch ID、Face ID、Windows Hello、セキュリティキー）の登録は、サーバー検証済みの WebAuthn 登録が利用可能になった後に有効になります。今すぐオンボーディングを完了し、メールとパスワードでサインインできます。"
   },
   "payments": {
     "amountLabel": "請求金額 (BRL)",
@@ -532,7 +537,9 @@
     "tabConnect": "PagBank Connect と 分割",
     "tabFdw": "Supabase Wrappers (FDW)",
     "taxonomyHeading": "実装されたSchema.orgタクソノミー:",
-    "title": "PagBank マルチテナント & FDW エンジン"
+    "title": "PagBank マルチテナント & FDW エンジン",
+    "invalidCustomer": "顧客名とメールアドレスは必須です。",
+    "amountPlaceholder": "0.00"
   },
   "placeholder": {
     "description1": "一般的に、準備中のページを公開したままにすることは推奨されません。",
@@ -670,43 +677,19 @@
       "US": "アメリカ合衆国 (US)"
     },
     "countryLabel": "国 / 管轄地域",
-    "emailLabel": "IBMid または会社メールアドレス",
+    "emailLabel": "勤務先メールアドレス",
     "error": {
       "emptyPassword": "パスワードは必須です。",
-      "invalidCredentials": "IBMid またはパスワードが正しくありません。再試行してください。",
-      "invalidEmail": "有効な IBMid またはメールアドレスを入力してください。",
+      "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。再試行してください。",
+      "invalidEmail": "有効なメールアドレスを入力してください。",
       "title": "認証エラー"
     },
-    "fastTrackPasskey": "生体認証（パスキー）でサインイン",
-    "fastTrackTitle": "パスワードレス生体認証MFA:",
     "fullName": "氏名（フルネーム）",
-    "headerLabel": "エンタープライズ認証＆オンボーディング",
+    "headerLabel": "Cestari Studio 認証",
     "legalName": "法人名 / 商号",
     "locality": "市区町村",
     "logIn": "ログイン",
     "magicLinkBtn": "代わりにマジックリンクをメールで送信",
-    "mfa": {
-      "authenticateBtn": "生体認証で認証",
-      "authenticating": "認証中...",
-      "backToPassword": "パスワード入力に戻る",
-      "cameraDesc": "顔認識 / Windows Hello",
-      "cameraMethod": "カメラ方式",
-      "cameraMethodAria": "カメラ認証 (顔認証 / Windows Hello)",
-      "cameraScanPrompt": "カメラを見て本人確認を行ってください。",
-      "cancelled": "生体認証がキャンセルされました。再試行するか代替方法を選択してください。",
-      "failed": "生体認証に失敗しました。再試行するかメール確認をご利用ください。",
-      "fallbackMagicLink": "代わりにメールワンタイムリンクを送信",
-      "heading": "多要素生体認証（MFA）",
-      "ready": "生体認証機能の準備完了",
-      "scanning": "生体認証センサーの待機中...",
-      "sensorPrompt": "認証をクリックしてデバイスのハードウェアセキュリティ検証を開始します。",
-      "subheading": "タッチまたはカメラの顔認識を使用して本人確認を行ってください。",
-      "touchDesc": "Touch ID / 指紋センサー",
-      "touchMethod": "タッチ方式",
-      "touchMethodAria": "タッチ認証 (Touch ID / 指紋認証)",
-      "touchScanPrompt": "指紋センサーに触れて本人確認を行ってください。",
-      "verified": "生体認証署名が確認されました"
-    },
     "onboardingIntro": "ワークスペースに入る前に、有効な Schema.org マルチテナント階層とセッション設定を選択してください:",
     "otpSentDesc": "直接ログインリンクについてメールの受信箱を確認してください。",
     "otpSentTitle": "マジックリンクを送信しました",
@@ -714,8 +697,6 @@
     "passwordLabel": "パスワード",
     "pfDetailsTitle": "個人情報・本人確認",
     "pjDetailsTitle": "企業情報＆規模",
-    "proceedMfa": "生体認証MFAで確認 →",
-    "quickFillTitle": "デモエンタープライズID (ワンクリック):",
     "region": "都道府県",
     "registerPasskey": "WebAuthn パスキーを登録",
     "rememberId": "ユーザーIDを記憶する",
@@ -735,9 +716,12 @@
       "onboardingDesc": "ワークスペース設定"
     },
     "streetAddress": "丁目・番地・号 / 建物名",
-    "title": "Generative OS にログイン",
+    "title": "genOS にログイン",
     "tradeName": "屋号 / ブランド名",
-    "verifiedBadge": "アイデンティティ確認済み"
+    "verifiedBadge": "アイデンティティ確認済み",
+    "emailPlaceholder": "you@company.com",
+    "passkeyUnavailableTitle": "このバージョンではパスキーは利用できません",
+    "passkeyUnavailableDesc": "サーバー検証済みの WebAuthn 登録が利用可能になった後、パスワードレスサインインが有効になります。"
   },
   "taxonomy": {
     "billing": {
@@ -813,25 +797,6 @@
       "multiTenancyTitle": "マルチテナンシー",
       "vectorRagDesc": "pgvector 384次元 HNSW埋め込み",
       "vectorRagTitle": "コグニティブRAG"
-    },
-    "fetching": {
-      "apiLayer": "APIレイヤー",
-      "apiLayerDesc": "api/message.js のクライアント側関数がExpressバックエンドへのHTTPリクエストを処理します",
-      "comments": "コメント",
-      "exampleHeading": "ブログデータ取得の例",
-      "from": "差出人: {{email}}",
-      "heading": "例: データの取得",
-      "intro": "ここでは外部APIエンドポイントからメッセージを動的に読み込みます。コンポーネントをクリーンに保ちつつネットワーク処理を分離する方法を示します:",
-      "postFrom": "投稿者: {{email}}",
-      "serviceLayer": "サービスレイヤー",
-      "serviceLayerDesc": "service/postHandlers.js のサーバー側ハンドラーが外部APIへリクエストをプロキシします。",
-      "summary": "このパターンにより、データ取得ロジックを一元化して再利用性とテスト容易性を高めながら、コンポーネントをUI表示に集中させることができます。",
-      "uiLayer": "UIレイヤー",
-      "uiLayerDesc": "PostComponent.jsx がReactの状態を管理し、Carbon Designコンポーネントでデータを描画します"
-    },
-    "run": {
-      "heading": "テンプレートの実行",
-      "nodeRequirement": "Node v.24 が必要です"
     }
   },
   "welcomeHeader": {
@@ -840,9 +805,9 @@
       "signIn": "ワークスペースにサインイン",
       "useTemplate": "このテンプレートを使用"
     },
-    "description1": "Carbon Design SystemでReactアプリケーションを構築するためのボイラープレート兼実践ガイドです。必要に応じてカスタマイズしてください。",
-    "maintainer": "Cestari Studio Inc. によって保守されています。",
-    "title": "Carbon React スターターテンプレートへようこそ"
+    "description1": "genOS は Cestari Studio Inc. のジェネレーティブオペレーティングシステムです。カスケードガバナンス、ナレッジ検索、統合請求を備えたマルチテナントワークスペースを提供します。",
+    "title": "genOS by Cestari Studio",
+    "description2": "サインインして、組織、ワークスペース、プロジェクトにアクセスしてください。"
   },
   "workspaceSwitcher": {
     "activeRole": "現在のロール",

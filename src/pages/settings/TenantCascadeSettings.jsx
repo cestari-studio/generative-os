@@ -263,6 +263,22 @@ const TenantCascadeSettings = () => {
                 </Stack>
               </Tile>
 
+              {filteredSettings.length === 0 && (
+                <Tile className="cs--cascade-settings__empty">
+                  <Stack gap={3}>
+                    <h3 className="cs--cascade-settings__card-title">
+                      {t('cascadeSettings.emptyTitle', 'No settings configured')}
+                    </h3>
+                    <p className="cs--cascade-settings__card-desc">
+                      {t(
+                        'cascadeSettings.emptyDesc',
+                        'Effective settings for this context are not configured yet or could not be loaded. When the settings service provisions cascade policies for this organization, they will appear here.',
+                      )}
+                    </p>
+                  </Stack>
+                </Tile>
+              )}
+
               <Grid className="cs--cascade-settings__content-grid">
                 {filteredSettings.map((setting) => {
                   const isLockedForLowerTier =

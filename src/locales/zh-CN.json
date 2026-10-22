@@ -316,7 +316,7 @@
     },
     "subscriptions": {
       "currentPlan": "当前订阅：{{tier}}",
-      "subtitle": "具有 Schema.org MonetaryGrant 审计的 PagBank 自动账单周期。",
+      "subtitle": "该组织的计费、用量和订阅管理。",
       "manageButton": "管理账单与 PagBank",
       "membersQuota": "团队成员配额",
       "workspacesQuota": "工作区配额",
@@ -324,7 +324,9 @@
       "quotaProgress": "使用率",
       "upgrade": "升级套餐",
       "planSelect": "选择订阅层级",
-      "billingCycle": "账单周期"
+      "billingCycle": "账单周期",
+      "noPlan": "没有有效订阅",
+      "pricingNotConfigured": "该组织的定价尚未配置。套餐、价格和限额由平台管理员通过版本化计费目录发布。"
     },
     "settings": {
       "personalTitle": "个人用户偏好",
@@ -341,7 +343,7 @@
   },
   "footer": {
     "copyright": "Copyright © {{currentYear}} Cestari Studio Inc. 保留所有权利。",
-    "disclaimer": "Generative Operating System 下提供的所有软件产品均需订阅。有关开源评估，请参阅 IBM AI Nexus Atlas 和 IBM Granite Model。",
+    "disclaimer": "genOS 是 Cestari Studio Inc. 的生成式操作系统。访问生产工作空间需要有效订阅。",
     "evaluation": "了解有关如何在以下位置评估 genOS 应用程序的更多信息："
   },
   "knowledgeVector": {
@@ -385,7 +387,8 @@
     "title": "知识向量与存储资产",
     "uploadAction": "上传媒体",
     "uploadDescription": "向隔离的租户存储桶上传 PDF、Markdown 或多媒体资源",
-    "uploadHeading": "对象存储上传"
+    "uploadHeading": "对象存储上传",
+    "searching": "正在搜索知识库..."
   },
   "nav": {
     "actions": {
@@ -482,7 +485,9 @@
     "wsSelectLabel": "工作区 / 部门 (第2层)",
     "validation": {
       "required": "组织名称为必填项"
-    }
+    },
+    "passkeyUnavailableTitle": "此版本暂不支持 Passkey",
+    "passkeyUnavailableDesc": "在服务器验证的 WebAuthn 注册可用后，将启用硬件验证器（Touch ID、Face ID、Windows Hello、安全密钥）注册。您现在可以完成入职流程，并使用邮箱和密码登录。"
   },
   "payments": {
     "amountLabel": "收费金额 (BRL)",
@@ -549,7 +554,9 @@
     "tabConnect": "PagBank Connect与分账",
     "tabFdw": "Supabase外部数据包装器 (FDW)",
     "taxonomyHeading": "已落地的 Schema.org 分类标准:",
-    "title": "PagBank 多租户与 FDW 外部数据引擎"
+    "title": "PagBank 多租户与 FDW 外部数据引擎",
+    "invalidCustomer": "客户姓名和邮箱为必填项。",
+    "amountPlaceholder": "0.00"
   },
   "placeholder": {
     "description1": "Generally not a good idea to have pages under construction.",
@@ -691,43 +698,19 @@
       "US": "美国 (United States - US)"
     },
     "countryLabel": "注册归属国家/地区 (Jurisdiction)",
-    "emailLabel": "IBMid 或企业邮箱",
+    "emailLabel": "工作邮箱",
     "error": {
       "emptyPassword": "密码不能为空。",
-      "invalidCredentials": "IBMid 或密码错误，请重试。",
-      "invalidEmail": "请输入有效的 IBMid 或邮箱地址。",
+      "invalidCredentials": "邮箱或密码错误，请重试。",
+      "invalidEmail": "请输入有效的邮箱地址。",
       "title": "身份验证错误"
     },
-    "fastTrackPasskey": "使用生物识别（Passkey）登录",
-    "fastTrackTitle": "无密码生物识别多因素认证（MFA）：",
     "fullName": "姓名 / Full Name",
-    "headerLabel": "企业级多租户入职与验证",
+    "headerLabel": "Cestari Studio 身份验证",
     "legalName": "企业法定名称 (营业执照名称)",
     "locality": "城市 / 市 / 区 / Locality",
     "logIn": "登录",
     "magicLinkBtn": "使用邮件魔法链接登录",
-    "mfa": {
-      "authenticateBtn": "进行生物识别认证",
-      "authenticating": "正在认证...",
-      "backToPassword": "返回密码输入",
-      "cameraDesc": "面部识别 / Windows Hello",
-      "cameraMethod": "摄像头方式",
-      "cameraMethodAria": "摄像头验证 (人脸识别 / Windows Hello)",
-      "cameraScanPrompt": "请正对摄像头以确认您的身份。",
-      "cancelled": "生物识别验证已取消。您可以重试或选择备用方式。",
-      "failed": "生物识别认证失败。请重试或使用邮件验证。",
-      "fallbackMagicLink": "改为发送邮件一次性链接",
-      "heading": "多因素生物识别认证（MFA）",
-      "ready": "生物识别器就绪",
-      "scanning": "正在等待传感器交互...",
-      "sensorPrompt": "点击认证以触发设备硬件安全验证。",
-      "subheading": "通过触控指纹或人脸识别摄像头验证您的身份。",
-      "touchDesc": "Touch ID / 指纹传感器",
-      "touchMethod": "触控方式",
-      "touchMethodAria": "触摸验证 (Touch ID / 指纹识别)",
-      "touchScanPrompt": "轻触指纹传感器以确认您的身份。",
-      "verified": "生物识别签名已验证"
-    },
     "onboardingIntro": "在进入工作空间之前，请完成您的法律身份及多租户环境设置：",
     "otpSentDesc": "请检查您的电子邮箱以获取直接登录链接。",
     "otpSentTitle": "魔法链接已发送",
@@ -737,8 +720,6 @@
     "pjDetailsTitle": "企业工商注册信息",
     "postalCode": "邮政编码 / Postal Code",
     "primaryDoc": "法定纳税/身份识别号",
-    "proceedMfa": "通过生物识别 MFA 验证 →",
-    "quickFillTitle": "演示企业身份（一键填充）：",
     "region": "省 / 州 / 大区 / Region",
     "registerPasskey": "注册 WebAuthn 通行密钥",
     "rememberId": "记住用户 ID",
@@ -752,16 +733,19 @@
       "credentials": "2. 凭证验证",
       "credentialsDesc": "密码与多重验证",
       "identity": "1. 身份识别",
-      "identityDesc": "IBMid / 邮箱",
+      "identityDesc": "邮箱 / 用户 ID",
       "mfa": "3. 多因素认证 (MFA)",
       "mfaDesc": "触控或摄像头",
       "onboarding": "3. 入职设置",
       "onboardingDesc": "身份及工作空间"
     },
     "streetAddress": "街道详细地址 (门牌号 / 楼栋)",
-    "title": "登录至 Generative OS",
+    "title": "登录 genOS",
     "tradeName": "企业品牌名称 / 简称",
-    "verifiedBadge": "身份已验证"
+    "verifiedBadge": "身份已验证",
+    "emailPlaceholder": "you@company.com",
+    "passkeyUnavailableTitle": "此版本暂不支持 Passkey",
+    "passkeyUnavailableDesc": "在服务器验证的 WebAuthn 注册可用后，将启用免密登录。"
   },
   "taxonomy": {
     "billing": {
@@ -842,25 +826,6 @@
       "multiTenancyTitle": "多租户架构",
       "vectorRagDesc": "pgvector 384维 HNSW嵌入向量",
       "vectorRagTitle": "认知检索增强 (RAG)"
-    },
-    "fetching": {
-      "apiLayer": "API layer",
-      "apiLayerDesc": "客户端调用服务处理器，以声明式规范拉取文章与用户数据。",
-      "comments": "评论",
-      "exampleHeading": "博客数据拉取示例",
-      "from": "来自: {{email}}",
-      "heading": "实时数据",
-      "intro": "Below is a dynamically fetched message from an external API endpoint. This showcases how to perform data fetching while keeping components clean and separating network logic. Here is how it works:",
-      "postFrom": "发布者: {{email}}",
-      "serviceLayer": "Service layer",
-      "serviceLayerDesc": "服务端集成中间件与外部 API 提供高内聚的解耦数据传输。",
-      "summary": "多层级数据流示例，展示前后端同构数据获取。",
-      "uiLayer": "UI layer",
-      "uiLayerDesc": "PostComponent.jsx manages React state and renders the data using Carbon Design components"
-    },
-    "run": {
-      "heading": "快速上手",
-      "nodeRequirement": "This code requires node v.24"
     }
   },
   "welcomeHeader": {
@@ -869,11 +834,11 @@
       "signIn": "登录工作区",
       "useTemplate": "使用此模板"
     },
-    "description1": "This is a boilerplate and a living guide for creating React applications with the Carbon Design System. Change it as you see needed.",
+    "description1": "genOS 是 Cestari Studio Inc. 的生成式操作系统：具备级联治理、知识检索和集成计费的多租户工作空间。",
     "heading": "Generative OS",
-    "maintainer": "由 Cestari Studio Inc. 维护。",
     "subheading": "企业级多模型协作与智能体操作平台",
-    "title": "Welcome to the Carbon React Router starter"
+    "title": "genOS by Cestari Studio",
+    "description2": "登录以访问您的组织、工作空间和项目。"
   },
   "workspaceSwitcher": {
     "activeRole": "当前生效角色",

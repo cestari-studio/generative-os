@@ -59,6 +59,9 @@ jobs:
       - name: Run linters (ESLint, Stylelint, Prettier --check, CSpell)
         run: npm run lint
 
+      - name: Product branding & hardcoded-content gate
+        run: npm run check:branding
+
       - name: Build client and SSR bundles
         run: npm run build
 

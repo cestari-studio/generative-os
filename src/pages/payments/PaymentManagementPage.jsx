@@ -76,12 +76,12 @@ export default function PaymentManagementPage() {
 
   // New Charge Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalAmount, setModalAmount] = useState('150.00');
+  const [modalAmount, setModalAmount] = useState('');
   const [modalMethod, setModalMethod] = useState('PIX');
-  const [modalCustomerName, setModalCustomerName] = useState('Acme Customer');
-  const [modalCustomerEmail, setModalCustomerEmail] = useState('customer@example.com');
+  const [modalCustomerName, setModalCustomerName] = useState('');
+  const [modalCustomerEmail, setModalCustomerEmail] = useState('');
   const [selectedSellerId, setSelectedSellerId] = useState('');
-  const [splitPct, setSplitPct] = useState('10');
+  const [splitPct, setSplitPct] = useState('');
 
   // Active Instant Charge Result
   const [activePaymentResult, setActivePaymentResult] = useState(null);
@@ -192,6 +192,11 @@ export default function PaymentManagementPage() {
       setStatusType('error');
       return;
     }
+    if (!modalCustomerName.trim() || !modalCustomerEmail.trim()) {
+      setStatusMsg(t('payments.invalidCustomer', 'Customer name and email are required.'));
+      setStatusType('error');
+      return;
+    }
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -207,7 +212,7 @@ export default function PaymentManagementPage() {
             email: modalCustomerEmail,
           },
           connectedSellerId: selectedSellerId || null,
-          customSplitPercentage: parseFloat(splitPct) || 10,
+          customSplitPercentage: splitPct.trim() === '' ? null : parseFloat(splitPct),
         },
       });
 
@@ -643,7 +648,7 @@ export default function PaymentManagementPage() {
             labelText={t('payments.amountLabel', 'Charge Amount (BRL)')}
             value={modalAmount}
             onChange={(e) => setModalAmount(e.target.value)}
-            placeholder="150.00"
+            placeholder={t('payments.amountPlaceholder', '0.00')}
           />
 
           <RadioButtonGroup

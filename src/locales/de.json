@@ -316,7 +316,7 @@
     },
     "subscriptions": {
       "currentPlan": "Aktives Abonnement: {{tier}}",
-      "subtitle": "PagBank FinOps-Verarbeitung mit Schema.org MonetaryGrant-Auditierung.",
+      "subtitle": "Abrechnungs-, Nutzungs- und Abonnementverwaltung für diese Organisation.",
       "manageButton": "Abrechnung & PagBank verwalten",
       "membersQuota": "Teammitglieder-Kontingent",
       "workspacesQuota": "Arbeitsbereichs-Kontingent",
@@ -324,7 +324,9 @@
       "quotaProgress": "Auslastung",
       "upgrade": "Tarif upgraden",
       "planSelect": "Abonnementstufe auswählen",
-      "billingCycle": "Abrechnungshäufigkeit"
+      "billingCycle": "Abrechnungshäufigkeit",
+      "noPlan": "Kein aktives Abonnement",
+      "pricingNotConfigured": "Die Preise sind für diese Organisation noch nicht konfiguriert. Pläne, Preise und Limits werden vom Plattformadministrator über den versionierten Abrechnungskatalog veröffentlicht."
     },
     "settings": {
       "personalTitle": "Persönliche Benutzereinstellungen",
@@ -341,7 +343,7 @@
   },
   "footer": {
     "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
-    "disclaimer": "Für alle unter Generative Operating System verfügbaren Softwareprodukte ist ein Abonnement erforderlich. Für die Open-Source-Evaluierung beachten Sie bitte das IBM AI Nexus Atlas und das IBM Granite Model.",
+    "disclaimer": "genOS ist das generative Betriebssystem von Cestari Studio Inc. Der Zugriff auf Produktions-Workspaces erfordert ein aktives Abonnement.",
     "evaluation": "Erfahren Sie mehr darüber, wie genOS-Anwendungen evaluiert werden unter"
   },
   "knowledgeVector": {
@@ -373,7 +375,8 @@
     "tabStorage": "Speicher-Buckets",
     "title": "Wissensdatenbank & pgvector RAG",
     "uploadDescription": "Dateien in isolierten Mandantenpfad hochladen",
-    "uploadHeading": "Mandanten-Speicher-Buckets"
+    "uploadHeading": "Mandanten-Speicher-Buckets",
+    "searching": "Wissenskorpus wird durchsucht..."
   },
   "nav": {
     "actions": {
@@ -465,7 +468,9 @@
     "wsSelectLabel": "Arbeitsbereich / Abteilung (Ebene 2)",
     "validation": {
       "required": "Organisationsname ist erforderlich"
-    }
+    },
+    "passkeyUnavailableTitle": "Passkeys in dieser Version nicht verfügbar",
+    "passkeyUnavailableDesc": "Die Registrierung von Hardware-Authentikatoren (Touch ID, Face ID, Windows Hello, Sicherheitsschlüssel) wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist. Sie können das Onboarding jetzt abschließen und sich mit E-Mail und Passwort anmelden."
   },
   "payments": {
     "amountLabel": "Zahlungsbetrag (BRL)",
@@ -532,7 +537,9 @@
     "tabConnect": "PagBank Connect & Split",
     "tabFdw": "Supabase Wrappers (FDW)",
     "taxonomyHeading": "Implementierte Schema.org-Taxonomie:",
-    "title": "PagBank Multi-Tenant & FDW-Engine"
+    "title": "PagBank Multi-Tenant & FDW-Engine",
+    "invalidCustomer": "Kundenname und E-Mail sind erforderlich.",
+    "amountPlaceholder": "0,00"
   },
   "placeholder": {
     "description1": "Generell ist es keine gute Idee, Seiten im Aufbau zu haben.",
@@ -670,43 +677,19 @@
       "US": "Vereinigte Staaten (US)"
     },
     "countryLabel": "Land / Gerichtsbarkeit",
-    "emailLabel": "IBMid oder geschäftliche E-Mail",
+    "emailLabel": "Geschäftliche E-Mail",
     "error": {
       "emptyPassword": "Passwort ist erforderlich.",
-      "invalidCredentials": "IBMid oder Passwort ungültig. Bitte erneut versuchen.",
-      "invalidEmail": "Gültige IBMid oder E-Mail-Adresse eingeben.",
+      "invalidCredentials": "E-Mail oder Passwort ungültig. Bitte erneut versuchen.",
+      "invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein.",
       "title": "Authentifizierungsfehler"
     },
-    "fastTrackPasskey": "Mit Biometrie anmelden (Passkey)",
-    "fastTrackTitle": "Passwortlose biometrische MFA:",
     "fullName": "Vollständiger Name",
-    "headerLabel": "Unternehmens-Authentifizierung & Onboarding",
+    "headerLabel": "Cestari Studio Authentifizierung",
     "legalName": "Offizielle Firmenbezeichnung (Handelsregister)",
     "locality": "Stadt / Gemeinde",
     "logIn": "Anmelden",
     "magicLinkBtn": "Stattdessen Magic-Link per E-Mail senden",
-    "mfa": {
-      "authenticateBtn": "Mit Biometrie authentifizieren",
-      "authenticating": "Authentifizierung...",
-      "backToPassword": "Zurück zur Passworteingabe",
-      "cameraDesc": "Gesichtserkennung / Windows Hello",
-      "cameraMethod": "Kamera-Methode",
-      "cameraMethodAria": "Kamera-Methode (Gesichtserkennung / Windows Hello)",
-      "cameraScanPrompt": "Blicken Sie in die Kamera, um Ihre Identität zu bestätigen.",
-      "cancelled": "Biometrische Verifizierung abgebrochen. Sie können es erneut versuchen oder eine alternative Methode wählen.",
-      "failed": "Biometrische Authentifizierung fehlgeschlagen. Bitte erneut versuchen oder E-Mail-Code nutzen.",
-      "fallbackMagicLink": "Stattdessen Einmal-Code per E-Mail senden",
-      "heading": "Biometrische Multi-Faktor-Authentifizierung (MFA)",
-      "ready": "Biometrischer Authentifikator bereit",
-      "scanning": "Warten auf Sensorinteraktion...",
-      "sensorPrompt": "Klicken Sie auf Authentifizieren, um die Sicherheitsprüfung Ihres Geräts zu starten.",
-      "subheading": "Bestätigen Sie Ihre Identität mit Touch ID, Fingerabdruck oder Gesichtserkennung.",
-      "touchDesc": "Touch ID / Fingerabdrucksensor",
-      "touchMethod": "Touch-Methode",
-      "touchMethodAria": "Touch-Methode (Touch ID / Fingerabdruck)",
-      "touchScanPrompt": "Berühren Sie den Fingerabdrucksensor, um Ihre Identität zu bestätigen.",
-      "verified": "Biometrische Signatur bestätigt"
-    },
     "onboardingIntro": "Wählen Sie vor dem Betreten Ihre aktive Schema.org-Mandanten-Hierarchie und Sitzungseinstellungen:",
     "otpSentDesc": "Überprüfen Sie Ihren Posteingang für den direkten Anmeldelink.",
     "otpSentTitle": "Magic-Link gesendet",
@@ -714,8 +697,6 @@
     "passwordLabel": "Passwort",
     "pfDetailsTitle": "Angaben zur Person & Steuer-ID",
     "pjDetailsTitle": "Unternehmensdaten & Größenklasse",
-    "proceedMfa": "Mit biometrischer MFA verifizieren →",
-    "quickFillTitle": "Demo-Unternehmensidentitäten (1-Klick):",
     "region": "Bundesland / Kanton / Region",
     "registerPasskey": "WebAuthn-Passkey registrieren",
     "rememberId": "Benutzer-ID speichern",
@@ -735,9 +716,12 @@
       "onboardingDesc": "Arbeitsbereich-Einrichtung"
     },
     "streetAddress": "Straße und Hausnummer",
-    "title": "Bei Generative OS anmelden",
+    "title": "Bei genOS anmelden",
     "tradeName": "Markenname / Geschäftsbezeichnung",
-    "verifiedBadge": "Identität verifiziert"
+    "verifiedBadge": "Identität verifiziert",
+    "emailPlaceholder": "sie@firma.com",
+    "passkeyUnavailableTitle": "Passkeys in dieser Version nicht verfügbar",
+    "passkeyUnavailableDesc": "Die passwortlose Anmeldung wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist."
   },
   "taxonomy": {
     "billing": {
@@ -813,25 +797,6 @@
       "multiTenancyTitle": "Multi-Tenancy",
       "vectorRagDesc": "pgvector 384-d HNSW-Embeddings",
       "vectorRagTitle": "Kognitives RAG"
-    },
-    "fetching": {
-      "apiLayer": "API-Schicht",
-      "apiLayerDesc": "Client-seitige Funktionen in api/message.js verarbeiten HTTP-Anfragen an unser Express-Backend",
-      "comments": "Kommentare",
-      "exampleHeading": "Beispiel für Blog-Datenabruf",
-      "from": "Von {{email}}",
-      "heading": "Beispiel: Daten laden",
-      "intro": "Hier wird eine Nachricht dynamisch von einem externen API-Endpunkt geladen. Das zeigt, wie Sie Daten laden können, während Komponenten sauber und Netzwerklogik getrennt bleiben. So funktioniert es:",
-      "postFrom": "Beitrag von {{email}}",
-      "serviceLayer": "Service-Schicht",
-      "serviceLayerDesc": "Server-seitige Handler in service/postHandlers.js leiten Anfragen an externe APIs weiter.",
-      "summary": "Dieses Muster hält Ihre Komponenten auf die Darstellung fokussiert, während die Datenabruflogik zentral für Wiederverwendbarkeit und Testbarkeit gebündelt wird.",
-      "uiLayer": "UI-Schicht",
-      "uiLayerDesc": "PostComponent.jsx verwaltet den React-State und rendert die Daten mit Carbon Design-Komponenten"
-    },
-    "run": {
-      "heading": "Template starten",
-      "nodeRequirement": "Benötigt Node v.24"
     }
   },
   "welcomeHeader": {
@@ -840,9 +805,9 @@
       "signIn": "Im Workspace anmelden",
       "useTemplate": "Diese Vorlage verwenden"
     },
-    "description1": "Dies ist eine Boilerplate und ein lebendiger Leitfaden für die Erstellung von React-Anwendungen mit dem Carbon Design System. Passen Sie es nach Bedarf an.",
-    "maintainer": "Betreut von Cestari Studio Inc.",
-    "title": "Willkommen zur Carbon React-Startvorlage"
+    "description1": "genOS ist das generative Betriebssystem von Cestari Studio Inc.: Multi-Tenant-Workspaces mit Cascade-Governance, Wissensabruf und integrierter Abrechnung.",
+    "title": "genOS by Cestari Studio",
+    "description2": "Melden Sie sich an, um auf Ihre Organisation, Workspaces und Projekte zuzugreifen."
   },
   "workspaceSwitcher": {
     "activeRole": "Aktive Rolle",

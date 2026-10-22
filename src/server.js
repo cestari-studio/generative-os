@@ -14,7 +14,6 @@ import { getRoutes } from './routes/routes.js';
 import { base, getServerConfig } from './config/server-config.js';
 import i18nextMiddleware from 'i18next-http-middleware';
 import i18n from './i18n.server.js';
-import { setBaseUrl } from './service/postHandlers.js';
 
 // Constants
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,9 +23,6 @@ const ABORT_DELAY = 10000;
 
 // Get available port
 const { port, baseUrl } = await getServerConfig();
-
-// Set the base URL for post handlers to use
-setBaseUrl(baseUrl);
 
 // Create http server
 const app = express();

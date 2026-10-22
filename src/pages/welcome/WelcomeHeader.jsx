@@ -19,15 +19,15 @@ export const WelcomeHeader = () => {
 
   return (
     <CommonHeader
-      title={t('welcomeHeader.title', 'Welcome to Cestari Studio')}
+      title={t('welcomeHeader.title', 'genOS by Cestari Studio')}
       paragraphs={[
         <>
           {t(
             'welcomeHeader.description1',
-            'Enterprise AI operating system with Schema.org multi-tenant cascade governance, cognitive vector RAG, and PagBank FinOps.',
+            'genOS is the generative operational system from Cestari Studio Inc.: multi-tenant workspaces with cascade governance, knowledge retrieval and integrated billing.',
           )}
         </>,
-        <>{t('welcomeHeader.maintainer', 'Engineered with the IBM Carbon Design System v11 & v12.')}</>,
+        <>{t('welcomeHeader.description2', 'Sign in to access your organization, workspaces and projects.')}</>,
       ]}
       action={
         user ? (

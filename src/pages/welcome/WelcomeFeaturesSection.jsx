@@ -15,15 +15,15 @@ export const WelcomeFeaturesSection = () => {
   const features = [
     {
       title: t('welcome.features.multiTenancyTitle', 'Multi-Tenancy'),
-      feature: t('welcome.features.multiTenancyDesc', 'Schema.org 4-Tier Hierarchy'),
+      feature: t('welcome.features.multiTenancyDesc', 'Organization → Workspace → Project → Person'),
     },
     {
-      title: t('welcome.features.vectorRagTitle', 'Cognitive RAG'),
-      feature: t('welcome.features.vectorRagDesc', 'pgvector 384-d HNSW Embeddings'),
+      title: t('welcome.features.vectorRagTitle', 'Knowledge Retrieval'),
+      feature: t('welcome.features.vectorRagDesc', 'pgvector lexical-hash search (experimental)'),
     },
     {
-      title: t('welcome.features.designSystemTitle', 'Carbon Design System'),
-      feature: t('welcome.features.designSystemDesc', 'Accessible v11 Components & Tokens'),
+      title: t('welcome.features.designSystemTitle', 'Accessible Interface'),
+      feature: t('welcome.features.designSystemDesc', 'WCAG 2.2 AA components and theming'),
     },
   ];
 
