@@ -172,6 +172,13 @@ export const DashboardCharts = ({ activityChartData, cascadeDonutData, corpusBar
               </p>
               {loading ? (
                 <SkeletonPlaceholder style={{ inlineSize: '100%', blockSize: '260px' }} />
+              ) : corpusBarData.length === 0 ? (
+                <p className="cs--dashboard__chart-empty" role="status">
+                  {t(
+                    'dashboard.charts.corpusEmpty',
+                    'No knowledge documents or media assets are recorded for this scope.',
+                  )}
+                </p>
               ) : (
                 <ClientOnlyChart>
                   <SimpleBarChart data={corpusBarData} options={barOptions} />
