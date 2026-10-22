@@ -312,7 +312,9 @@
       "colId": "人物ID",
       "roleOwner": "テナントオーナー / 管理者",
       "roleMember": "ワークスペースメンバー",
-      "unnamed": "匿名ユーザー"
+      "unnamed": "匿名ユーザー",
+      "inviteUnavailableTitle": "メンバー招待はまだ利用できません — この組織では招待フローがプロビジョニングされていません。",
+      "inviteUnavailableNote": "この組織ではメンバー招待がまだプロビジョニングされていません。組織の名簿で直接メンバーを管理してください。"
     },
     "subscriptions": {
       "currentPlan": "アクティブなサブスクリプション: {{tier}}",

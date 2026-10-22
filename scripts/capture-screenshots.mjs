@@ -13,10 +13,9 @@
  * manifest with SHA, route, viewport, file and result. No PII/secrets.
  */
 import { chromium } from 'playwright';
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { execSync } from 'node:child_process';
 
 const PORT = 5199;
 const BASE = `http://localhost:${PORT}`;
@@ -46,7 +45,9 @@ function waitForServer(url, attempts = 40) {
       try {
         const res = await fetch(url);
         if (res.ok || res.status === 404) return resolve();
-      } catch {}
+      } catch {
+        // Server not ready yet — retry below.
+      }
       n += 1;
       if (n >= attempts) return reject(new Error('server did not start'));
       setTimeout(tick, 500);

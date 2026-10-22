@@ -33,7 +33,7 @@ export const DashboardWorkspaceTab = () => {
     workspaces = [],
     projects = [],
     openOnboardingFlow,
-    setActiveWorkspaceId,
+    switchActiveContext,
   } = useTenant();
 
   const headers = [
@@ -59,7 +59,7 @@ export const DashboardWorkspaceTab = () => {
           kind={isActive ? 'ghost' : 'tertiary'}
           size="sm"
           disabled={isActive}
-          onClick={() => setActiveWorkspaceId(ws.id)}
+          onClick={() => switchActiveContext({ workspaceId: ws.id })}
         >
           {isActive ? t('common.selected', 'Active') : t('common.select', 'Switch')}
         </Button>

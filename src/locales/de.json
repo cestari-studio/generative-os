@@ -312,7 +312,9 @@
       "colId": "Personen-ID",
       "roleOwner": "Inhaber / Administrator",
       "roleMember": "Arbeitsbereichsmitglied",
-      "unnamed": "Anonyme Person"
+      "unnamed": "Anonyme Person",
+      "inviteUnavailableTitle": "Mitgliedereinladung noch nicht verfügbar — der Einladungsablauf ist für diese Organisation nicht bereitgestellt.",
+      "inviteUnavailableNote": "Die Mitgliedereinladung ist für diese Organisation noch nicht bereitgestellt. Verwalten Sie Mitglieder direkt im Organisationsregister."
     },
     "subscriptions": {
       "currentPlan": "Aktives Abonnement: {{tier}}",

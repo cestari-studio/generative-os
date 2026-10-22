@@ -78,12 +78,20 @@ export const DashboardUsersTab = () => {
                 kind="primary"
                 size="md"
                 renderIcon={Add}
-                onClick={() => {
-                  window.alert(t('dashboard.users.inviteAlert', 'Member invitation dialog dispatched.'));
-                }}
+                disabled
+                title={t(
+                  'dashboard.users.inviteUnavailableTitle',
+                  'Member invitation is not available yet — the invitation flow is not provisioned for this organization.',
+                )}
               >
                 {t('dashboard.users.inviteButton', 'Invite Team Member')}
               </Button>
+              <p className="cs--dashboard-summary-tile__note">
+                {t(
+                  'dashboard.users.inviteUnavailableNote',
+                  'Member invitation is not provisioned for this organization yet. Manage members directly in the organization roster.',
+                )}
+              </p>
             </div>
           </Tile>
         </Column>
