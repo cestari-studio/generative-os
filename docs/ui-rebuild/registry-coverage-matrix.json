@@ -1,0 +1,110 @@
+{
+  "reconciled_at": "2026-10-22",
+  "source": "cestari-studio/genOS @ shallow clone (v0.9.0 catalog + v0.9.1 overlays), read-only",
+  "canonical_counts": {
+    "products": {
+      "declared": 5,
+      "reconciled": 5,
+      "status": "MATCH"
+    },
+    "subproducts": {
+      "declared": 30,
+      "reconciled": 30,
+      "status": "MATCH"
+    },
+    "capabilities": {
+      "declared": 9,
+      "reconciled": 9,
+      "status": "MATCH"
+    },
+    "platform_services": {
+      "declared": 6,
+      "reconciled": 6,
+      "status": "MATCH"
+    },
+    "features": {
+      "declared": 225,
+      "reconciled": 225,
+      "status": "MATCH"
+    },
+    "journeys": {
+      "declared": 30,
+      "reconciled": 30,
+      "status": "MATCH"
+    },
+    "operations": {
+      "declared": 100,
+      "reconciled": 100,
+      "status": "MATCH"
+    },
+    "pages": {
+      "declared": 60,
+      "reconciled": 60,
+      "status": "MATCH"
+    },
+    "configurations": {
+      "declared": 200,
+      "reconciled": 200,
+      "status": "MATCH"
+    },
+    "entitlement_profiles": {
+      "declared": 4,
+      "reconciled": 4,
+      "status": "MATCH (not in canonical 8)"
+    }
+  },
+  "operations_100_vs_85_divergence": {
+    "resolution": "NOT a gap — classification",
+    "edge_bundle_surface_operations": 85,
+    "internal_operations": 15,
+    "explanation": "The 100 normative operations = 85 Edge-bundle surface operations + 15 internal operations (private_rpc x8, worker x4, scheduled_worker x3, ci_signing x1). The 85 IDs historically seen in Edge-bundle allowlists are the Edge-facing surface; the 15 internal operations are RPC/worker/CI execution class and are NOT missing — they are a different execution class.",
+    "internal_operations_list": [
+      "authorization-decision-evaluate",
+      "embedding-index-build",
+      "knowledge-access-evaluate",
+      "actionframe-validate",
+      "worker-lease-acquire",
+      "worker-heartbeat",
+      "worker-result-submit",
+      "eligibility-evaluate",
+      "reputation-classify-request",
+      "reputation-metrics-refresh",
+      "client-segment-refresh",
+      "notification-dispatch",
+      "usage-record-ingest",
+      "billing-reconcile",
+      "release-manifest-publish"
+    ]
+  },
+  "feature_binding_coverage": {
+    "features_total": 225,
+    "with_page_keys": 19,
+    "without_page_keys": 206,
+    "with_operation_ids": 76,
+    "without_operation_ids": 149,
+    "with_configuration_keys": 25,
+    "note": "Registry-level cross-references are complete (all 60 pages, 100 operations, 200 configs ARE referenced), but most features lack normative page/operation bindings — they are spec-level, not yet wired."
+  },
+  "pages_by_cascade": {
+    "Master": 20,
+    "Master → Agency": 20,
+    "Master → Agency → Tenant": 20
+  },
+  "configs_by_classe": {
+    "presentation": 67,
+    "derived": 3,
+    "policy": 55,
+    "runtime": 67,
+    "registry_ref": 7,
+    "experiment": 1
+  },
+  "domain_type_distribution": {
+    "product": 150,
+    "capability": 45,
+    "platform_service": 30
+  },
+  "v091_runtime_gap_matrix": {
+    "audited_bundles": 4,
+    "note": "v0.9.1 EDGE_RUNTIME_GAP_MATRIX documents schedule-api, academy-api, client-api, knowledge-api with dispatchable vs blocked operations (schema_contract_blocked, schema_and_public_protocol_blocked, mixed_runtime_worker_blocked). Most operations remain fail-closed pending typed persistence/control-plane."
+  }
+}
