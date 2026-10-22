@@ -77,12 +77,39 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // 2a. Idempotency: a retry with the same reference returns the existing
+    // non-failed order — never a duplicate charge. Failed orders do not
+    // replay; the caller must issue a new quote/reference for a new attempt.
+    const { data: existingOrder } = await supabaseAdmin
+      .from('payment_orders')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .eq('reference_id', referenceId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingOrder && !['failed', 'cancelled', 'declined'].includes(existingOrder.status ?? '')) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          idempotent_replay: true,
+          orderId: existingOrder.id,
+          pagbankOrderId: existingOrder.pagbank_order_id,
+          status: existingOrder.status,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
     // 2b. Bind the charge to a server-issued quote. The browser never sets the
     // final amount: consume_quote validates tenant ownership, status and
-    // expiry and atomically marks the quote as consumed (single use).
+    // expiry, atomically binds the quote to THIS payment reference (single
+    // use) and replays idempotently for the same reference.
     const { data: quoteResult, error: quoteError } = await supabaseAdmin.rpc('consume_quote', {
       p_quote_id: quoteId,
       p_organization_id: organizationId,
+      p_reference: referenceId,
     });
 
     if (quoteError || !quoteResult?.total_cents) {
@@ -226,10 +253,24 @@ Deno.serve(async (req: Request) => {
     if (!pspResponse.ok) {
       const pspErrorText = await pspResponse.text();
       console.error('PagBank Orders API Error:', pspResponse.status, pspErrorText);
+
+      // Recovery: mark the order failed so the attempt is auditable and does
+      // not block retry. The consumed quote can then be explicitly released
+      // (release_consumed_quote) because there is no active order, or the
+      // operator issues a new quote for a new attempt. Never duplicate-charge.
+      await supabaseAdmin
+        .from('payment_orders')
+        .update({ status: 'failed', updated_at: new Date().toISOString() })
+        .eq('id', orderId);
+
       return new Response(
         JSON.stringify({
           error: `PagBank PSP rejected order creation (${pspResponse.status})`,
           details: pspErrorText,
+          orderId,
+          orderStatus: 'failed',
+          recovery:
+            'The quote bound to this attempt may be released via release_consumed_quote, or issue a new quote with a new reference.',
         }),
         {
           status: pspResponse.status >= 500 ? 502 : 400,
@@ -312,11 +353,12 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 8. Update Order status
+    // 8. Update Order status and link the authorizing quote
     await supabaseAdmin
       .from('payment_orders')
       .update({
         pagbank_order_id: pagbankOrderId,
+        quote_id: quoteId,
         status: initialStatus === 'PAID' ? 'paid' : 'waiting_payment',
         updated_at: new Date().toISOString(),
       })

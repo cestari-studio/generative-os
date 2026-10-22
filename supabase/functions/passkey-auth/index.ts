@@ -7,6 +7,7 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { handleChallengeAction } from '../_shared/passkey-challenge.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,46 +45,24 @@ Deno.serve(async (req: Request) => {
     const body = req.method === 'POST' ? await req.json() : {};
     const action = body.action ?? 'list';
 
-    // 1. WebAuthn Challenge generation — authenticated users only.
-    // A challenge is bound to the identified user and ceremony; issuing one to
-    // an anonymous caller would let anyone mint unbound challenges (§9.2).
+    // 1. WebAuthn Challenge generation — authenticated users only, challenge
+    // bound to the identified user and ceremony. Persistence is mandatory:
+    // an unpersisted challenge is never returned (fail closed).
     if (action === 'challenge') {
-      if (!user) {
-        return new Response(JSON.stringify({ error: 'Authentication required to request a WebAuthn challenge.' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const challenge = generateRandomChallenge();
-      const rpId = body.rpId ?? new URL(req.url).hostname;
-      const ceremonyType = body.ceremony === 'authentication' ? 'authentication' : 'registration';
-
-      await supabase.from('webauthn_challenges').insert({
-        person_id: user.id,
-        challenge,
-        ceremony_type: ceremonyType,
-        rp_id: rpId,
-        origin: req.headers.get('origin') ?? `https://${rpId}`,
+      const outcome = await handleChallengeAction(user ? { id: user.id } : null, body, {
+        generateChallenge: generateRandomChallenge,
+        hostname: new URL(req.url).hostname,
+        originHeader: req.headers.get('origin'),
+        insertChallenge: async (row) => {
+          const { error } = await supabase.from('webauthn_challenges').insert(row);
+          return { error: error ? { message: error.message } : null };
+        },
       });
 
-      return new Response(
-        JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'AuthorizeAction',
-          challenge,
-          rp: { name: 'genOS', id: rpId },
-          pubKeyCredParams: [
-            { type: 'public-key', alg: -7 },
-            { type: 'public-key', alg: -257 },
-          ],
-          timeout: 60000,
-          attestation: 'none',
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        },
-      );
+      return new Response(JSON.stringify(outcome.body), {
+        status: outcome.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // 2. Register passkey credential - disabled until full WebAuthn attestation ceremony is implemented
