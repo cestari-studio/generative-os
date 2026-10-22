@@ -32,7 +32,8 @@
     "prepare": "husky",
     "scss:generate": "node scripts/generate-carbon-scss.js",
     "i18n:sync": "node scripts/i18n-sync.js",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "test:billing-sql": "./scripts/test-billing-sql.sh"
   },
   "dependencies": {
     "@carbon-labs/react-theme-settings": "^0.30.0",

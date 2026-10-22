@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS public.quotes (
   total_cents BIGINT NOT NULL DEFAULT 0 CHECK (total_cents >= 0),
   expires_at TIMESTAMPTZ NOT NULL,
   issued_by UUID REFERENCES public.persons(id) ON DELETE SET NULL,
+  consumed_reference TEXT,
   additional_property JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -625,7 +626,8 @@ GRANT EXECUTE ON FUNCTION public.issue_manual_quote(uuid, bigint, text, text, te
 -- the service role (trusted backend that already authorized the request).
 CREATE OR REPLACE FUNCTION public.consume_quote(
   p_quote_id uuid,
-  p_organization_id uuid
+  p_organization_id uuid,
+  p_reference text DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -667,6 +669,21 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
+  -- Idempotent replay: a quote consumed with THIS reference returns the same
+  -- totals (retry of the same payment attempt, never a duplicate charge).
+  IF v_quote.status = 'accepted' AND p_reference IS NOT NULL AND v_quote.consumed_reference = p_reference THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'quote_id', v_quote.id,
+      'quote_kind', v_quote.quote_kind,
+      'subtotal_cents', v_quote.subtotal_cents,
+      'tax_cents', v_quote.tax_cents,
+      'discount_cents', v_quote.discount_cents,
+      'total_cents', v_quote.total_cents,
+      'currency', v_quote.currency,
+      'idempotent_replay', true
+    );
+  END IF;
+
   IF v_quote.status <> 'issued' THEN
     RAISE EXCEPTION 'Quote % is not consumable (status: %)', p_quote_id, v_quote.status
       USING ERRCODE = '22023';
@@ -678,9 +695,10 @@ BEGIN
     RAISE EXCEPTION 'Quote % is expired', p_quote_id USING ERRCODE = '22023';
   END IF;
 
-  -- Compare-and-swap: exactly one consumer may flip issued -> accepted.
+  -- Compare-and-swap: exactly one consumer may flip issued -> accepted,
+  -- binding the quote to the payment reference for idempotent retry.
   UPDATE public.quotes
-  SET status = 'accepted', updated_at = now()
+  SET status = 'accepted', consumed_reference = p_reference, updated_at = now()
   WHERE id = p_quote_id AND status = 'issued'
   RETURNING id INTO v_updated;
 
@@ -695,15 +713,100 @@ BEGIN
     'tax_cents', v_quote.tax_cents,
     'discount_cents', v_quote.discount_cents,
     'total_cents', v_quote.total_cents,
-    'currency', v_quote.currency
+    'currency', v_quote.currency,
+    'idempotent_replay', false
   );
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.consume_quote(uuid, uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.consume_quote(uuid, uuid) FROM anon;
-GRANT EXECUTE ON FUNCTION public.consume_quote(uuid, uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.consume_quote(uuid, uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.consume_quote(uuid, uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.consume_quote(uuid, uuid, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.consume_quote(uuid, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.consume_quote(uuid, uuid, text) TO service_role;
+
+-- ---------------------------------------------------------------------------
+-- 11d. RPC: release_consumed_quote — recovery after a failed payment attempt
+-- ---------------------------------------------------------------------------
+-- If a payment attempt fails after consumption (PSP error, timeout), the
+-- quote must not stay blocked forever. This releases an accepted quote back
+-- to a terminal 'cancelled' state ONLY when no active payment order
+-- references it (every linked order failed or was cancelled). It never
+-- reopens a quote with a live/paid order, so it can never enable a duplicate
+-- charge. Audited. DEFINER: quotes has no client write policies.
+CREATE OR REPLACE FUNCTION public.release_consumed_quote(
+  p_quote_id uuid,
+  p_reason text DEFAULT 'payment attempt failed'
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_caller uuid := (SELECT auth.uid());
+  v_quote public.quotes;
+  v_active_orders integer;
+BEGIN
+  IF v_caller IS NULL THEN
+    RAISE EXCEPTION 'Authentication required.' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT * INTO v_quote FROM public.quotes WHERE id = p_quote_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Quote % not found', p_quote_id USING ERRCODE = 'P0002';
+  END IF;
+
+  IF NOT (
+    public.has_platform_role('billing_admin')
+    OR EXISTS (
+      SELECT 1 FROM public.organization_members om
+      WHERE om.organization_id = v_quote.organization_id AND om.member_id = v_caller
+    )
+  ) THEN
+    RAISE EXCEPTION 'Access denied: not a member of organization %', v_quote.organization_id
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF v_quote.status <> 'accepted' THEN
+    RAISE EXCEPTION 'Only an accepted (consumed) quote can be released (status: %)', v_quote.status
+      USING ERRCODE = '22023';
+  END IF;
+
+  -- Never release a quote with a live or settled order.
+  SELECT count(*) INTO v_active_orders
+  FROM public.payment_orders po
+  WHERE po.quote_id = p_quote_id
+    AND coalesce(po.status, '') NOT IN ('failed', 'cancelled', 'declined');
+
+  IF v_active_orders > 0 THEN
+    RAISE EXCEPTION 'Quote % has an active payment order and cannot be released', p_quote_id
+      USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.quotes
+  SET status = 'cancelled', updated_at = now()
+  WHERE id = p_quote_id AND status = 'accepted';
+
+  INSERT INTO public.billing_audit (entity_type, entity_id, action, actor_id, reason, after_state)
+  VALUES ('quote', p_quote_id, 'update', v_caller, left(coalesce(p_reason, ''), 500),
+          pg_catalog.jsonb_build_object('status', 'cancelled', 'previous_status', 'accepted'));
+
+  RETURN pg_catalog.jsonb_build_object('quote_id', p_quote_id, 'status', 'cancelled');
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.release_consumed_quote(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.release_consumed_quote(uuid, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.release_consumed_quote(uuid, text) TO authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 11e. Link payment orders to the quote that authorized them
+-- ---------------------------------------------------------------------------
+-- payment_orders predates this migration (created out-of-band); add the
+-- reference additively so each charge traces to a single server-issued quote
+-- and payment retries can idempotently return the existing order.
+ALTER TABLE public.payment_orders ADD COLUMN IF NOT EXISTS quote_id uuid REFERENCES public.quotes(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_payment_orders_quote_id ON public.payment_orders(quote_id);
 
 -- ---------------------------------------------------------------------------
 -- 12. Row Level Security
