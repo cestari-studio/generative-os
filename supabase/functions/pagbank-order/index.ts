@@ -8,6 +8,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { validateOrderInput } from '../_shared/pagbank-security.ts';
+import { buildPspIdempotencyKey, fingerprintPayload, submitOrderToPsp } from '../_shared/pagbank-psp.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -77,32 +78,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 2a. Idempotency: a retry with the same reference returns the existing
-    // non-failed order — never a duplicate charge. Failed orders do not
-    // replay; the caller must issue a new quote/reference for a new attempt.
-    const { data: existingOrder } = await supabaseAdmin
-      .from('payment_orders')
-      .select('*')
-      .eq('organization_id', organizationId)
-      .eq('reference_id', referenceId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existingOrder && !['failed', 'cancelled', 'declined'].includes(existingOrder.status ?? '')) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          idempotent_replay: true,
-          orderId: existingOrder.id,
-          pagbankOrderId: existingOrder.pagbank_order_id,
-          status: existingOrder.status,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    // 2b. Bind the charge to a server-issued quote. The browser never sets the
+    // 2a. Bind the charge to a server-issued quote. The browser never sets the
     // final amount: consume_quote validates tenant ownership, status and
     // expiry, atomically binds the quote to THIS payment reference (single
     // use) and replays idempotently for the same reference.
@@ -167,25 +143,30 @@ Deno.serve(async (req: Request) => {
 
     const { cleanCustomer, cleanItems } = validation;
 
-    // 5. Create Order in database via RPC strictly with validated customer and items (no fallbacks)
-    const { data: orderData, error: orderRpcError } = await supabaseAdmin.rpc('create_pagbank_order', {
+    // 5. Atomic create-or-get of the payment order (one charge per quote).
+    // The unique partial index on quote_id makes this claim atomic: exactly
+    // one concurrent caller wins; the others replay the existing order.
+    // The amount comes from the consumed quote, never from the client.
+    const { data: claimResult, error: claimError } = await supabaseAdmin.rpc('claim_pagbank_order', {
       p_organization_id: organizationId,
       p_workspace_id: workspaceId || null,
       p_project_id: projectId || null,
-      p_amount_cents: amountCents,
+      p_quote_id: quoteId,
       p_reference_id: referenceId,
+      p_customer_person_id: user.id,
       p_customer_snapshot: cleanCustomer,
       p_items_snapshot: cleanItems,
     });
 
-    if (orderRpcError) {
-      return new Response(JSON.stringify({ error: `Order creation failed: ${orderRpcError.message}` }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (claimError || !claimResult?.order_id) {
+      return new Response(
+        JSON.stringify({ error: `Order claim failed: ${claimError?.message ?? 'could not claim order'}` }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
 
-    const orderId = orderData.order_id;
+    const orderId = claimResult.order_id;
+    const orderClaimed = claimResult.claimed === true;
 
     const pagbankPayload: Record<string, unknown> = {
       reference_id: referenceId,
@@ -240,52 +221,101 @@ Deno.serve(async (req: Request) => {
       ];
     }
 
-    // 6. Execute real call to PagBank Orders API
-    const pspResponse = await fetch(`${pagbankApiBase}/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${pagbankToken}`,
-      },
-      body: JSON.stringify(pagbankPayload),
+    // 6. Persist the PSP idempotency key + payload fingerprint BEFORE the
+    // first submission. Every retry of this attempt reuses the SAME key and
+    // the SAME effective payload; attach_psp_idempotency rejects a retry with
+    // an incompatible fingerprint for the same order.
+    const pspIdempotencyKey = buildPspIdempotencyKey(referenceId);
+    const payloadFingerprint = await fingerprintPayload(pagbankPayload);
+
+    const { error: attachError } = await supabaseAdmin.rpc('attach_psp_idempotency', {
+      p_order_id: orderId,
+      p_organization_id: organizationId,
+      p_psp_idempotency_key: pspIdempotencyKey,
+      p_psp_payload_fingerprint: payloadFingerprint,
     });
 
-    if (!pspResponse.ok) {
-      const pspErrorText = await pspResponse.text();
-      console.error('PagBank Orders API Error:', pspResponse.status, pspErrorText);
+    if (attachError) {
+      return new Response(
+        JSON.stringify({
+          error: `PSP idempotency conflict: ${attachError.message}`,
+          recovery:
+            'This order already has a different PSP idempotency key/payload. Issue a new quote with a new reference.',
+        }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
 
-      // Recovery: mark the order failed so the attempt is auditable and does
-      // not block retry. The consumed quote can then be explicitly released
-      // (release_consumed_quote) because there is no active order, or the
-      // operator issues a new quote for a new attempt. Never duplicate-charge.
+    // 7. Submit to the PSP exactly once with the persisted idempotency key.
+    // On an ambiguous outcome (timeout/transport failure/5xx) we do NOT mark
+    // the order failed and do NOT release the quote: the PSP may have created
+    // the charge. The order stays non-terminal ('draft'); a retry with the
+    // same reference replays the SAME key + payload, so the PSP returns the
+    // original result instead of double-charging (x-idempotency-key, 48h).
+    const pspOutcome = await submitOrderToPsp(fetch, {
+      url: `${pagbankApiBase}/orders`,
+      token: pagbankToken,
+      idempotencyKey: pspIdempotencyKey,
+      payload: pagbankPayload,
+    });
+
+    if (pspOutcome.kind === 'ambiguous') {
+      return new Response(
+        JSON.stringify({
+          error: 'PSP submission outcome is unknown (timeout, transport failure or 5xx). Not marking failed.',
+          reason: pspOutcome.reason,
+          orderId,
+          orderStatus: 'draft',
+          recovery:
+            'Retry with the SAME reference: the persisted PSP idempotency key and payload are reused, so the PSP returns the original result. Do NOT issue a new quote or change the payload.',
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (pspOutcome.kind === 'definitive') {
+      // Clear business rejection (4xx): safe to cancel the order; the quote
+      // may then be explicitly released (no active order) or a new quote issued.
       await supabaseAdmin
         .from('payment_orders')
-        .update({ status: 'failed', updated_at: new Date().toISOString() })
+        .update({ status: 'canceled', updated_at: new Date().toISOString() })
         .eq('id', orderId);
 
       return new Response(
         JSON.stringify({
-          error: `PagBank PSP rejected order creation (${pspResponse.status})`,
-          details: pspErrorText,
+          error: `PagBank PSP rejected order creation (${pspOutcome.status})`,
+          details: pspOutcome.body,
           orderId,
-          orderStatus: 'failed',
+          orderStatus: 'canceled',
           recovery:
-            'The quote bound to this attempt may be released via release_consumed_quote, or issue a new quote with a new reference.',
+            'Definitive rejection. The quote may be released via release_consumed_quote, or issue a new quote with a new reference.',
         }),
-        {
-          status: pspResponse.status >= 500 ? 502 : 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        },
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    const pspData = await pspResponse.json();
+    const pspData = pspOutcome.body as {
+      id?: string;
+      charges?: Array<{
+        id?: string;
+        status?: string;
+        payment_method?: { boleto?: Record<string, unknown>; card?: { brand?: string; last4?: string } };
+        links?: Array<{ rel: string; href: string }>;
+      }>;
+      qr_codes?: Array<{ text?: string; links?: Array<{ rel: string; href: string }>; expiration_date?: string }>;
+    };
+
     const pagbankOrderId = pspData.id;
     if (!pagbankOrderId) {
-      return new Response(JSON.stringify({ error: 'PagBank PSP order creation response missing authoritative id' }), {
-        status: 502,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          error: 'PagBank PSP response missing authoritative order id. Not marking failed.',
+          orderId,
+          orderStatus: 'draft',
+          recovery: 'Retry with the SAME reference to reconcile with the PSP using the persisted idempotency key.',
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
 
     const firstCharge = pspData.charges?.[0];
@@ -293,7 +323,10 @@ Deno.serve(async (req: Request) => {
     if (!pagbankChargeId) {
       return new Response(
         JSON.stringify({
-          error: `PagBank PSP returned order without authoritative charge id for payment method ${paymentMethod}`,
+          error: `PagBank PSP returned order without authoritative charge id for payment method ${paymentMethod}. Not marking failed.`,
+          orderId,
+          orderStatus: 'draft',
+          recovery: 'Retry with the SAME reference to reconcile with the PSP using the persisted idempotency key.',
         }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
@@ -307,11 +340,11 @@ Deno.serve(async (req: Request) => {
     const pixExpirationDate = pixData?.expiration_date || null;
 
     const boletoData = firstCharge?.payment_method?.boleto;
-    const boletoBarcode = boletoData?.barcode || null;
-    const boletoFormattedBarcode = boletoData?.formatted_barcode || null;
+    const boletoBarcode = (boletoData?.barcode as string) || null;
+    const boletoFormattedBarcode = (boletoData?.formatted_barcode as string) || null;
     const boletoPdfUrl =
       firstCharge?.links?.find((l: { rel: string; href: string }) => l.rel === 'BOLETO.PDF')?.href || null;
-    const boletoDate = boletoData?.due_date || null;
+    const boletoDate = (boletoData?.due_date as string) || null;
 
     // 7. Insert real charge record with status returned by PSP.
     // The PSP fee is NOT estimated here — it is reconciled from webhook
@@ -418,6 +451,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         orderId,
+        orderClaimed,
         pagbankOrderId,
         charge: chargeRecord,
         split: splitRecord,
