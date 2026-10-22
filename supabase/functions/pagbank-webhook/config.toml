@@ -1,0 +1,5 @@
+# PSP webhook: unauthenticated at the JWT gateway BY DESIGN — callers are the
+# PagBank PSP, not users. Authenticity is enforced in-handler via ECDSA
+# signature verification against PAGBANK_PUBLIC_KEY (fail-closed when the key
+# is not configured). verify_jwt stays false ONLY for this endpoint.
+verify_jwt = false
