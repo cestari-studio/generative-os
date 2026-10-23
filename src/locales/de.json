@@ -389,7 +389,8 @@
     "uploadingMedia": "MediaObject „{{name}}“ wird nach {{bucket}} hochgeladen…",
     "uploadCompleted": "MediaObject „{{name}}“ wurde nach {{bucket}} hochgeladen.",
     "storageScopeUnavailable": "Wählen Sie eine Organisation und einen Workspace aus, um das Präfix des Speicherbereichs anzuzeigen.",
-    "copiedStorageScope": "Präfix des Speicherbereichs kopiert"
+    "copiedStorageScope": "Präfix des Speicherbereichs kopiert",
+    "uploadRefreshFailed": "Die Datei und ihr MediaObject-Datensatz wurden erstellt, aber die Mandantenansicht konnte nicht aktualisiert werden. Prüfen Sie die Medientabelle, bevor Sie es erneut versuchen."
   },
   "nav": {
     "actions": {
