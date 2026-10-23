@@ -224,3 +224,38 @@
 
 - Ledger: 5 slices INTEGRATION_VERIFIED (products-catalog, billing-pricebook-quotes, auth-onboarding, settings-cascade, knowledge-pipeline).
 - Gates humanos/remotos mantidos: 0 reviews, Supabase divergente, Vercel BLOCKED, identidade `...0010` congelada, PagBank sandbox BLOCKED, WCAG manual pendente.
+
+---
+
+## 10. Log de Execução — Master Directive ciclo 3 (23 de outubro de 2026)
+
+**SHA de referência:** `5ae1f0a` (e antecessores do ciclo).
+
+### Vercel — diagnóstico completo (read-only, CLI autenticado)
+
+- Conector MCP auth-broken (404 "User not found"); CLI `octavio-4895` funciona.
+- **Produção está 146 commits atrás de HEAD**: deployment `dpl_Ups6Si3JpTvfDsAuZdYzw8TmjK74` (2026-10-21) serve `app.cestari.studio` + `generative-os-bay.vercel.app` com commit `b580fc8` (2026-10-16) via `source=cli` — **sem Git integration** (`linkedProjects: []`). Bundle live contém código otimista pré-`a69fcc2` (probe). Output Directory unset; caminho SSR a identificar antes de redeploy.
+- Procedimento de recuperação registrado (Git integration decision, serving config, Preview-para-E2E, promoção) — tudo owner-gated.
+
+### Supabase — reconciliação read-only re-confirmada
+
+- Drift inalterado (leitura fresca ciclo 3): 17 migrações, billing + catálogo ausentes, 18/18 tabelas ausentes, 0/8 RPCs esperados presentes.
+
+### Slices materializadas (TDD, SQL com RLS)
+
+- **workspace-management (6.1):** `create_workspace` RPC (INVOKER, auth.uid() + has_org_admin_role). 5 assertions: admin cria, cross-tenant negado, non-admin negado, anônimo negado, identificador duplicado rejeitado. `4eb0460`. CI step verde.
+- **notifications-foundation (6.2):** tabela notifications + mark_notification_read RPC (INVOKER, membership check). RLS select/update por membro; sem INSERT/DELETE de cliente (server-only). 5 assertions. `0a94941`. CI step verde.
+- Lição aprendida: grants devem vir DEPOIS da criação dos objetos; RPCs INVOKER precisam dos grants do caller + policies que permitam o próprio UPDATE da RPC.
+
+### Benchmark — gate de regressão LAB no CI
+
+- `scripts/benchmark.mjs` com budgets explícitos (LCP p75≤2500ms, CLS p75≤0.1, TTFB p75≤1000ms — caps LAB da baseline, NÃO targets CWV de campo). Breach falha o gate. Step no browser-smoke job + artifact. `5ae1f0a`.
+
+### Supply chain — PR dedicado #24
+
+- `overrides` pin handlebars@4.7.10 + shell-quote@1.12.0; lockfile diff = 0 linhas (versões já resolvidas); 0 critical; release-dry-run OK. Draft, aguarda review.
+
+### Estado
+
+- Ledger: 7 slices INTEGRATION_VERIFIED (+workspace-management, notifications-foundation).
+- Gates humanos/remotos mantidos: 0 reviews, Supabase divergente, produção Vercel 146 commits atrás sem Git integration, identidade `...0010` congelada, PagBank sandbox BLOCKED, WCAG manual pendente.
