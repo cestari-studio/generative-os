@@ -38,6 +38,19 @@ const ROUTES = ['/', '/dashboard', '/settings', '/knowledge', '/payments', '/pro
 const REPETITIONS = 5;
 const WARMUP = 1;
 
+// LAB budgets (p75, per route). Derived from the 2026-10-23 baseline
+// (LCP p75 244-288ms, CLS 0.000, TTFB 13-19ms on local SSR) with explicit
+// headroom for CI runner variance — these are LAB regression gates, NOT
+// Core Web Vitals field targets (LCP 2.5s / INP 200ms / CLS 0.1, which
+// require RUM). A breach fails the gate with the measured value.
+// BUDGET_RATIONALE: baseline value + generous CI headroom; tighten only with
+// a measured justification, never arbitrarily.
+const BUDGETS = {
+  lcp_p75_ms: 2500, // baseline ~288ms; CWV lab proxy target 2.5s as hard cap
+  cls_p75: 0.1, // CWV lab proxy target as hard cap
+  ttfb_p75_ms: 1000, // baseline ~19ms; generous SSR health cap
+};
+
 function waitForServer(url, attempts = 40) {
   return new Promise((resolve, reject) => {
     let n = 0;
@@ -191,6 +204,32 @@ async function main() {
     await browser.close();
     writeFileSync(join(OUT_DIR, 'results.json'), JSON.stringify(results, null, 2));
     console.log(`[benchmark] results written to ${join(OUT_DIR, 'results.json')}`);
+
+    // LAB regression gate (budgets are LAB caps, not CWV field targets).
+    let breaches = 0;
+    for (const r of results.routes) {
+      const checks = [
+        ['lcp_p75_ms', r.lcp_ms.p75, BUDGETS.lcp_p75_ms, 'ms'],
+        ['cls_p75', r.cls.p75, BUDGETS.cls_p75, ''],
+        ['ttfb_p75_ms', r.ttfb_ms.p75, BUDGETS.ttfb_p75_ms, 'ms'],
+      ];
+      for (const [name, value, budget, unit] of checks) {
+        if (value === null) continue;
+        if (value > budget) {
+          breaches += 1;
+          console.error(
+            `  BREACH ${r.route} ${name}: ${Math.round(value * 1000) / 1000}${unit} > budget ${budget}${unit}`,
+          );
+        }
+      }
+    }
+    if (breaches > 0) {
+      console.error(`[benchmark] FAILED: ${breaches} LAB budget breach(es)`);
+      process.exit(1);
+    }
+    console.log(
+      `[benchmark] OK: all routes within LAB budgets (LCP<=${BUDGETS.lcp_p75_ms}ms, CLS<=${BUDGETS.cls_p75}, TTFB<=${BUDGETS.ttfb_p75_ms}ms)`,
+    );
   } finally {
     server.kill();
   }
