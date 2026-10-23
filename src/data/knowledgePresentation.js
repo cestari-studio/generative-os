@@ -24,7 +24,9 @@ export function formatContentSize(sizeBytes, locale = 'en', notReported = 'Not r
 }
 
 export function getIndexingStatusTagType(status) {
-  const normalized = String(status ?? '').trim().toLowerCase();
+  const normalized = String(status ?? '')
+    .trim()
+    .toLowerCase();
   if (['ready', 'indexed', 'complete', 'completed'].includes(normalized)) return 'green';
   if (['failed', 'error', 'rejected'].includes(normalized)) return 'red';
   if (['queued', 'pending', 'processing', 'indexing'].includes(normalized)) return 'blue';
@@ -46,10 +48,7 @@ export function buildKnowledgeDocumentRows(documents, { notReported = 'Not repor
 
 export function buildMediaObjectRows(mediaObjects, { notReported = 'Not reported', locale = 'en' } = {}) {
   return mediaObjects.map((media, index) => ({
-    id:
-      media.id === null || media.id === undefined || media.id === ''
-        ? `unidentified-media-${index}`
-        : String(media.id),
+    id: media.id === null || media.id === undefined || media.id === '' ? `unidentified-media-${index}` : String(media.id),
     name: displayedValue(media.name, notReported),
     bucket_id: displayedValue(media.bucket_id, notReported),
     encoding_format: displayedValue(media.encoding_format, notReported),
@@ -59,8 +58,7 @@ export function buildMediaObjectRows(mediaObjects, { notReported = 'Not reported
 
 export function interpretIngestionResult(data) {
   const documentId = data?.document?.id;
-  const documentName =
-    typeof data?.document?.name === 'string' ? data.document.name.trim() : '';
+  const documentName = typeof data?.document?.name === 'string' ? data.document.name.trim() : '';
   if (documentId === null || documentId === undefined || documentId === '' || !documentName) {
     return { status: 'unverified' };
   }
