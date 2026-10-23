@@ -85,6 +85,8 @@ export default function PaymentManagementPage() {
   const [auditEvents, setAuditEvents] = useState([]);
   const [statusMsg, setStatusMsg] = useState('');
   const [statusType, setStatusType] = useState('info');
+  const [pendingChargeAttempt, setPendingChargeAttempt] = useState(null);
+  const [isSubmittingCharge, setIsSubmittingCharge] = useState(false);
 
   // New Charge Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -238,11 +240,85 @@ export default function PaymentManagementPage() {
     },
   }[paymentLoadState.status];
 
-  // Handle Instant Charge Creation
-  // Flow: (1) the server issues an audited quote for the operator-entered
-  // amount; (2) the order boundary consumes that quote and derives the charge
-  // amount from it — the browser never sets the final charge amount.
+  // The quote ID determines a stable payment reference in both the browser
+  // and Edge Function. Ambiguous outcomes remain pending and may only retry
+  // the exact same quote/body; they must never issue a second quote silently.
+  const submitChargeAttempt = async (attempt) => {
+    setPendingChargeAttempt(attempt);
+    setIsSubmittingCharge(true);
+    setStatusMsg('');
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('pagbank-order', {
+        body: attempt.body,
+      });
+
+      if (error) {
+        const responseStatus = Number(error?.context?.status || error?.status || 0);
+        const ambiguous = responseStatus === 0 || responseStatus >= 500;
+
+        if (ambiguous) {
+          setPendingChargeAttempt(attempt);
+          setIsModalOpen(false);
+          setStatusMsg(
+            t(
+              'payments.chargeOutcomeUnknown',
+              'The payment outcome is unknown. Do not create a new charge. Retry this same attempt to reconcile with PagBank using the same quote and idempotency reference.',
+            ),
+          );
+          setStatusType('warning');
+        } else {
+          setPendingChargeAttempt(null);
+          setStatusMsg(error.message || t('payments.chargeError', 'Failed to process PagBank charge.'));
+          setStatusType('error');
+        }
+        return;
+      }
+
+      // HTTP success without an authoritative charge record is not enough
+      // evidence to announce that a charge exists.
+      if (data?.orderStatus === 'draft' || !data?.charge?.pagbank_charge_id) {
+        setPendingChargeAttempt(attempt);
+        setIsModalOpen(false);
+        setStatusMsg(
+          t(
+            'payments.chargeOutcomeUnknown',
+            'The payment outcome is unknown. Do not create a new charge. Retry this same attempt to reconcile with PagBank using the same quote and idempotency reference.',
+          ),
+        );
+        setStatusType('warning');
+        return;
+      }
+
+      setPendingChargeAttempt(null);
+      setActivePaymentResult(data);
+      setIsModalOpen(false);
+      setStatusMsg(
+        `${t('payments.chargeSuccess', 'Charge generated successfully!')} Code: ${data.charge.pagbank_charge_id}`,
+      );
+      setStatusType('success');
+      await loadPaymentData();
+    } catch (err) {
+      // A lost response can mean the PSP accepted the order. Keep the exact
+      // quote and payload available for idempotent recovery instead of
+      // presenting a definite failure or issuing another quote.
+      setPendingChargeAttempt(attempt);
+      setIsModalOpen(false);
+      setStatusMsg(
+        t(
+          'payments.chargeOutcomeUnknown',
+          'The payment outcome is unknown. Do not create a new charge. Retry this same attempt to reconcile with PagBank using the same quote and idempotency reference.',
+        ),
+      );
+      setStatusType('warning');
+    } finally {
+      setIsSubmittingCharge(false);
+    }
+  };
+
   const handleCreateCharge = async () => {
+    if (pendingChargeAttempt || isSubmittingCharge) return;
     setStatusMsg('');
     const amountCents = Math.round(parseFloat(modalAmount || '0') * 100);
     if (amountCents <= 0) {
@@ -256,10 +332,11 @@ export default function PaymentManagementPage() {
       return;
     }
 
+    setIsSubmittingCharge(true);
     try {
       const supabase = getSupabaseBrowserClient();
 
-      // 1. Server-issued, audited quote for the proposed amount.
+      // This creates a server-audited quote, not an authoritative client price.
       const { data: quote, error: quoteError } = await supabase.rpc('issue_manual_quote', {
         p_organization_id: organizationId,
         p_amount_cents: amountCents,
@@ -276,40 +353,39 @@ export default function PaymentManagementPage() {
         return;
       }
 
-      // 2. The order boundary consumes the quote and derives the amount.
-      const { data, error } = await supabase.functions.invoke('pagbank-order', {
+      const referenceId = `Q_${quote.quote_id}`;
+      const attempt = {
+        quoteId: quote.quote_id,
+        referenceId,
         body: {
           organizationId,
           workspaceId,
           projectId,
           quoteId: quote.quote_id,
+          referenceId,
           paymentMethod: modalMethod,
           customer: {
-            name: modalCustomerName,
-            email: modalCustomerEmail,
+            name: modalCustomerName.trim(),
+            email: modalCustomerEmail.trim(),
           },
           connectedSellerId: selectedSellerId || null,
           customSplitPercentage: splitPct.trim() === '' ? null : parseFloat(splitPct),
         },
-      });
+      };
 
-      if (error) {
-        setStatusMsg(error.message || t('payments.chargeError', 'Failed to process PagBank charge.'));
-        setStatusType('error');
-        return;
-      }
-
-      setActivePaymentResult(data);
-      setIsModalOpen(false);
-      setStatusMsg(
-        `${t('payments.chargeSuccess', 'Charge generated successfully!')} Code: ${data.charge?.pagbank_charge_id}`,
-      );
-      setStatusType('success');
-      loadPaymentData();
+      setPendingChargeAttempt(attempt);
+      await submitChargeAttempt(attempt);
     } catch (err) {
-      setStatusMsg(err instanceof Error ? err.message : t('payments.chargeFailed', 'Charge creation failed.'));
+      setStatusMsg(err instanceof Error ? err.message : t('payments.quoteError', 'Could not issue a server quote for this charge.'));
       setStatusType('error');
+    } finally {
+      setIsSubmittingCharge(false);
     }
+  };
+
+  const handleRetryPendingCharge = async () => {
+    if (!pendingChargeAttempt || isSubmittingCharge) return;
+    await submitChargeAttempt(pendingChargeAttempt);
   };
 
   // Launch PagBank Connect OAuth flow
@@ -414,11 +490,39 @@ export default function PaymentManagementPage() {
       {statusMsg && (
         <InlineNotification
           kind={statusType}
-          title={statusType === 'error' ? t('common.error', 'Error') : t('payments.status', 'Status')}
+          title={
+            statusType === 'error'
+              ? t('common.error', 'Error')
+              : pendingChargeAttempt
+                ? t('payments.chargeOutcomeUnknownTitle', 'Payment outcome unknown')
+                : t('payments.status', 'Status')
+          }
           subtitle={statusMsg}
           onCloseButtonClick={() => setStatusMsg('')}
           style={{ marginBlockEnd: '1rem' }}
         />
+      )}
+
+      {pendingChargeAttempt && (
+        <div className="cs--payment-management__pending-charge" style={{ marginBlockEnd: '1rem' }}>
+          <Button
+            kind="tertiary"
+            renderIcon={Renew}
+            disabled={isSubmittingCharge}
+            onClick={handleRetryPendingCharge}
+          >
+            {isSubmittingCharge
+              ? t('payments.reconcilingCharge', 'Reconciling the same payment attempt…')
+              : t('payments.retrySameCharge', 'Retry same payment attempt')}
+          </Button>
+          <p>
+            {t(
+              'payments.pendingChargeReference',
+              'Pending quote {{quoteId}} · reference {{referenceId}}. Creating another charge is disabled until this outcome is resolved.',
+              { quoteId: pendingChargeAttempt.quoteId, referenceId: pendingChargeAttempt.referenceId },
+            )}
+          </p>
+        </div>
       )}
 
       {paymentLoadState.status !== 'ready' && paymentLoadMessage && (
@@ -553,7 +657,7 @@ export default function PaymentManagementPage() {
                   kind="primary"
                   size="sm"
                   renderIcon={Add}
-                  disabled={!organizationId || paymentLoadState.status !== 'ready'}
+                  disabled={!organizationId || paymentLoadState.status !== 'ready' || Boolean(pendingChargeAttempt) || isSubmittingCharge}
                   onClick={() => setIsModalOpen(true)}
                 >
                   {t('payments.newCharge', 'New Instant Charge')}
@@ -759,6 +863,7 @@ export default function PaymentManagementPage() {
         secondaryButtonText={t('payments.modalCancel', 'Cancel')}
         onRequestClose={() => setIsModalOpen(false)}
         onRequestSubmit={handleCreateCharge}
+        primaryButtonDisabled={isSubmittingCharge || Boolean(pendingChargeAttempt)}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingBlock: '0.5rem' }}>
           <TextInput
