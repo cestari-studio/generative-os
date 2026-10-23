@@ -8,6 +8,7 @@
 import PropTypes from 'prop-types';
 import { useMemo, useSyncExternalStore } from 'react';
 import { Column, Grid, Layer, SkeletonPlaceholder, Tile } from '@carbon/react';
+import { NoDataEmptyState } from '@carbon/ibm-products';
 import { AreaChart, DonutChart, SimpleBarChart } from '@carbon/charts-react';
 import { useTranslation } from 'react-i18next';
 import { useTenant } from '../../context/useTenant';
@@ -148,10 +149,19 @@ export const DashboardCharts = ({ activityChartData, cascadeDonutData, corpusBar
               </p>
               {loading ? (
                 <SkeletonPlaceholder style={{ inlineSize: '100%', blockSize: '300px' }} />
-              ) : (
+              ) : cascadeDonutData.length > 0 ? (
                 <ClientOnlyChart>
                   <DonutChart data={cascadeDonutData} options={donutOptions} />
                 </ClientOnlyChart>
+              ) : (
+                <NoDataEmptyState
+                  size="sm"
+                  title={t('dashboard.charts.noCascadeDataTitle', 'No effective cascade rules recorded')}
+                  subtitle={t(
+                    'dashboard.charts.noCascadeDataSubtitle',
+                    'The selected scope has no persisted settings with a recognized cascade rule.',
+                  )}
+                />
               )}
             </Tile>
           </Layer>
@@ -172,10 +182,19 @@ export const DashboardCharts = ({ activityChartData, cascadeDonutData, corpusBar
               </p>
               {loading ? (
                 <SkeletonPlaceholder style={{ inlineSize: '100%', blockSize: '260px' }} />
-              ) : (
+              ) : corpusBarData.length > 0 ? (
                 <ClientOnlyChart>
                   <SimpleBarChart data={corpusBarData} options={barOptions} />
                 </ClientOnlyChart>
+              ) : (
+                <NoDataEmptyState
+                  size="sm"
+                  title={t('dashboard.charts.noCorpusDataTitle', 'No knowledge or media assets recorded')}
+                  subtitle={t(
+                    'dashboard.charts.noCorpusDataSubtitle',
+                    'The selected scope has no persisted knowledge documents or media objects.',
+                  )}
+                />
               )}
             </Tile>
           </Layer>
