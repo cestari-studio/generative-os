@@ -561,11 +561,17 @@ const KnowledgeVectorPage = () => {
 
                     <div>
                       <p className="cs--knowledge-vector__chips-label">
-                        {t('knowledgeVector.storagePathLabel', 'Tenant storage scope prefix (uploaded objects receive a generated name):')}
+                        {t(
+                          'knowledgeVector.storagePathLabel',
+                          'Tenant storage scope prefix (uploaded objects receive a generated name):',
+                        )}
                       </p>
                       <Layer>
                         {storageScopePreview ? (
-                          <CodeSnippet type="single" feedback={t('knowledgeVector.copiedStorageScope', 'Copied storage scope prefix')}>
+                          <CodeSnippet
+                            type="single"
+                            feedback={t('knowledgeVector.copiedStorageScope', 'Copied storage scope prefix')}
+                          >
                             {storageScopePreview}
                           </CodeSnippet>
                         ) : (
