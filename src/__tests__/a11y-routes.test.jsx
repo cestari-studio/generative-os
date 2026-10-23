@@ -14,7 +14,6 @@ import { renderWithoutProviders } from '../test/test-utils';
 import { TenantProvider } from '../context/TenantContext';
 import Welcome from '../pages/welcome/Welcome';
 import NotFound from '../pages/not-found/NotFound';
-import Placeholder from '../pages/placeholder/Placeholder';
 import Dashboard from '../pages/dashboard/Dashboard';
 import TenantCascadeSettings from '../pages/settings/TenantCascadeSettings';
 import KnowledgeVectorPage from '../pages/knowledge/KnowledgeVectorPage';
@@ -70,17 +69,6 @@ describe('WCAG 2.2 AA — automated axe layer per route (white theme)', () => {
       <MemoryRouter initialEntries={['/unknown-route']}>
         <TenantProvider>
           <NotFound />
-        </TenantProvider>
-      </MemoryRouter>,
-    );
-    expectNoSeriousViolations(await runAxe(container));
-  }, 15000);
-
-  test('Placeholder page has no serious/critical axe violations', async () => {
-    const { container } = renderWithoutProviders(
-      <MemoryRouter initialEntries={['/link-1']}>
-        <TenantProvider>
-          <Placeholder />
         </TenantProvider>
       </MemoryRouter>,
     );

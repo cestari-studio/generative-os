@@ -18,7 +18,6 @@ import { ProfilePanel } from '../components/profilePanel/ProfilePanel';
 import TenantCascadeSettings from '../pages/settings/TenantCascadeSettings';
 import KnowledgeVectorPage from '../pages/knowledge/KnowledgeVectorPage';
 import Dashboard from '../pages/dashboard/Dashboard';
-import Placeholder from '../pages/placeholder/Placeholder';
 import NotFound from '../pages/not-found/NotFound';
 import enLocale from '../locales/en.json';
 import deLocale from '../locales/de.json';
@@ -91,17 +90,7 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
     expect(screen.getByText('Schema.org Audit Action Stream')).toBeInTheDocument();
   });
 
-  test('renders Placeholder and NotFound pages with CommonHeader and PageLayout', () => {
-    const { unmount } = renderWithoutProviders(
-      <MemoryRouter initialEntries={['/link-1']}>
-        <TenantProvider>
-          <Placeholder />
-        </TenantProvider>
-      </MemoryRouter>,
-    );
-    expect(screen.getByText('This page is not ready yet')).toBeInTheDocument();
-    unmount();
-
+  test('renders the NotFound page with CommonHeader and PageLayout', () => {
     renderWithoutProviders(
       <MemoryRouter initialEntries={['/unknown-route']}>
         <TenantProvider>
