@@ -121,3 +121,10 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 - Member-invitation copy now states that the action remains disabled until the authorized membership flow is implemented and audited.
 - Regression coverage: `src/__tests__/DashboardRosterStates.test.jsx`.
 - Status: PR pending CI and human review; no membership write/RLS/runtime change was made.
+
+## Remediation addendum — personal settings persistence
+
+- Dashboard language/theme/header preferences now report “Applied for this session only” if no authenticated user is available; they do not claim a database save.
+- A failed cascade save restores the previous local preference where possible and refreshes persisted effective settings before reporting the failure.
+- Regression test: `src/__tests__/Dashboard.test.jsx`.
+- Status: pending CI, Preview and independent human review; no remote settings or identity records were modified.
