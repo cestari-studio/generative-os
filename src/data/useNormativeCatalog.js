@@ -29,11 +29,11 @@ function classifyCatalogError(error) {
   const status = Number(error?.status || error?.statusCode || 0);
   const message = String(error?.message || '');
 
-  if ([401, 403].includes(status) || ['42501', 'PGRST301'].includes(code)) {
+  if ([401, 403].includes(status) || ['42501'].includes(code)) {
     return 'forbidden';
   }
   if (
-    ['42P01', 'PGRST205'].includes(code) ||
+    ['42P01'].includes(code) ||
     /relation .* does not exist|could not find the table .* schema cache/i.test(message)
   ) {
     return 'unprovisioned';
