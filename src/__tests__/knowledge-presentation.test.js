@@ -13,6 +13,7 @@ import {
   formatContentSize,
   getIndexingStatusTagType,
   interpretIngestionResult,
+  requireUploadedObjectPath,
 } from '../data/knowledgePresentation';
 
 describe('knowledge presentation helpers do not fabricate backend metadata', () => {
@@ -84,5 +85,17 @@ describe('knowledge presentation helpers do not fabricate backend metadata', () 
 
   test('media table preserves explicit zero bytes', () => {
     expect(buildMediaObjectRows([{ id: 'media-1', content_size: 0 }])[0].content_size).toBe('0 KB');
+  });
+
+  test('storage upload must return a real persisted object path before metadata may be written', () => {
+    expect(requireUploadedObjectPath({ data: { path: 'org-1/ws-1/object.pdf' }, error: null })).toBe(
+      'org-1/ws-1/object.pdf',
+    );
+    expect(() => requireUploadedObjectPath({ data: null, error: null })).toThrow(
+      'Storage upload did not return a persisted object path.',
+    );
+    expect(() =>
+      requireUploadedObjectPath({ data: null, error: new Error('storage permission denied') }),
+    ).toThrow('storage permission denied');
   });
 });
