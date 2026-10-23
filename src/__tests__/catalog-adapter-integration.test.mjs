@@ -16,7 +16,8 @@
  * authenticated, and the unprovisioned signal (empty/missing table).
  *
  * Requires a running disposable Postgres (see scripts/test-billing-sql.sh for
- * the bootstrap pattern). Set CATALOG_TEST_DATABASE_URL or PG* env vars.
+ * the bootstrap pattern). Configure PGHOST, PGPORT, PGUSER and PGPASSWORD.
+ * Set CATALOG_REQUIRE_POSTGRES=1 in CI so an unavailable service fails, not skips.
  */
 import { test, expect, describe, beforeAll, afterAll } from 'vitest';
 import pg from 'pg';
@@ -24,6 +25,7 @@ import { readFileSync } from 'node:fs';
 
 const PG = {
   user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || undefined,
   host: process.env.PGHOST || '127.0.0.1',
   port: Number(process.env.PGPORT || 55450),
   database: 'catalog_adapter_it',
@@ -39,6 +41,10 @@ const POST_AVAILABLE = await (async () => {
     return false;
   }
 })();
+
+if (!POST_AVAILABLE && process.env.CATALOG_REQUIRE_POSTGRES === '1') {
+  throw new Error('CATALOG_REQUIRE_POSTGRES=1 but the disposable PostgreSQL service is unavailable');
+}
 
 let client;
 
@@ -68,6 +74,13 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (client) await client.end();
+  if (POST_AVAILABLE) {
+    // Keep the disposable service clean for later jobs and local repetitions.
+    const admin = new pg.Client({ ...PG, database: 'postgres' });
+    await admin.connect();
+    await admin.query('DROP DATABASE IF EXISTS catalog_adapter_it;');
+    await admin.end();
+  }
 });
 
 const maybe = POST_AVAILABLE ? describe : describe.skip;
