@@ -299,7 +299,7 @@ export default function PaymentManagementPage() {
       );
       setStatusType('success');
       await loadPaymentData();
-    } catch (err) {
+    } catch {
       // A lost response can mean the PSP accepted the order. Keep the exact
       // quote and payload available for idempotent recovery instead of
       // presenting a definite failure or issuing another quote.
