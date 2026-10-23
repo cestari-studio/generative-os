@@ -225,6 +225,7 @@
     "PGUSER",
     "PGHOST",
     "PGPORT",
+    "PGPASSWORD",
     "regclass",
     "prereq",
     "pricebook",
