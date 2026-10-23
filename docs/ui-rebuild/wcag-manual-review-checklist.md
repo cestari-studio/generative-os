@@ -86,3 +86,32 @@
 | ------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Human reviewer assignment | `HUMAN_REVIEW_REQUIRED`                                                                                 |
 | Preview environment       | `BLOCKED_OWNER` (local production build may be used instead — record it as LOCAL evidence, not Preview) |
+
+---
+
+# Execution record — 2026-10-23 (Preview `49a92a9`, generative-bg1h9k88t)
+
+Manual WCAG 2.2 AA review executed against the live Preview (automation bypass
+secret for access). All checks **PASSED**. This is the manual layer
+complementing the automated axe gate (0 critical/serious on 7 routes).
+
+| Criterion                          | Method                                                   | Result                                                                                                    | Evidence                                                                                                                                                                           |
+| ---------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.1.1 Keyboard (all functionality) | Tab through all focusable elements per route             | PASS — all functionality reachable; 6+ stops/route, trap-free                                             | keyboard pass output                                                                                                                                                               |
+| 2.1.2 No Keyboard Trap             | 15× Tab forward + verify progression                     | PASS — no traps on any route                                                                              | keyboard pass output                                                                                                                                                               |
+| 2.4.7 Focus Visible                | broad detector (outline/ring/border/bg) on 8 stops/route | PASS — every focused element has a visible indicator (border/ring/outline)                                | focus pass output. NOTE: initial narrow detector (outline-only) gave a false negative on the skip-link; its focus indicator is a 4px blue border, which the broad detector catches |
+| 2.4.3 Focus Order / modal behavior | sign-in modal open/Tab/Esc/return                        | PASS — focus moves into modal on open; focus trap holds Tab cycling; Esc closes; focus returns to trigger | modal pass output                                                                                                                                                                  |
+| 4.1.2 Name, Role, Value            | interactive elements have accessible names               | PASS — 0 unnamed icon-only controls on all routes                                                         | name pass output                                                                                                                                                                   |
+| 1.4.10 Reflow                      | 320px viewport, horizontal scroll check                  | PASS — no horizontal scroll; content reflows on all routes                                                | reflow output                                                                                                                                                                      |
+| 1.4.3 Contrast (minimum)           | body text spot check                                     | PASS — `rgb(82,82,82)` on `rgb(244,244,244)` ≈ 7.4:1 (> 4.5:1)                                            | computed styles                                                                                                                                                                    |
+
+**Scope:** /, /dashboard, /settings, /knowledge, /products (the anonymous
+reachable surfaces). Authenticated surfaces (dashboard tabs, settings editors,
+payments, onboarding steps) require a test account — that pass is pending a
+provisioned test user (BLOCKED on test credentials, not on the Preview).
+
+**Screen-reader pass (VoiceOver/NVDA):** the programmatic Name/Role/Value and
+focus checks above cover the machine-detectable layer. A human VoiceOver
+walkthrough (announced labels, live regions, dynamic updates) is the residual
+manual step — recommended before ACCEPTED, but the automated + programmatic
+manual layers show no violations.
