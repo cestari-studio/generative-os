@@ -7,7 +7,7 @@
 
 /**
  * Integration test for the normative catalog adapter's data contract against
- * a REAL seeded catalog in disposable PostgreSQL 17.11.
+ * a REAL seeded catalog in disposable PostgreSQL 17.
  *
  * This is NOT a unit test with a mocked hook — it applies the migration +
  * seed to a disposable DB and runs the SAME queries the useNormativeCatalog
@@ -15,30 +15,27 @@
  * these SQL statements), asserting shape, content, provenance, RLS read as
  * authenticated, and the unprovisioned signal (empty/missing table).
  *
- * Requires a running disposable Postgres (see scripts/test-billing-sql.sh for
- * the bootstrap pattern). Set CATALOG_TEST_DATABASE_URL or PG* env vars.
+ * Safety (see src/test/catalog-test-guard.mjs):
+ *  - Opt-in is explicit: CATALOG_TEST_ENABLE=1, otherwise the suite skips
+ *    intentionally without probing the network at all.
+ *  - The target host must be loopback; remote hosts are a hard error.
+ *  - DROP DATABASE only runs when CATALOG_TEST_ALLOW_RECREATE=1 is set, and
+ *    only ever against the dedicated test database (never a system database).
+ *  - The server must report PostgreSQL major version 17.
+ *  - No password or connection string is printed in logs or errors.
  */
 import { test, expect, describe, beforeAll, afterAll } from 'vitest';
 import pg from 'pg';
 import { readFileSync } from 'node:fs';
+import { resolveCatalogTestTarget, assertDisposablePostgres } from '../test/catalog-test-guard.mjs';
 
-const PG = {
-  user: process.env.PGUSER || 'postgres',
-  host: process.env.PGHOST || '127.0.0.1',
-  port: Number(process.env.PGPORT || 55450),
-  database: 'catalog_adapter_it',
-};
+const target = resolveCatalogTestTarget();
 
-const POST_AVAILABLE = await (async () => {
-  try {
-    const c = new pg.Client({ ...PG, database: 'postgres' });
-    await c.connect();
-    await c.end();
-    return true;
-  } catch {
-    return false;
-  }
-})();
+if (target.mode === 'error') {
+  // Fail closed with a clear message (no secrets): an opted-in but unsafe
+  // configuration must never be silently skipped.
+  throw new Error(`catalog-adapter-integration: ${target.reason}`);
+}
 
 let client;
 
@@ -48,16 +45,37 @@ async function applySql(file) {
 }
 
 beforeAll(async () => {
-  if (!POST_AVAILABLE) return;
-  // Recreate a clean disposable DB mirroring the prereq schema + billing
-  // (dependency of the catalog's platform_admin policy) + catalog + seed.
-  const admin = new pg.Client({ ...PG, database: 'postgres' });
+  if (target.mode !== 'run') return;
+  const { pg: cfg } = target;
+
+  const admin = new pg.Client({
+    host: cfg.host,
+    port: cfg.port,
+    user: cfg.user,
+    password: cfg.password,
+    database: cfg.adminDatabase,
+  });
   await admin.connect();
-  await admin.query('DROP DATABASE IF EXISTS catalog_adapter_it;');
-  await admin.query('CREATE DATABASE catalog_adapter_it;');
+  await assertDisposablePostgres(admin);
+
+  // Terminate stale connections to the dedicated test database, then
+  // recreate it cleanly. The guard has already proven cfg.database is the
+  // dedicated test database, so this cannot touch any other database.
+  await admin.query(
+    'SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
+    [cfg.database],
+  );
+  await admin.query(`DROP DATABASE IF EXISTS "${cfg.database}"`);
+  await admin.query(`CREATE DATABASE "${cfg.database}"`);
   await admin.end();
 
-  client = new pg.Client(PG);
+  client = new pg.Client({
+    host: cfg.host,
+    port: cfg.port,
+    user: cfg.user,
+    password: cfg.password,
+    database: cfg.database,
+  });
   await client.connect();
 
   await applySql('supabase/tests/_prereq.sql');
@@ -70,7 +88,7 @@ afterAll(async () => {
   if (client) await client.end();
 });
 
-const maybe = POST_AVAILABLE ? describe : describe.skip;
+const maybe = target.mode === 'run' ? describe : describe.skip;
 
 maybe('catalog adapter data contract vs real seeded PostgreSQL (integration)', () => {
   test('catalog_products returns all 5 normative products with content + provenance', async () => {

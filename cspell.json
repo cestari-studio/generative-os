@@ -62,7 +62,11 @@
     "supabase/**",
     "*.snap",
     "*.log",
-    "*.svg"
+    "*.svg",
+    "PRIVACY_POLICY.html",
+    "PRIVACY_POLICY.md",
+    "PRIVACY_POLICY_BACKUP.md",
+    "PRIVACY_POLICY_LGPD.md"
   ],
   "words": [
     "webp",
@@ -229,6 +233,8 @@
     "prereq",
     "pricebook",
     "subproduct",
-    "subproducts"
+    "subproducts",
+    "datname",
+    "PGPASSWORD"
   ]
 }
