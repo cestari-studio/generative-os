@@ -1,5 +1,5 @@
 {
-  "manifest_version": "2.2",
+  "manifest_version": "3.0",
   "generated_at": "2026-10-22T00:00:00Z",
   "source": "local-git",
   "commit": "51a93719aa3a4a912169533a40832f93e5869c13",
@@ -301,5 +301,52 @@
       ],
       "note": "All 4 are additive (CREATE TABLE/CREATE OR REPLACE FUNCTION/CREATE POLICY/GRANT \u2014 no drops). Idempotent guards: CREATE TABLE IF NOT EXISTS, CREATE OR REPLACE FUNCTION, CREATE POLICY (idempotent in PG15+ via IF NOT EXISTS? \u2014 verify each policy has no conflict), GRANT is idempotent. Forward-recovery: additive means no rollback of drops needed; failure mid-sequence leaves earlier migrations applied (re-runnable)."
     }
+  },
+  "production_deploy": {
+    "deployed_at": "2026-10-23 (owner-authorized, full scope: migrations + functions + verify_jwt)",
+    "authorized_scope": "full \u2014 migrations (dependency order) + 6 Edge Functions + verify_jwt per config.toml",
+    "migrations_applied": {
+      "20261022053203": "billing_pricebook_usage_metering",
+      "20261022060000": "catalog_normative_source",
+      "20261023000000": "workspace_create_rpc",
+      "20261023010000": "notifications_foundation"
+    },
+    "migration_ledger_now": "21 migrations (was 17)",
+    "catalog_seed": "applied via supabase db query --linked \u2014 5 products, 30 subproducts, 9 capabilities, 6 services, 1 version (normative registries)",
+    "functions_deployed": {
+      "passkey-auth": {
+        "version": 7,
+        "verify_jwt": true
+      },
+      "settings-cascade": {
+        "version": 5,
+        "verify_jwt": true
+      },
+      "vector-rag": {
+        "version": 7,
+        "verify_jwt": true
+      },
+      "pagbank-connect": {
+        "version": 6,
+        "verify_jwt": true
+      },
+      "pagbank-order": {
+        "version": 6,
+        "verify_jwt": true
+      },
+      "pagbank-webhook": {
+        "version": 7,
+        "verify_jwt": false
+      }
+    },
+    "readback_verification": {
+      "tables": "products, quotes, catalog_products, notifications, platform_role_assignments, price_books, usage_events, credit_ledger \u2014 all present",
+      "rpcs": "issue_manual_quote, consume_quote, claim_pagbank_order, create_workspace, mark_notification_read, has_platform_role \u2014 all present",
+      "passkey_anonymous_challenge": "HTTP 401 (hardening live)",
+      "passkey_anonymous_list": "HTTP 401 (hardening live)",
+      "pagbank_order_anonymous": "HTTP 401 Missing authorization header (verify_jwt gateway live)",
+      "catalog_anon_read": "RLS denies anonymous read ([] \u2014 correct; authenticated-only)"
+    },
+    "runtime_drift": "RESOLVED \u2014 code verified in CI is now the code deployed in production"
   }
 }
