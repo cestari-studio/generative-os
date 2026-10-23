@@ -5,16 +5,16 @@ Source directive: `DIRECIONAMENTO_MASTER.md` (2026-10-23 handoff). Execution rep
 
 ## Baseline reconciled at start (read-only)
 
-| Item                   | State                                                                                                                   | Evidence                      |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| HEAD before this cycle | `98fc0a0` on `feat/complete-carbon-page-rebuild` (PR #7)                                                                | `git log`                     |
-| PR stack               | #9 → #8 → #2 → #3 → #4 → #5 → #6 → #7 (merge commits, owner gate)                                                       | directive §1.4                |
-| #8 official CI         | FAILURE at lint, run 39739746838, SHA `f1de94f3`                                                                        | directive §1.3                |
-| Human reviews          | 0 on all PRs                                                                                                            | prior cycles                  |
-| Remote Supabase        | 17 migrations applied (last `20261022002300`); billing + catalog migrations absent; 6 Edge Functions `verify_jwt=false` | prior read-only inventory     |
-| Vercel                 | project listed; detail 404; deployments 403; `linkedProjects: []`                                                       | prior read-only reads         |
-| Identity `...0010`     | frozen — no mutation                                                                                                    | AGENTS.md                     |
-| Ontology bindings      | 19/225 features with `page_keys`, 76/225 with `operation_ids`                                                           | registry-coverage-matrix.json |
+| Item                   | State                                                                                                                   | Evidence                                                                |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| HEAD before this cycle | `98fc0a0` on `feat/complete-carbon-page-rebuild` (PR #7)                                                                | `git log`                                                               |
+| PR stack               | #9 → #8 → #2 → #3 → #4 → #5 → #6 → #7 (merge commits, owner gate)                                                       | directive §1.4                                                          |
+| #8 official CI         | FAILURE at lint, run 39739746838, SHA `f1de94f3`                                                                        | directive §1.3                                                          |
+| Human reviews          | 0 on all PRs                                                                                                            | prior cycles                                                            |
+| Remote Supabase        | 17 migrations applied (last `20261022002300`); billing + catalog migrations absent; 6 Edge Functions `verify_jwt=false` | re-confirmed 2026-10-23: 18/18 expected tables absent via `to_regclass` |
+| Vercel                 | project listed; detail 404; deployments 403; `linkedProjects: []`                                                       | prior read-only reads                                                   |
+| Identity `...0010`     | frozen — no mutation                                                                                                    | AGENTS.md                                                               |
+| Ontology bindings      | 19/225 features with `page_keys`, 76/225 with `operation_ids`                                                           | registry-coverage-matrix.json                                           |
 
 ## P0-1 Catalog integration test safety + CI execution (THIS CYCLE)
 
@@ -48,10 +48,64 @@ Postgres on a local port and ran `DROP DATABASE` against it. CI reported
 | Opt-in, no recreate flag        | hard error (fail closed)             |
 | PG 16 server                    | refused by version guard             |
 
-**CI evidence:** pending — run 39901369262 on SHA `2f2a0f2` (this commit).
+**CI evidence:** run 39901369262 on SHA `2f2a0f2` — all 4 jobs green
+(quality / ssr-smoke / billing-sql / release-dry-run); quality log line
+`catalog integration: total=7 passed=7 skipped=0` at 2026-10-23T04:40:35Z.
 
 **Exit criteria:** CI `quality` green on `2f2a0f2` with the assertion step
-printing `total=7 passed=7 skipped=0`. Status: NOT_RUN → (update after CI).
+printing `total=7 passed=7 skipped=0`. Status: **PASS**.
+
+## P0-2 Brand DNA fictional tenants removed (THIS CYCLE)
+
+**Problem (directive §7):** the Brand DNA tab rendered 12 hardcoded fictional
+tenants (`BRAND_DNA_PROFILES`: "All Life Institute", "Clareira de Avalon",
+"PUTTINATO", …) as if they were real configured tenant brands — runtime-
+prohibited fixed list presented as operational data. No backend brand
+registry exists (no brand/tenant tables in the schema).
+
+**Fix (TDD):**
+
+- [x] RED: test asserts fictional tenants never render and the unprovisioned
+      state is shown (`PUTTINATO`, `All Life Institute`, `Clareira de Avalon`
+      absent; "Brand DNA registry not provisioned" present).
+- [x] GREEN: tab content replaced with the honest unprovisioned state; all
+      `BRAND_DNA_PROFILES` wiring removed (import, search state, filtered/active
+      memos, table rows/headers, inspector sidebar); unused Carbon imports
+      removed; tab label no longer claims "(12)"; locale keys in 6 locales.
+
+**Verification (local):** page tests 3/3; full suite 219 passed + 7
+intentionally skipped (no opt-in); lint clean; build OK.
+
+**CI evidence:** pending — SHA `f6180c7` (run 39901931522).
+
+## Phase 2 runtime mock/demo/fake audit (THIS CYCLE)
+
+Searches executed over runtime `src/` (excluding tests) and
+`supabase/functions/`: `mock|demo|fake|fixture`, `example.com`, sample
+emails/CPF/CNPJ patterns, `setTimeout`-simulated backend, `window.alert`,
+static arrays presented as data, `setSearchResults` sources, dashboard data
+sources.
+
+**Result:** no remaining runtime-prohibited findings. Evidence:
+
+- `useTenant.js` / `TenantContext.jsx`: all org/workspace/project/persons/
+  documents/media/audit data via `supabase.from(...)` / `supabase.rpc(...)`;
+  context contract documents the no-synthetic-fallback rule.
+- `DashboardCharts`/`DashboardKpis`: data from `useDashboardData()` →
+  `useTenant()` (backend), not static arrays.
+- `KnowledgeVectorPage`: search results from the vector-rag Edge Function
+  (`setSearchResults(data?.results || [])` — empty state, not fabricated).
+- `pagbank-order` (versioned): amount from consumed quote
+  (`quoteResult.total_cents`), synthetic charges explicitly blocked; the
+  `Date.now()` reference is only a display-label default — authoritative
+  reference is the DB `gateway_reference_id` from `claim_pagbank_order`.
+- `pagbank-connect`: fake OAuth flows explicitly blocked.
+- `genOsCatalog.js` remains on disk as the verified static taxonomy reference
+  but is no longer imported by any runtime page.
+
+**Residual risk:** the audit is search-based; the manual contextual review of
+less obvious spots continues in the next cycle (settings cascade drafts,
+onboarding copy, notifications).
 
 ## Next non-blocked tasks (queue)
 
