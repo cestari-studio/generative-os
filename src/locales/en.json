@@ -60,7 +60,8 @@
     "back": "Back",
     "finish": "Finish",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "notReported": "Not reported"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio logo"
@@ -90,7 +91,16 @@
       "corpusTitle": "Knowledge & Media Assets by Format",
       "itemsCount": "Count",
       "rulesTotal": "Effective rules",
-      "timelineAxis": "Timeline"
+      "timelineAxis": "Timeline",
+      "completedActions": "Completed actions",
+      "pendingActions": "Pending / in progress",
+      "otherActions": "Other / unclassified statuses",
+      "noCascadeDataTitle": "No effective cascade rules recorded",
+      "noCascadeDataSubtitle": "The selected scope has no persisted settings with a recognized cascade rule.",
+      "noCorpusDataTitle": "No knowledge or media assets recorded",
+      "noCorpusDataSubtitle": "The selected scope has no persisted knowledge documents or media objects.",
+      "documentFormatNotReported": "Unspecified document format",
+      "mediaFormatNotReported": "Unspecified media format"
     },
     "chartsRegion": "Telemetry and Governance Analytics",
     "contextHierarchy": "Tenant hierarchy",
