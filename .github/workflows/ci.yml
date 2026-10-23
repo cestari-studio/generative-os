@@ -234,6 +234,7 @@ jobs:
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: postgres
+          CATALOG_REQUIRE_POSTGRES: '1'
         run: npm exec -- vitest run src/__tests__/catalog-adapter-integration.test.mjs
 
   release-dry-run:
