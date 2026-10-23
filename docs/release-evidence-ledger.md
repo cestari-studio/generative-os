@@ -149,3 +149,27 @@ context updates (`setSignInStep`), remounting the subtree and wiping local
 form state. Fix: hoisted both modals to stable Nav-level siblings outside the
 render prop. Verified: identity bar shows the typed email after Continue.
 Commit `eddf748`.
+
+## Additional fixes — sign-in Preview verification + dead demo code removal (2026-10-23)
+
+**Sign-in fix verified in live Preview:** the email-preservation fix
+(`eddf748`) was confirmed in the deployed Preview
+(`generative-6t1mtfgha`) — identity bar shows the typed email after Continue,
+password field accessible. Local → CI → Git Preview → deployed, end-to-end.
+
+**Dead demo code removed (zero-mock runtime rule):**
+
+- `src/service/message.js` — unused service fetching
+  `jsonplaceholder.typicode.com/posts/1` (fake external endpoint; zero
+  imports/routes).
+- `src/pages/placeholder/Placeholder.jsx` — navigation-demo page referenced
+  by no route (only NotFound is wired for `*`).
+- Tests updated (Placeholder references removed; NotFound coverage kept).
+  Commit `b402073`.
+
+**Accidental PRIVACY_POLICY commit reverted:** `git add -A` in `b402073`
+accidentally committed the owner's 4 untracked PRIVACY_POLICY* drafts. They
+were untracked again (`git rm --cached`, local copies preserved) and added to
+`.gitignore`. Commit `dbea4e0`. **Lesson:** never use bare `git add -A` in
+this repo — stage explicit paths (the owner's untracked drafts live in the
+root).
