@@ -61,7 +61,8 @@ Atualizações de estado verificadas nesta rodada (evidência: testes automatiza
 | `/settings`                                                             | `INITIAL_SETTINGS` removidos do runtime; "No settings configured" quando não provisionado                    | **IMPLEMENTADO**               |
 | `/onboarding`                                                           | Persistência bloqueante + reidratação de `step_data` (PR 4); passkey section → aviso de indisponibilidade    | **IMPLEMENTADO**               |
 | `shell:global-ui`                                                       | Footer rebranded; sem referências a produtos IBM                                                             | **IMPLEMENTADO**               |
-| `/products`, `tab:dashboard-*` (overview/workspace/users/settings), `*` | Sem mudança funcional nesta rodada; dados passaram a vir vazios/erro real (sem fixtures)                     | **INVENTARIADO**               |
+| **`/products`** | Catálogo de produtos ligado ao backend normativo; Brand DNA permanece indisponível até binding de persistência autoritativo. Sem perfis ou tenants sintéticos; estados distinguem loading, empty, unprovisioned, forbidden e error. | **PARCIALMENTE IMPLEMENTADO** |
+| `tab:dashboard-*` (overview/workspace/users/settings), `*` | Sem alteração funcional nesta rodada; dados continuam sujeitos a estados reais vazios/erro, sem fixtures. | **INVENTARIADO** |
 
 **Pendente para `VALIDADO`/`E2E_VERIFIED` (Fase 7, fora do escopo desta rodada):** screenshots white/g100 por viewport, auditoria WCAG 2.2 AA com evidência, browser E2E por rota/locale/tema, e Preview Vercel reproduzível do SHA exato.
 

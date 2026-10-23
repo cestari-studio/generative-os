@@ -32,6 +32,60 @@ import { Footer } from '../../components/footer/Footer';
 import { useTenant } from '../../context/useTenant';
 import { RESOURCE_TAXONOMY } from '../../routes/config';
 
+function CatalogAvailabilityState({ status, t }) {
+  const copy = {
+    loading: {
+      titleKey: 'productsCatalog.loadingTitle',
+      title: 'Loading product catalog',
+      descriptionKey: 'productsCatalog.loadingDesc',
+      description: 'Loading the normative catalog from the configured backend.',
+      role: 'status',
+    },
+    unprovisioned: {
+      titleKey: 'productsCatalog.notProvisionedTitle',
+      title: 'Product catalog not provisioned',
+      descriptionKey: 'productsCatalog.notProvisionedDesc',
+      description: 'The required catalog tables are not provisioned in this environment. No static fallback content is displayed.',
+      role: 'status',
+    },
+    empty: {
+      titleKey: 'productsCatalog.emptyTitle',
+      title: 'Product catalog is empty',
+      descriptionKey: 'productsCatalog.emptyDesc',
+      description: 'The catalog tables are reachable, but no product entries are present. No static fallback content is displayed.',
+      role: 'status',
+    },
+    forbidden: {
+      titleKey: 'productsCatalog.forbiddenTitle',
+      title: 'Catalog access forbidden',
+      descriptionKey: 'productsCatalog.forbiddenDesc',
+      description: 'Your current session is not authorized to read the normative catalog. Contact an administrator if you believe access should be granted.',
+      role: 'alert',
+    },
+    error: {
+      titleKey: 'productsCatalog.errorTitle',
+      title: 'Product catalog unavailable',
+      descriptionKey: 'productsCatalog.errorDesc',
+      description: 'The catalog could not be loaded because of a service or configuration error. Retry later; no static fallback content is displayed.',
+      role: 'alert',
+    },
+  };
+  const state = copy[status] || copy.error;
+
+  return (
+    <Tile
+      className="cs--products-page__empty"
+      role={state.role}
+      aria-live={state.role === 'status' ? 'polite' : 'assertive'}
+    >
+      <Stack gap={3}>
+        <h3 className="cs--products-page__empty-title">{t(state.titleKey, state.title)}</h3>
+        <p className="cs--products-page__empty-text">{t(state.descriptionKey, state.description)}</p>
+      </Stack>
+    </Tile>
+  );
+}
+
 const ProductsCatalogPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -136,21 +190,7 @@ const ProductsCatalogPage = () => {
               </Tile>
 
               {!catalogReady ? (
-                <Tile className="cs--products-page__empty">
-                  <Stack gap={3}>
-                    <h3 className="cs--products-page__empty-title">
-                      {t('productsCatalog.notProvisionedTitle', 'Product catalog not provisioned')}
-                    </h3>
-                    <p className="cs--products-page__empty-text">
-                      {catalog.status === 'loading'
-                        ? t('productsCatalog.loading', 'Loading the normative product catalog…')
-                        : t(
-                            'productsCatalog.notProvisionedDesc',
-                            'The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, the five product suites with their subproducts, capabilities and outcomes will appear here.',
-                          )}
-                    </p>
-                  </Stack>
-                </Tile>
+                <CatalogAvailabilityState status={catalog.status} t={t} />
               ) : (
                 <Grid narrow>
                   {catalog.products.map((product) => {
@@ -245,21 +285,7 @@ const ProductsCatalogPage = () => {
           {/* TAB 3: PLATFORM SERVICES & CAPABILITIES (normative catalog from backend) */}
           <TabPanel>
             {!catalogReady ? (
-              <Tile className="cs--products-page__empty">
-                <Stack gap={3}>
-                  <h3 className="cs--products-page__empty-title">
-                    {t('productsCatalog.notProvisionedTitle', 'Product catalog not provisioned')}
-                  </h3>
-                  <p className="cs--products-page__empty-text">
-                    {catalog.status === 'loading'
-                      ? t('productsCatalog.loading', 'Loading the normative product catalog…')
-                      : t(
-                          'productsCatalog.notProvisionedDesc',
-                          'The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, platform services and shared capabilities will appear here.',
-                        )}
-                  </p>
-                </Stack>
-              </Tile>
+              <CatalogAvailabilityState status={catalog.status} t={t} />
             ) : (
               <Stack gap={6}>
                 <div>

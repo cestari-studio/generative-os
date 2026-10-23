@@ -9,19 +9,25 @@ import { useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
 
 /**
- * Reads the normative catalog (products, subproducts, capabilities, platform
- * services) from the backend catalog store (migration
- * 20261022060000_catalog_normative_source + seed).
+ * Reads the normative catalog (products, subproducts, capabilities, and
+ * platform services) exclusively from the backend catalog store.
  *
- * Returns an honest provisioning state instead of fabricating a fallback:
- *   - 'loading'  — query in flight
- *   - 'ready'    — catalog present in the backend
- *   - 'unprovisioned' — the catalog store is not provisioned (tables missing
- *     or empty); the caller renders the factual empty state, never a fake.
- *
- * Content comes exclusively from the DB; the static genOsCatalog.js remains
- * the verified static taxonomy reference but is NOT a runtime fallback.
+ * Explicit states distinguish loading, provisioned-but-empty, missing schema,
+ * authorization denial, and unexpected failures. Static taxonomy constants
+ * are never used as runtime fallback content.
  */
+export function classifyCatalogQueryError(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const status = Number(error?.status ?? error?.statusCode);
+
+  if (status === 401 || status === 403 || code === '42501') {
+    return 'forbidden';
+  }
+  if (code === '42P01' || code === 'PGRST205') {
+    return 'unprovisioned';
+  }
+  return 'error';
+}
 export function useNormativeCatalog() {
   const [state, setState] = useState({
     status: 'loading',
@@ -49,7 +55,11 @@ export function useNormativeCatalog() {
 
         const queryError = [productsRes, subsRes, capsRes, svcsRes].find((r) => r.error);
         if (queryError?.error) {
-          setState((s) => ({ ...s, status: 'unprovisioned', error: queryError.error.message }));
+          setState((s) => ({
+            ...s,
+            status: classifyCatalogQueryError(queryError.error),
+            error: queryError.error.message,
+          }));
           return;
         }
 
@@ -57,7 +67,15 @@ export function useNormativeCatalog() {
         const subs = Array.isArray(subsRes.data) ? subsRes.data : [];
 
         if (products.length === 0) {
-          setState((s) => ({ ...s, status: 'unprovisioned' }));
+          setState((s) => ({
+            ...s,
+            status: 'empty',
+            products: [],
+            subproductsByProduct: {},
+            capabilities: [],
+            platformServices: [],
+            error: null,
+          }));
           return;
         }
 
@@ -78,7 +96,7 @@ export function useNormativeCatalog() {
         if (!cancelled) {
           setState((s) => ({
             ...s,
-            status: 'unprovisioned',
+            status: 'error',
             error: err instanceof Error ? err.message : 'catalog query failed',
           }));
         }

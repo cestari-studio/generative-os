@@ -110,6 +110,33 @@ test('renders the normative product catalog from the backend with all 5 suites a
   expect(screen.getByText('Academy Ops')).toBeInTheDocument();
 });
 
+test.each([
+  ['empty', 'Product catalog is empty', /no product entries are present/i],
+  ['forbidden', 'Catalog access forbidden', /not authorized to read the normative catalog/i],
+  ['error', 'Product catalog unavailable', /service or configuration error/i],
+])('renders the distinct %s catalog state without static product fallback', (status, title, description) => {
+  vi.spyOn(catalogModule, 'useNormativeCatalog').mockReturnValue({
+    status,
+    products: [],
+    subproductsByProduct: {},
+    capabilities: [],
+    platformServices: [],
+    error: status === 'error' ? 'backend unreachable' : null,
+  });
+
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider value={DEFAULT_CONTEXT_VALUE}>
+        <ProductsCatalogPage />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
+
+  expect(screen.getAllByText(title).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(description).length).toBeGreaterThan(0);
+  expect(screen.queryByText('Content Factory')).not.toBeInTheDocument();
+});
+
 test('shows the factual unprovisioned empty state when the catalog is not provisioned', () => {
   vi.spyOn(catalogModule, 'useNormativeCatalog').mockReturnValue({
     status: 'unprovisioned',
