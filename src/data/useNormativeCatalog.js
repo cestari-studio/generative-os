@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
 
 /**
@@ -13,15 +13,34 @@ import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
  * services) from the backend catalog store (migration
  * 20261022060000_catalog_normative_source + seed).
  *
- * Returns an honest provisioning state instead of fabricating a fallback:
- *   - 'loading'  — query in flight
- *   - 'ready'    — catalog present in the backend
- *   - 'unprovisioned' — the catalog store is not provisioned (tables missing
- *     or empty); the caller renders the factual empty state, never a fake.
+ * Returns honest backend states instead of fabricating a fallback:
+ *   - 'loading'       — query in flight
+ *   - 'ready'         — product catalog present in the backend
+ *   - 'empty'         — tables are reachable but contain no product records
+ *   - 'unprovisioned' — catalog tables are missing
+ *   - 'forbidden'     — the current session is not authorized to read the catalog
+ *   - 'error'         — an unexpected request or service failure
  *
  * Content comes exclusively from the DB; the static genOsCatalog.js remains
  * the verified static taxonomy reference but is NOT a runtime fallback.
  */
+function classifyCatalogError(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const status = Number(error?.status || error?.statusCode || 0);
+  const message = String(error?.message || '');
+
+  if ([401, 403].includes(status) || ['42501'].includes(code)) {
+    return 'forbidden';
+  }
+  if (
+    ['42P01'].includes(code) ||
+    /relation .* does not exist|could not find the table .* schema cache/i.test(message)
+  ) {
+    return 'unprovisioned';
+  }
+  return 'error';
+}
+
 export function useNormativeCatalog() {
   const [state, setState] = useState({
     status: 'loading',
@@ -31,9 +50,12 @@ export function useNormativeCatalog() {
     platformServices: [],
     error: null,
   });
+  const [requestVersion, setRequestVersion] = useState(0);
+  const retry = useCallback(() => setRequestVersion((version) => version + 1), []);
 
   useEffect(() => {
     let cancelled = false;
+    setState((current) => ({ ...current, status: 'loading', error: null }));
 
     (async () => {
       try {
@@ -49,7 +71,11 @@ export function useNormativeCatalog() {
 
         const queryError = [productsRes, subsRes, capsRes, svcsRes].find((r) => r.error);
         if (queryError?.error) {
-          setState((s) => ({ ...s, status: 'unprovisioned', error: queryError.error.message }));
+          setState((s) => ({
+            ...s,
+            status: classifyCatalogError(queryError.error),
+            error: queryError.error.message,
+          }));
           return;
         }
 
@@ -57,7 +83,7 @@ export function useNormativeCatalog() {
         const subs = Array.isArray(subsRes.data) ? subsRes.data : [];
 
         if (products.length === 0) {
-          setState((s) => ({ ...s, status: 'unprovisioned' }));
+          setState((s) => ({ ...s, status: 'empty', error: null }));
           return;
         }
 
@@ -78,7 +104,7 @@ export function useNormativeCatalog() {
         if (!cancelled) {
           setState((s) => ({
             ...s,
-            status: 'unprovisioned',
+            status: classifyCatalogError(err),
             error: err instanceof Error ? err.message : 'catalog query failed',
           }));
         }
@@ -88,7 +114,7 @@ export function useNormativeCatalog() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [requestVersion]);
 
-  return state;
+  return { ...state, retry };
 }
