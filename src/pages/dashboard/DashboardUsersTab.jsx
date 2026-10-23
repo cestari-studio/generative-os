@@ -27,7 +27,8 @@ import { useTenant } from '../../context/useTenant';
 
 export const DashboardUsersTab = () => {
   const { t } = useTranslation();
-  const { activeOrganization, persons = [], user } = useTenant();
+  const { activeOrganization, persons = [] } = useTenant();
+  const notReported = t('common.notReported', 'Not reported');
 
   const headers = [
     { key: 'name', header: t('dashboard.users.colName', 'Member Name') },
@@ -37,20 +38,14 @@ export const DashboardUsersTab = () => {
     { key: 'identifier', header: t('dashboard.users.colId', 'Person ID') },
   ];
 
-  const rows = persons.map((person, index) => {
-    const isCurrentUser = user?.email === person.email;
-
-    return {
-      id: person.id || `person-${index}`,
-      name: person.name || person.email || t('dashboard.users.unnamed', 'Anonymous Person'),
-      email: person.email || '—',
-      role: isCurrentUser
-        ? t('dashboard.users.roleOwner', 'Tenant Owner / Administrator')
-        : t('dashboard.users.roleMember', 'Workspace Member'),
-      status: t('common.selected', 'Active'),
-      identifier: person.id || '—',
-    };
-  });
+  const rows = persons.map((person, index) => ({
+    id: person.id || `person-${index}`,
+    name: person.name || notReported,
+    email: person.email || notReported,
+    role: person.organization_role || person.membership_role || person.role || notReported,
+    status: person.status || notReported,
+    identifier: person.id || notReported,
+  }));
 
   return (
     <Section as="section" className="cs--dashboard-tab-pane" aria-labelledby="users-tab-heading">
@@ -68,7 +63,7 @@ export const DashboardUsersTab = () => {
                   {t(
                     'dashboard.users.subtitle',
                     'Schema.org Person entities registered in {{org}} with isolated RBAC scopes.',
-                    { org: activeOrganization?.name || 'organization' },
+                    { org: activeOrganization?.name || notReported },
                   )}
                 </p>
               </div>
@@ -89,7 +84,7 @@ export const DashboardUsersTab = () => {
               <p className="cs--dashboard-summary-tile__note">
                 {t(
                   'dashboard.users.inviteUnavailableNote',
-                  'Member invitation is not provisioned for this organization yet. Manage members directly in the organization roster.',
+                  'Invitations remain disabled until an authorized organization-membership flow is provisioned and audited.',
                 )}
               </p>
             </div>

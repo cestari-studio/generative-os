@@ -27,6 +27,7 @@ import { useTenant } from '../../context/useTenant';
 
 export const DashboardWorkspaceTab = () => {
   const { t } = useTranslation();
+  const notReported = t('common.notReported', 'Not reported');
   const {
     activeOrganization,
     activeWorkspace,
@@ -50,7 +51,7 @@ export const DashboardWorkspaceTab = () => {
 
     return {
       id: ws.id,
-      name: ws.name || t('dashboard.workspaces.unnamed', 'Default Workspace'),
+      name: ws.name || notReported,
       identifier: ws.identifier || ws.id,
       projectsCount: wsProjects.length,
       status: isActive ? t('common.selected', 'Active') : t('common.standby', 'Available'),
@@ -80,8 +81,8 @@ export const DashboardWorkspaceTab = () => {
                   {activeWorkspace?.name || t('dashboard.workspaces.current', 'Active Workspace')}
                 </Heading>
                 <p className="cs--dashboard-summary-tile__subtitle">
-                  {t('dashboard.workspaces.organization', 'Organization')}: {activeOrganization?.name} •{' '}
-                  {t('dashboard.workspaces.identifier', 'ID')}: {activeWorkspace?.id}
+                  {t('dashboard.workspaces.organization', 'Organization')}: {activeOrganization?.name || notReported} •{' '}
+                  {t('dashboard.workspaces.identifier', 'ID')}: {activeWorkspace?.id || notReported}
                 </p>
               </div>
             </div>

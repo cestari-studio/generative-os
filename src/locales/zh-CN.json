@@ -324,7 +324,7 @@
       "roleMember": "工作区成员",
       "unnamed": "匿名用户",
       "inviteUnavailableTitle": "成员邀请尚不可用 — 该组织尚未配置邀请流程。",
-      "inviteUnavailableNote": "该组织尚未配置成员邀请。请直接在组织名册中管理成员。"
+      "inviteUnavailableNote": "在经授权的组织成员邀请流程完成配置并通过审计之前，邀请功能将保持禁用状态。"
     },
     "subscriptions": {
       "currentPlan": "当前订阅：{{tier}}",

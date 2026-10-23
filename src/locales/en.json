@@ -324,7 +324,7 @@
       "roleMember": "Workspace Member",
       "unnamed": "Anonymous Person",
       "inviteUnavailableTitle": "Member invitation is not available yet — the invitation flow is not provisioned for this organization.",
-      "inviteUnavailableNote": "Member invitation is not provisioned for this organization yet. Manage members directly in the organization roster."
+      "inviteUnavailableNote": "Invitations remain disabled until an authorized organization-membership flow is provisioned and audited."
     },
     "subscriptions": {
       "currentPlan": "Active Subscription: {{tier}}",
