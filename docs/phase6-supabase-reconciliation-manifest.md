@@ -146,3 +146,35 @@ Confirmed by remote advisor query. These are warnings to review (grants + author
 ## 11. Correção do estado de CI da PR #8 (2026-10-22)
 
 A execução oficial anterior de #8 em `f1de94f3` (run `39739746838`) terminou em **`failure` no lint** (build/testes ignorados) — **não é** "PENDING sem status". A API combined status vazia não significa ausência de execuções de Actions; há uma execução real e falha registrada. A CI verde de #9 **não valida** o SHA oficial de #8; a execução antiga permanece falha até que a integração autorizada de #9→#8 produza um novo SHA e uma nova CI verde nele.
+
+---
+
+## 12. SECURITY DEFINER consumer map (read-only, 2026-10-23)
+
+Quatro funções públicas sinalizadas pelo advisor `authenticated_security_definer_function_executable`.
+Análise read-only de grants, corpo e consumidores — **nenhuma revogação executada**.
+
+| Função                    | DEFINER | search_path | auth.uid()                        | membership                               | Grants (EXECUTE)                      | Consumidores conhecidos                                                                                                  |
+| ------------------------- | ------- | ----------- | --------------------------------- | ---------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `apply_setting_cascade`   | sim     | `""`        | sim, com null-check + raise       | `is_org_member` + `organization_members` | authenticated, service_role, postgres | `TenantContext.jsx` (settings UI), Edge Function `settings-cascade`                                                      |
+| `create_pagbank_order`    | sim     | `""`        | sim (`v_caller_id := auth.uid()`) | `is_org_member`                          | authenticated, service_role, postgres | **nenhum consumidor no repo** — fluxo novo usa `claim_pagbank_order` (não aplicada); função legada viva apenas no remoto |
+| `get_tenant_payment_kpis` | sim     | `""`        | sim (`v_caller_id := auth.uid()`) | `is_org_member`                          | authenticated, service_role, postgres | `PaymentManagementPage.jsx` (KPIs de pagamentos)                                                                         |
+| `record_media_object`     | sim     | `""`        | sim, com null-check + raise       | `is_org_member`                          | authenticated, service_role, postgres | `TenantContext.jsx` (`uploadTenantMedia`)                                                                                |
+
+### Avaliação de risco
+
+- O aviso do advisor é **genérico** (qualquer DEFINER executável por `authenticated`).
+  As quatro funções validam `auth.uid()` e membership no corpo, usam
+  `search_path=""` (proteção contra hijacking de search_path) e **não** são
+  executáveis por `anon`.
+- Justificativa DEFINER provável: escrita/leitura agregada em tabelas com RLS
+  que exigiria policy adicional por operação (settings cascade, KPIs
+  agregados, registro de mídia, criação de ordem legada). Necessário confirmar
+  qual acesso exato exige bypass — próximo passo: extrair as tabelas tocadas
+  por cada função e mapear para a policy que seria necessária em modo INVOKER.
+- `create_pagbank_order`: sem consumidores no código versionado. Candidata a
+  **deprecação formal** (revogar EXECUTE de `authenticated` em migração
+  aditiva futura) após confirmar que nenhum cliente externo a chama —
+  decisão `BLOCKED_OWNER` (requer decisão do owner + janela de observação).
+- Nenhuma revogação automática: qualquer mudança de grant exige migração
+  aditiva versionada + teste dos consumidores + autorização de ambiente.
