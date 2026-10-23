@@ -48,7 +48,9 @@ export function buildKnowledgeDocumentRows(documents, { notReported = 'Not repor
 
 export function buildMediaObjectRows(mediaObjects, { notReported = 'Not reported', locale = 'en' } = {}) {
   return mediaObjects.map((media, index) => ({
-    id: media.id === null || media.id === undefined || media.id === '' ? `unidentified-media-${index}` : String(media.id),
+    id:
+      media.id === null || media.id === undefined || media.id === '' ? `unidentified-media-${index}`
+        : String(media.id),
     name: displayedValue(media.name, notReported),
     bucket_id: displayedValue(media.bucket_id, notReported),
     encoding_format: displayedValue(media.encoding_format, notReported),
