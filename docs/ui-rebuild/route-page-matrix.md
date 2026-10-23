@@ -109,5 +109,4 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 
 ### Cycle evidence — 2026-10-22
 
-- `/payments`: KPIs and ledgers render only after all scoped reads succeed; errors are not shown as zero or empty.
-  Missing organization scope disables payment initiation.
+- `/payments`: no zero/empty fallback unless scoped reads succeed; charge actions disabled without organization.
