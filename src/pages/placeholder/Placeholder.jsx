@@ -15,18 +15,19 @@ const Placeholder = () => {
   const location = useLocation();
 
   return (
-    <PageLayout className="cs--placeholder" fallback={<p>{t('placeholder.loading', 'Loading placeholder page...')}</p>}>
+    <PageLayout className="cs--placeholder" fallback={<p>{t('placeholder.loading', 'Loading page…')}</p>}>
       <CommonHeader
-        title={t('placeholder.title', 'This page is not ready yet')}
+        title={t('placeholder.title', 'Route not implemented')}
         paragraphs={[
-          <>{t('placeholder.description1', 'Generally not a good idea to have pages under construction.')}</>,
-          <>{t('placeholder.description2', 'This page is here to help demonstrate the global navigation.')}</>,
-          <>
-            {t('placeholder.routeInfo', "You are at the location served from route '{{pathname}}'.", {
-              pathname: location.pathname,
-            })}
-          </>,
-          <>{t('placeholder.maintainer', 'Maintained by Cestari Studio Inc.')}</>,
+          t(
+            'placeholder.description1',
+            'This route is registered, but its functional page implementation is not available in this build.',
+          ),
+          t('placeholder.description2', 'No sample, demo, or placeholder records are displayed on this route.'),
+          t('placeholder.routeInfo', "The registered route is '{{pathname}}'.", {
+            pathname: location.pathname,
+          }),
+          t('placeholder.maintainer', 'Maintained by Cestari Studio Inc.'),
         ]}
       />
     </PageLayout>

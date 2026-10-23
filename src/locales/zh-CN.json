@@ -561,12 +561,12 @@
     "amountPlaceholder": "0.00"
   },
   "placeholder": {
-    "description1": "Generally not a good idea to have pages under construction.",
-    "description2": "This page is here to help demonstrate the global navigation.",
-    "loading": "加载中...",
+    "description1": "此路由已注册，但当前构建中尚无可用的功能页面实现。",
+    "description2": "此路由不会显示示例、演示或占位记录。",
+    "loading": "正在加载页面…",
     "maintainer": "由 Cestari Studio Inc. 维护。",
-    "routeInfo": "You are at the location served from route '{{pathname}}'.",
-    "title": "占位页面"
+    "routeInfo": "已注册的路由为 '{{pathname}}'。",
+    "title": "路由尚未实现"
   },
   "productsCatalog": {
     "allEntitled": "5套系统已启用",
@@ -856,7 +856,9 @@
     "orgNamePlaceholder": "例如：Acme 集团",
     "projectLabel": "项目 (Tier 3: Project)",
     "statusTitle": "当前活动组织与工作区上下文",
-    "workspaceLabel": "工作空间 (Tier 2: Workspace)"
+    "workspaceLabel": "工作空间 (Tier 2: Workspace)",
+    "orgNameInputPlaceholder": "输入组织名称",
+    "orgIdentifierInputPlaceholder": "组织标识符（slug）"
   },
   "settings": {
     "profile": {
