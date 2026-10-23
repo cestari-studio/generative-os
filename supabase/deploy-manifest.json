@@ -5,10 +5,10 @@
   "commit": "51a93719aa3a4a912169533a40832f93e5869c13",
   "target_project_ref": "ldjfjmihdvdmltrptngf",
   "target_project_url": "https://ldjfjmihdvdmltrptngf.supabase.co",
-  "warning": "Reconcile against live list_edge_functions versions/hashes ONLY after owner approval and against the correct project. The sibling project jkespoegdpkdcrxsxwry (genOS) is NOT the target. Hashes are sha256 over each function's source tree (local git), NOT comparable to ezbr_sha256 bundle hashes — different inputs and algorithms; reconcile by deploy + read-back, not by hash equality.",
+  "warning": "Reconcile against live list_edge_functions versions/hashes ONLY after owner approval and against the correct project. The sibling project jkespoegdpkdcrxsxwry (genOS) is NOT the target. Hashes are sha256 over each function's source tree (local git), NOT comparable to ezbr_sha256 bundle hashes \u2014 different inputs and algorithms; reconcile by deploy + read-back, not by hash equality.",
   "supabase_config_toml": {
     "path": "supabase/config.toml",
-    "state": "versioned in repo; NOT yet deployed — remote verify_jwt is still false on all six functions",
+    "state": "versioned in repo; NOT yet deployed \u2014 remote verify_jwt is still false on all six functions",
     "expected": {
       "pagbank-connect": true,
       "pagbank-order": true,
@@ -29,7 +29,7 @@
   },
   "remote_observed": {
     "read_at": "2026-10-22",
-    "state": "PRE-74c3b87 — not reconciled; all six with verify_jwt=false",
+    "state": "PRE-74c3b87 \u2014 not reconciled; all six with verify_jwt=false",
     "functions": {
       "passkey-auth": {
         "version": 6,
@@ -83,10 +83,10 @@
       "note": "additive destination-only implementation overlay; apply only after owner-authorized non-prod rehearsal"
     }
   ],
-  "gate": "BLOCKED — explicit owner authorization required before any non-prod deploy, migration apply, or config change. No deploy/db push/remote write performed by the agent.",
+  "gate": "BLOCKED \u2014 explicit owner authorization required before any non-prod deploy, migration apply, or config change. No deploy/db push/remote write performed by the agent.",
   "rehearsal": {
     "executed_at": "2026-10-22",
-    "environment": "disposable PostgreSQL 17.11 (localhost socket), rehearsal_test database — NOT the shared remote project",
+    "environment": "disposable PostgreSQL 17.11 (localhost socket), rehearsal_test database \u2014 NOT the shared remote project",
     "migration_ledger_reconciliation": {
       "remote_applied": 17,
       "local_files": 20,
@@ -104,7 +104,7 @@
       "result": "44/44 billing SQL assertions PASS as authenticated/service_role with RLS enforced"
     },
     "rollback_validation": {
-      "result": "CLEAN — all additive billing objects dropped; payment_orders back to original columns (0 quote/psp columns); 0 billing tables remain",
+      "result": "CLEAN \u2014 all additive billing objects dropped; payment_orders back to original columns (0 quote/psp columns); 0 billing tables remain",
       "note": "the role helper has_platform_role requires DROP ... CASCADE because RLS policies depend on it; rollback plan documents this"
     },
     "post_deploy_checks_pending": [
@@ -117,7 +117,7 @@
   "expected_vs_observed": {
     "observed_at": "2026-10-22 (read-only remote inventory)",
     "project_ref": "ldjfjmihdvdmltrptngf (generative-os, sa-east-1, Postgres 17.11)",
-    "note": "expected = versioned artifacts in repo (branches); observed = live remote state read via MCP. Hash caveat preserved: local sha256 source-tree vs remote ezbr_sha256 bundle are NOT comparable inputs/algorithms — reconcile by deploy + read-back of versions, not prefix equality.",
+    "note": "expected = versioned artifacts in repo (branches); observed = live remote state read via MCP. Hash caveat preserved: local sha256 source-tree vs remote ezbr_sha256 bundle are NOT comparable inputs/algorithms \u2014 reconcile by deploy + read-back of versions, not prefix equality.",
     "edge_functions": {
       "passkey-auth": {
         "expected": {
@@ -198,9 +198,9 @@
       "observed_applied_count": 17,
       "in_sync_applied": 17,
       "billing_migration_applied": false,
-      "state": "17/17 applied migrations match local files; billing, catalog, and destination binding migrations are pending and NOT applied remotely.",
       "catalog_migration_applied": false,
-      "feature_binding_migration_applied": false
+      "feature_binding_migration_applied": false,
+      "state": "17/17 applied migrations match local files; billing, catalog, and destination binding migrations are pending and NOT applied remotely."
     },
     "billing_schema_objects": {
       "expected_tables": [
@@ -264,16 +264,14 @@
         "attach_psp_idempotency",
         "has_platform_role(caller-only)"
       ],
-      "expected_app_private_new": [
-        "has_platform_role(text,uuid)"
-      ],
+      "expected_app_private_new": ["has_platform_role(text,uuid)"],
       "observed_new_present": false,
       "state": "expected billing RPCs + caller-only role helper ABSENT remotely (migration not applied). The 4 advisor DEFINER flags (apply_setting_cascade, create_pagbank_order, get_tenant_payment_kpis, record_media_object) match the observed public DEFINER functions."
     },
     "vercel": {
       "expected": "Git integration to cestari-studio/generative-os with reproducible Preview",
       "observed": "project listed (prj_cgIw3xCnho9TNi37gH5e3VmiwtXC, team cestari-studio); detail/domains/env reads return 404; deployments list returns 403; linkedProjects: []",
-      "state": "BLOCKED — owner action required (Git binding unproven; do NOT create duplicate project)"
+      "state": "BLOCKED \u2014 owner action required (Git binding unproven; do NOT create duplicate project)"
     },
     "catalog_schema_objects": {
       "expected_tables": [
