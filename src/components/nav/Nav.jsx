@@ -37,58 +37,68 @@ export const Nav = () => {
   const isAuthenticated = Boolean(user);
 
   return (
-    <HeaderContainer
-      render={({ isSideNavExpanded, onClickSideNavExpand }) => (
-        <>
-          <Header aria-label={t('nav.header.shellLabel', 'Cestari Studio')}>
-            <SkipToContent />
+    <>
+      <HeaderContainer
+        render={({ isSideNavExpanded, onClickSideNavExpand }) => (
+          <>
+            <Header aria-label={t('nav.header.shellLabel', 'Cestari Studio')}>
+              <SkipToContent />
+              {isAuthenticated && (
+                <HeaderMenuButton
+                  aria-label={isSideNavExpanded ? t('nav.menu.close', 'Close menu') : t('nav.menu.open', 'Open menu')}
+                  onClick={onClickSideNavExpand}
+                  isCollapsible={true}
+                  isActive={isSideNavExpanded}
+                  aria-expanded={isSideNavExpanded}
+                />
+              )}
+              <HeaderName as={RouterLink} to="/" prefix={t('nav.header.prefix', 'Cestari')}>
+                {t('nav.header.name', 'Studio')}
+              </HeaderName>
+              {isAuthenticated && routesInHeader.length > 0 && (
+                <HeaderNavigation aria-label={t('nav.header.navigationAria', 'Primary navigation')}>
+                  <NavHeaderItems routesInHeader={routesInHeader} currentPath={location.pathname} />
+                </HeaderNavigation>
+              )}
+              <HeaderGlobalBar>
+                <Profile.Root
+                  label={t('nav.actions.userProfile', 'User profile')}
+                  renderIcon={<UserAvatar size={20} />}
+                >
+                  <ProfilePanel />
+                </Profile.Root>
+              </HeaderGlobalBar>
+            </Header>
+
             {isAuthenticated && (
-              <HeaderMenuButton
-                aria-label={isSideNavExpanded ? t('nav.menu.close', 'Close menu') : t('nav.menu.open', 'Open menu')}
-                onClick={onClickSideNavExpand}
-                isCollapsible={true}
-                isActive={isSideNavExpanded}
-                aria-expanded={isSideNavExpanded}
-              />
+              <SideNav
+                aria-label={t('nav.sideNav.ariaLabel', 'Side navigation')}
+                expanded={isSideNavExpanded}
+                isPersistent={false}
+              >
+                <SideNavItems>
+                  {routesInHeader.length > 0 && (
+                    <HeaderSideNavItems hasDivider>
+                      <NavHeaderItems routesInHeader={routesInHeader} currentPath={location.pathname} />
+                    </HeaderSideNavItems>
+                  )}
+
+                  <NavSideItems routesInSideNav={routesInSideNav} currentPath={location.pathname} />
+                </SideNavItems>
+              </SideNav>
             )}
-            <HeaderName as={RouterLink} to="/" prefix={t('nav.header.prefix', 'Cestari')}>
-              {t('nav.header.name', 'Studio')}
-            </HeaderName>
-            {isAuthenticated && routesInHeader.length > 0 && (
-              <HeaderNavigation aria-label={t('nav.header.navigationAria', 'Primary navigation')}>
-                <NavHeaderItems routesInHeader={routesInHeader} currentPath={location.pathname} />
-              </HeaderNavigation>
-            )}
-            <HeaderGlobalBar>
-              <Profile.Root label={t('nav.actions.userProfile', 'User profile')} renderIcon={<UserAvatar size={20} />}>
-                <ProfilePanel />
-              </Profile.Root>
-            </HeaderGlobalBar>
-          </Header>
+          </>
+        )}
+      />
 
-          <SignInModal />
-          <OnboardingTearsheet />
-
-          {isAuthenticated && (
-            <SideNav
-              aria-label={t('nav.sideNav.ariaLabel', 'Side navigation')}
-              expanded={isSideNavExpanded}
-              isPersistent={false}
-            >
-              <SideNavItems>
-                {routesInHeader.length > 0 && (
-                  <HeaderSideNavItems hasDivider>
-                    <NavHeaderItems routesInHeader={routesInHeader} currentPath={location.pathname} />
-                  </HeaderSideNavItems>
-                )}
-
-                <NavSideItems routesInSideNav={routesInSideNav} currentPath={location.pathname} />
-              </SideNavItems>
-            </SideNav>
-          )}
-        </>
-      )}
-    />
+      {/* Rendered OUTSIDE the HeaderContainer render prop: the inline render
+          function is re-created whenever context updates (e.g. setSignInStep),
+          which remounts its subtree and wipes local form state — the sign-in
+          modal lost the typed email on the step transition. Hoisting the
+          modals to stable siblings preserves their state across re-renders. */}
+      <SignInModal />
+      <OnboardingTearsheet />
+    </>
   );
 };
 
