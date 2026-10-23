@@ -558,7 +558,12 @@
     "taxonomyHeading": "已落地的 Schema.org 分类标准:",
     "title": "PagBank 多租户与 FDW 外部数据引擎",
     "invalidCustomer": "客户姓名和邮箱为必填项。",
-    "amountPlaceholder": "0.00"
+    "amountPlaceholder": "0.00",
+    "chargeOutcomeUnknownTitle": "付款结果未知",
+    "chargeOutcomeUnknown": "付款结果尚未确定。请勿创建新的收款。请使用相同报价和幂等性引用重试此次付款，以便与 PagBank 对账。",
+    "reconcilingCharge": "正在对账同一笔付款…",
+    "retrySameCharge": "重试同一笔付款",
+    "pendingChargeReference": "待处理报价 {{quoteId}} · 引用 {{referenceId}}。解决此结果之前，系统会禁用创建另一笔收款。"
   },
   "placeholder": {
     "description1": "Generally not a good idea to have pages under construction.",
