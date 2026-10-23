@@ -64,10 +64,20 @@ beforeAll(async () => {
   await applySql('supabase/migrations/20261022053203_billing_pricebook_usage_metering.sql');
   await applySql('supabase/migrations/20261022060000_catalog_normative_source.sql');
   await applySql('supabase/seed/catalog-normative-seed.sql');
+  await applySql('supabase/migrations/20261022070000_catalog_feature_bindings.sql');
+  await applySql('supabase/seed/implementation-feature-bindings.sql');
 });
 
 afterAll(async () => {
   if (client) await client.end();
+  if (POST_AVAILABLE) {
+    // Remove the disposable database after every run; this also rehearses a clean
+    // forward-only migration lifecycle without leaving local Postgres artifacts.
+    const admin = new pg.Client({ ...PG, database: 'postgres' });
+    await admin.connect();
+    await admin.query('DROP DATABASE IF EXISTS catalog_adapter_it;');
+    await admin.end();
+  }
 });
 
 const maybe = POST_AVAILABLE ? describe : describe.skip;
@@ -139,6 +149,64 @@ maybe('catalog adapter data contract vs real seeded PostgreSQL (integration)', (
     await applySql('supabase/seed/catalog-normative-seed.sql');
     const { rows } = await client.query('SELECT count(*)::int AS n FROM public.catalog_products');
     expect(rows[0].n).toBe(5);
+  });
+
+  test('destination feature binding records exact canonical provenance and remains explicitly unverified', async () => {
+    const { rows } = await client.query(
+      `SELECT feature_key, page_key, operation_id, app_route, component_name, runtime_ref,
+              binding_status, source_registry, source_registry_version, source_provenance
+       FROM public.catalog_feature_bindings
+       ORDER BY feature_key, page_key, operation_id`,
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      feature_key: 'platform.configuration_naming.config_cascade_resolve',
+      page_key: 'tenant.private.settings',
+      operation_id: 'effective-config-resolve',
+      app_route: '/settings',
+      component_name: 'TenantCascadeSettings',
+      runtime_ref: 'public.resolve_effective_settings',
+      binding_status: 'implemented_unverified',
+      source_registry: 'registry.traceability',
+      source_registry_version: '0.9.0',
+    });
+    expect(rows[0].source_provenance.canonical_source_file).toBe(
+      'docs/specs/v0.9.0/registries/traceability-matrix.json',
+    );
+    expect(rows[0].source_provenance.runtime_validation).toBe('pending');
+  });
+
+  test('authenticated readers can read bindings but non-admin writes are denied by RLS', async () => {
+    await client.query('SET ROLE authenticated');
+    await client.query(
+      `SET request.jwt.claims = '{"sub":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","role":"authenticated"}'`,
+    );
+    const { rows } = await client.query(
+      `SELECT feature_key, page_key, operation_id
+       FROM public.catalog_feature_bindings WHERE app_route = '/settings'`,
+    );
+    expect(rows).toHaveLength(1);
+    await expect(
+      client.query(
+        `INSERT INTO public.catalog_feature_bindings (
+          feature_key, page_key, operation_id, app_route, component_name, runtime_ref,
+          binding_status, source_registry, source_registry_version
+        ) VALUES (
+          'platform.unapproved.test', 'tenant.private.test', 'test-write', '/forbidden-write',
+          'TestOnly', 'test.runtime', 'candidate', 'registry.traceability', '0.9.0'
+        )`,
+      ),
+    ).rejects.toThrow();
+    await client.query('RESET ROLE');
+  });
+
+  test('implementation binding seed is idempotent', async () => {
+    await applySql('supabase/seed/implementation-feature-bindings.sql');
+    const { rows } = await client.query(
+      `SELECT count(*)::int AS n FROM public.catalog_feature_bindings
+       WHERE feature_key = 'platform.configuration_naming.config_cascade_resolve'`,
+    );
+    expect(rows[0].n).toBe(1);
   });
 
   test('unprovisioned signal: dropping the table yields an error the adapter maps to unprovisioned', async () => {

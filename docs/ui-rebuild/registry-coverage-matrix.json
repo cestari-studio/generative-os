@@ -106,5 +106,23 @@
   "v091_runtime_gap_matrix": {
     "audited_bundles": 4,
     "note": "v0.9.1 EDGE_RUNTIME_GAP_MATRIX documents schedule-api, academy-api, client-api, knowledge-api with dispatchable vs blocked operations (schema_contract_blocked, schema_and_public_protocol_blocked, mixed_runtime_worker_blocked). Most operations remain fail-closed pending typed persistence/control-plane."
+  },
+  "destination_binding_overlay": {
+    "as_of": "2026-10-22",
+    "candidate_rows": 1,
+    "remote_rows_observed": 0,
+    "remote_state": "binding migration not applied; remote table absent at last read-only check",
+    "bindings": [
+      {
+        "feature_key": "platform.configuration_naming.config_cascade_resolve",
+        "page_key": "tenant.private.settings",
+        "operation_id": "effective-config-resolve",
+        "app_route": "/settings",
+        "component_name": "TenantCascadeSettings",
+        "runtime_ref": "public.resolve_effective_settings",
+        "binding_status": "implemented_unverified"
+      }
+    ],
+    "note": "Destination implementation overlay only. Canonical genOS registry counts and missing page_keys/operation_ids totals are unchanged; the mapping is not marked validated."
   }
 }

@@ -68,7 +68,19 @@
       "version": "20261022053203",
       "name": "billing_pricebook_usage_metering",
       "applied_remote": false,
-      "note": "additive; validated on disposable PostgreSQL 17.11 (44/44 assertions) but never applied to any remote environment"
+      "note": "additive; disposable PostgreSQL 17.11 validation in CI; not applied remotely"
+    },
+    {
+      "version": "20261022060000",
+      "name": "catalog_normative_source",
+      "applied_remote": false,
+      "note": "additive; normative catalog schema/seed; not applied remotely"
+    },
+    {
+      "version": "20261022070000",
+      "name": "catalog_feature_bindings",
+      "applied_remote": false,
+      "note": "additive destination-only implementation overlay; apply only after owner-authorized non-prod rehearsal"
     }
   ],
   "gate": "BLOCKED \u2014 explicit owner authorization required before any non-prod deploy, migration apply, or config change. No deploy/db push/remote write performed by the agent.",
@@ -77,11 +89,15 @@
     "environment": "disposable PostgreSQL 17.11 (localhost socket), rehearsal_test database \u2014 NOT the shared remote project",
     "migration_ledger_reconciliation": {
       "remote_applied": 17,
-      "local_files": 18,
+      "local_files": 20,
       "in_sync": 17,
-      "pending_not_applied": ["20261022053203_billing_pricebook_usage_metering"],
+      "pending_not_applied": [
+        "20261022053203_billing_pricebook_usage_metering",
+        "20261022060000_catalog_normative_source",
+        "20261022070000_catalog_feature_bindings"
+      ],
       "remote_only_drift": [],
-      "result": "17/17 applied migrations match local files exactly; only the billing migration is pending. Zero drift in the applied set."
+      "result": "17/17 applied migrations match the live ledger; three additive migrations are pending and NOT applied remotely."
     },
     "billing_replay": {
       "prereq": "schema mirroring remote (organizations, persons, workspaces, projects, organization_members, payment_orders with gateway_reference_id UNIQUE + status CHECK)",
@@ -173,12 +189,18 @@
       }
     },
     "migration_ledger": {
-      "expected_pending": ["20261022053203_billing_pricebook_usage_metering"],
+      "expected_pending": [
+        "20261022053203_billing_pricebook_usage_metering",
+        "20261022060000_catalog_normative_source",
+        "20261022070000_catalog_feature_bindings"
+      ],
       "observed_latest": "20261022002300",
       "observed_applied_count": 17,
       "in_sync_applied": 17,
       "billing_migration_applied": false,
-      "state": "17/17 applied match local files; billing migration NOT applied"
+      "catalog_migration_applied": false,
+      "feature_binding_migration_applied": false,
+      "state": "17/17 applied migrations match local files; billing, catalog, and destination binding migrations are pending and NOT applied remotely."
     },
     "billing_schema_objects": {
       "expected_tables": [
@@ -250,6 +272,35 @@
       "expected": "Git integration to cestari-studio/generative-os with reproducible Preview",
       "observed": "project listed (prj_cgIw3xCnho9TNi37gH5e3VmiwtXC, team cestari-studio); detail/domains/env reads return 404; deployments list returns 403; linkedProjects: []",
       "state": "BLOCKED \u2014 owner action required (Git binding unproven; do NOT create duplicate project)"
+    },
+    "catalog_schema_objects": {
+      "expected_tables": [
+        "catalog_versions",
+        "catalog_products",
+        "catalog_subproducts",
+        "catalog_capabilities",
+        "catalog_platform_services"
+      ],
+      "observed_present": [],
+      "observed_absent": [
+        "catalog_versions",
+        "catalog_products",
+        "catalog_subproducts",
+        "catalog_capabilities",
+        "catalog_platform_services"
+      ],
+      "state": "All five catalog tables were absent in the last read-only query; catalog migration remains pending."
+    },
+    "destination_binding_overlay": {
+      "expected_table": "public.catalog_feature_bindings",
+      "expected_rows": 1,
+      "observed_table_present": false,
+      "observed_rows": 0,
+      "state": "candidate branch only; migration/seed not applied remotely",
+      "feature_key": "platform.configuration_naming.config_cascade_resolve",
+      "page_key": "tenant.private.settings",
+      "operation_id": "effective-config-resolve",
+      "binding_status": "implemented_unverified"
     }
   }
 }

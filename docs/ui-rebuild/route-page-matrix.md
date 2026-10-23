@@ -106,3 +106,8 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 
 - As 9 rotas físicas permanecem `IMPLEMENTED` (wiring real de PRs anteriores); **nenhuma `VALIDATED`** — Fase 7 (Preview E2E/screenshots/WCAG) continua `BLOCKED — owner action required`.
 - A cobertura normativa (60 páginas/100 operações/225 features) é backlog de vertical slices, não implementado no destino.
+
+### Cycle evidence — 2026-10-22
+
+- `/settings` now has one destination overlay binding from `tenant.private.settings` to `effective-config-resolve`.
+  State: `IMPLEMENTED_UNVERIFIED`; remote runtime and Preview E2E remain gated.
