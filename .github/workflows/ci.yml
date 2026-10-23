@@ -271,6 +271,32 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:billing-sql
 
+  browser-smoke:
+    name: browser-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    steps:
+      - name: Checkout repository
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Use Node.js from .nvmrc
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies (lockfile is authoritative)
+        run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run local browser functional smoke (hydration, gates, no demo content)
+        run: npm run test:browser-smoke
+
   release-dry-run:
     name: release-dry-run
     runs-on: ubuntu-latest

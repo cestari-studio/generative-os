@@ -190,14 +190,22 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
   );
 
   const refreshTenantData = useCallback(
-    async (targetOrgId, targetWsId, targetPrjId) => {
+    async (targetOrgId, targetWsId, targetPrjId, { silent = false } = {}) => {
       if (typeof window === 'undefined') return;
       const orgId = targetOrgId || activeOrgIdRef.current;
       const wsId = targetWsId || activeWsIdRef.current;
       const prjId = targetPrjId || activePrjIdRef.current;
       const currentUser = userRef.current;
 
-      setLoading(true);
+      // Hydration safety: the mount-time refresh must not flip the global
+      // loading flag. Lazy route subtrees hydrate AFTER this effect fires,
+      // and a loading=true render there no longer matches the SSR HTML
+      // (gate for anonymous, page content for authenticated) — React raises
+      // "Hydration failed because the server rendered HTML didn't match the
+      // client". Explicit user-triggered refreshes keep the spinner.
+      if (!silent) {
+        setLoading(true);
+      }
       try {
         const supabase = getSupabaseBrowserClient();
         const [orgsRes, wsRes, prjRes, docsRes, mediaRes, auditsRes, personsRes] = await Promise.all([
@@ -254,7 +262,9 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       } catch (err) {
         setStatusMessage(err instanceof Error ? err.message : 'Failed to load tenant data');
       } finally {
-        setLoading(false);
+        if (!silent) {
+          setLoading(false);
+        }
       }
     },
     [loadEffectiveSettings],
@@ -311,9 +321,9 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
           if (Array.isArray(passkeyRes.data)) {
             setPasskeys(passkeyRes.data);
           }
-          await refreshTenantData(targetOrgId, targetWsId, targetPrjId);
+          await refreshTenantData(targetOrgId, targetWsId, targetPrjId, { silent: true });
         } else {
-          await refreshTenantData(targetOrgId, targetWsId, targetPrjId);
+          await refreshTenantData(targetOrgId, targetWsId, targetPrjId, { silent: true });
         }
       } catch {
         // Fallback

@@ -5,9 +5,24 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTenant } from '../../context/useTenant';
+
+// Hydration-safe client clock: the server snapshot is null and the client
+// snapshot is a module-cached timestamp (captured once per page load, so it
+// is stable across renders), so the first client render matches SSR exactly
+// and React swaps in the real time right after hydration — no synchronous
+// setState in effects, no hydration mismatch.
+const subscribeToNothing = () => () => {};
+let cachedClientTimestamp;
+const getClientTimestamp = () => {
+  if (cachedClientTimestamp === undefined) {
+    cachedClientTimestamp = Date.now();
+  }
+  return cachedClientTimestamp;
+};
+const getServerTimestamp = () => null;
 
 /**
  * Format a number using compact notation in the current locale.
@@ -43,7 +58,12 @@ export const useDashboardData = () => {
   const [workspaceFilter, setWorkspaceFilter] = useState('all');
   const [governanceSearch, setGovernanceSearch] = useState('');
   const [auditSearch, setAuditSearch] = useState('');
-  const [referenceTimestamp, setReferenceTimestamp] = useState(() => Date.now());
+  // Hydration-safe clock: null on the server and on the first client render
+  // (so time-window UI matches SSR), real timestamp right after hydration.
+  // Explicit refreshes re-anchor the window via setReferenceTimestamp below.
+  const hydrationTimestamp = useSyncExternalStore(subscribeToNothing, getClientTimestamp, getServerTimestamp);
+  const [refreshAnchor, setReferenceTimestamp] = useState(null);
+  const referenceTimestamp = refreshAnchor ?? hydrationTimestamp;
 
   // 1. Filtered Projects based on workspace selection
   const filteredProjects = useMemo(() => {
@@ -51,9 +71,12 @@ export const useDashboardData = () => {
     return projects.filter((p) => p.workspace_id === workspaceFilter);
   }, [projects, workspaceFilter]);
 
-  // 2. Filtered Audit actions by time horizon
+  // 2. Filtered Audit actions by time horizon. While the reference timestamp
+  // is not set (SSR + first client render), return the unfiltered list —
+  // identical output on both sides, so hydration matches.
   const filteredAudits = useMemo(() => {
     if (!auditActions.length) return [];
+    if (referenceTimestamp === null) return auditActions;
     const now = referenceTimestamp;
     const horizonMs =
       {
@@ -98,8 +121,11 @@ export const useDashboardData = () => {
     };
   }, [persons, filteredProjects, knowledgeDocuments, mediaObjects, effectiveSettings, i18n.language]);
 
-  // 4. Activity Timeline Chart Data (@carbon/charts LineChart/StackedAreaChart)
+  // 4. Activity Timeline Chart Data (@carbon/charts LineChart/StackedAreaChart).
+  // Empty until the client-side clock is set — the SSR HTML and the first
+  // client render both produce an empty series, keeping hydration identical.
   const activityChartData = useMemo(() => {
+    if (referenceTimestamp === null) return [];
     const buckets = {};
     const days = timeHorizon === '24h' ? 24 : timeHorizon === '7d' ? 7 : timeHorizon === '30d' ? 30 : 90;
     const isHourly = timeHorizon === '24h';
