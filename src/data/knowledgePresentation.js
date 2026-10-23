@@ -33,9 +33,10 @@ export function getIndexingStatusTagType(status) {
 
 export function buildKnowledgeDocumentRows(documents, { notReported = 'Not reported' } = {}) {
   return documents.map((document, index) => ({
-    id: document.id === null || document.id === undefined || document.id === ''
-      ? `unidentified-document-${index}`
-      : String(document.id),
+    id:
+      document.id === null || document.id === undefined || document.id === ''
+        ? `unidentified-document-${index}`
+        : String(document.id),
     name: displayedValue(document.name, notReported),
     visibility_scope: displayedValue(document.visibility_scope, notReported),
     in_language: displayedValue(document.in_language, notReported),
@@ -43,14 +44,12 @@ export function buildKnowledgeDocumentRows(documents, { notReported = 'Not repor
   }));
 }
 
-export function buildMediaObjectRows(mediaObjects, {
-  notReported = 'Not reported',
-  locale = 'en',
-} = {}) {
+export function buildMediaObjectRows(mediaObjects, { notReported = 'Not reported', locale = 'en' } = {}) {
   return mediaObjects.map((media, index) => ({
-    id: media.id === null || media.id === undefined || media.id === ''
-      ? `unidentified-media-${index}`
-      : String(media.id),
+    id:
+      media.id === null || media.id === undefined || media.id === ''
+        ? `unidentified-media-${index}`
+        : String(media.id),
     name: displayedValue(media.name, notReported),
     bucket_id: displayedValue(media.bucket_id, notReported),
     encoding_format: displayedValue(media.encoding_format, notReported),
@@ -60,7 +59,8 @@ export function buildMediaObjectRows(mediaObjects, {
 
 export function interpretIngestionResult(data) {
   const documentId = data?.document?.id;
-  const documentName = typeof data?.document?.name === 'string' ? data.document.name.trim() : '';
+  const documentName =
+    typeof data?.document?.name === 'string' ? data.document.name.trim() : '';
   if (documentId === null || documentId === undefined || documentId === '' || !documentName) {
     return { status: 'unverified' };
   }
