@@ -42,3 +42,26 @@ No commit has been pushed since, so no automatic Preview exists yet. The next
 push to a non-production branch should create a Git-sourced Preview for its
 exact SHA — the mechanism the E2E gate needs. Production stays on `b580fc8`
 until separately authorized promotion.
+
+## Vercel Git Preview — VERIFIED (2026-10-23 ~07:34 UTC)
+
+The Git integration fired automatically on the next push after connection:
+
+| Item               | Value                                                                                                                                                                      | Evidence                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Trigger commit     | `b5b50e6741bf44086fddd53c72cc31325da26f20` (pushed 07:33:37 UTC)                                                                                                           | local git                                  |
+| Preview deployment | `generative-1rgmk27fy-cestari-studio.vercel.app`                                                                                                                           | `/v6/deployments`                          |
+| source             | **git** (automatic — first non-CLI deployment)                                                                                                                             | API                                        |
+| state              | `READY` (0.6 min after push)                                                                                                                                               | API                                        |
+| githubCommitSha    | `b5b50e6741bf44086fddd53c72cc31325da26f20` (exact)                                                                                                                         | API meta                                   |
+| githubCommitRef    | `feat/complete-carbon-page-rebuild`                                                                                                                                        | API meta                                   |
+| githubCommitRepo   | `generative-os`                                                                                                                                                            | API meta                                   |
+| Access path        | Deployment Protection (SSO) active; `vercel curl` authenticates                                                                                                            | `access-protected-vercel-deployment` skill |
+| SSR validation     | `/` serves "Cestari Studio"; `/dashboard` + `/products` show the access gate (honest anonymous state); root not empty; hydration fix marker `silent` present in the bundle | `vercel curl`                              |
+
+**Chain proven:** GitHub push → Git integration → Preview deployment with the
+exact SHA → serves correctly via authenticated access. The code verified by CI
+(`b5b50e6`) is the code deployed in the Preview.
+
+**Production unchanged:** `app.cestari.studio` still serves `b580fc8` — no
+promotion has been authorized or executed.
