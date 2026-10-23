@@ -60,7 +60,8 @@
     "back": "Zurück",
     "finish": "Abschließen",
     "on": "Ein",
-    "off": "Aus"
+    "off": "Aus",
+    "notReported": "Nicht angegeben"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio Logo"
@@ -90,7 +91,16 @@
       "corpusTitle": "Knowledge & Media Assets by Format",
       "itemsCount": "Count",
       "rulesTotal": "Effective rules",
-      "timelineAxis": "Timeline"
+      "timelineAxis": "Timeline",
+      "completedActions": "Abgeschlossene Aktionen",
+      "pendingActions": "Ausstehend / in Bearbeitung",
+      "otherActions": "Andere / nicht klassifizierte Status",
+      "noCascadeDataTitle": "Keine effektiven Kaskadenregeln erfasst",
+      "noCascadeDataSubtitle": "Für den ausgewählten Bereich wurden keine gespeicherten Einstellungen mit einer erkannten Kaskadenregel gefunden.",
+      "noCorpusDataTitle": "Keine Wissens- oder Medienressourcen erfasst",
+      "noCorpusDataSubtitle": "Für den ausgewählten Bereich wurden keine gespeicherten Wissensdokumente oder Medienobjekte gefunden.",
+      "documentFormatNotReported": "Nicht angegebenes Dokumentformat",
+      "mediaFormatNotReported": "Nicht angegebenes Medienformat"
     },
     "chartsRegion": "Telemetry and Governance Analytics",
     "contextHierarchy": "Tenant hierarchy",
