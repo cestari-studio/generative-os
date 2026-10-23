@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
 import { getThemeSettings, setHeaderInverse, setThemeSetting } from '../utils/theme.js';
+import { requireUploadedObjectPath } from '../data/knowledgePresentation.js';
 import { TenantContext } from './useTenant.js';
 
 export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInverse, initialServerUser = null }) => {
@@ -568,23 +569,28 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       const currentOrgId = activeOrgIdRef.current;
       const currentWsId = activeWsIdRef.current;
       const currentPrjId = activePrjIdRef.current;
+      if (!currentOrgId || !currentWsId) {
+        const error = new Error('Select an organization and workspace before uploading a file.');
+        setStatusMessage(error.message);
+        throw error;
+      }
+
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
       const storagePath = `${currentOrgId}/${currentWsId}/${Date.now()}-${safeName}`;
-      let contentUrl = `storage://${bucketId}/${storagePath}`;
+      const uploadResult = await supabase.storage.from(bucketId).upload(storagePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
 
+      let uploadedObjectPath;
       try {
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from(bucketId)
-          .upload(storagePath, file, {
-            cacheControl: '3600',
-            upsert: true,
-          });
-        if (!uploadError && uploadData?.path) {
-          contentUrl = `storage://${bucketId}/${uploadData.path}`;
-        }
-      } catch {
-        // Storage bucket write requires authenticated org membership; still record Schema.org MediaObject metadata
+        uploadedObjectPath = requireUploadedObjectPath(uploadResult);
+      } catch (uploadException) {
+        const message = uploadException instanceof Error ? uploadException.message : 'Storage upload failed.';
+        setStatusMessage(message);
+        throw uploadException;
       }
+      const contentUrl = `storage://${bucketId}/${uploadedObjectPath}`;
 
       const { data, error } = await supabase.rpc('record_media_object', {
         p_organization_id: currentOrgId,
@@ -598,12 +604,39 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       });
 
       if (error) {
-        setStatusMessage(error.message);
-        throw error;
+        let cleanupError = null;
+        try {
+          const cleanup = await supabase.storage.from(bucketId).remove([uploadedObjectPath]);
+          cleanupError = cleanup.error;
+        } catch (cleanupException) {
+          cleanupError = cleanupException;
+        }
+        const message = cleanupError
+          ? `${error.message} (The uploaded object could not be removed: ${cleanupError.message || 'unknown cleanup error'}.)`
+          : error.message;
+        setStatusMessage(message);
+        throw new Error(message);
       }
 
-      await refreshTenantData();
-      setStatusMessage(`Uploaded MediaObject "${file.name}" to ${bucketId}`);
+      try {
+        await refreshTenantData();
+      } catch {
+        const message = i18nRef.current.t('knowledgeVector.uploadRefreshFailed', {
+          defaultValue:
+            'The file and its MediaObject record were created, but the tenant view could not refresh. Check the media table before retrying.',
+        });
+        setStatusMessage(message);
+        const refreshError = new Error(message);
+        refreshError.name = 'UploadRefreshError';
+        throw refreshError;
+      }
+      setStatusMessage(
+        i18nRef.current.t('knowledgeVector.uploadCompleted', {
+          defaultValue: 'Uploaded MediaObject "{{name}}" to {{bucket}}.',
+          name: file.name,
+          bucket: bucketId,
+        }),
+      );
       return data;
     },
     [refreshTenantData],

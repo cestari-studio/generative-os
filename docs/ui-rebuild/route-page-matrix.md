@@ -106,3 +106,10 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 
 - As 9 rotas físicas permanecem `IMPLEMENTED` (wiring real de PRs anteriores); **nenhuma `VALIDATED`** — Fase 7 (Preview E2E/screenshots/WCAG) continua `BLOCKED — owner action required`.
 - A cobertura normativa (60 páginas/100 operações/225 features) é backlog de vertical slices, não implementado no destino.
+
+## Remediation addendum — knowledge and storage
+
+- `KnowledgeVectorPage.jsx` now shows missing scope/language/index status/size as “Not reported”, preserves zero-byte sizes, and colors indexing status only from the actual value. Ingestion no longer invents a minimum chunk count or reports success without a persisted document identity. The storage panel shows a real organization/workspace prefix only, not a fabricated `knowledge-artifact.md` object path.
+- `TenantContext.uploadTenantMedia` stops if Storage does not return a persisted object path and therefore cannot register metadata-only MediaObjects. If metadata persistence fails, cleanup is attempted; if refresh fails after upload, the actual outcome is surfaced.
+- Regression coverage: `src/__tests__/knowledge-presentation.test.js` plus the existing tenant UI suite.
+- Status: PR #16 branch; CI, bucket policy review, remote runtime, and Preview/E2E verification pending.

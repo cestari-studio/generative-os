@@ -60,7 +60,8 @@
     "back": "Back",
     "finish": "Finish",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "notReported": "Not reported"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio logo"
@@ -367,7 +368,7 @@
     "searchHeading": "Semantic Vector Search",
     "searchPlaceholder": "Ask a question or search across tenant knowledge chunks...",
     "similarityThresholdLabel": "Minimum Similarity Threshold",
-    "storagePathLabel": "Isolated Storage Path:",
+    "storagePathLabel": "Tenant storage scope prefix (uploaded objects receive a generated name):",
     "subtitle": "Multi-tenant Schema.org DigitalDocument storage and 384-dimensional HNSW cosine similarity search.",
     "suggestionsLabel": "Quick queries:",
     "tabIngest": "Corpus & Ingestion",
@@ -377,7 +378,18 @@
     "title": "Knowledge Base & pgvector RAG",
     "uploadDescription": "Upload files to isolated tenant storage path",
     "uploadHeading": "Tenant Storage Buckets",
-    "searching": "Searching the knowledge corpus..."
+    "searching": "Searching the knowledge corpus...",
+    "foundResults": "Found {{count}} matching knowledge chunks.",
+    "ingestStarting": "Submitting the document for indexing…",
+    "ingestCompleted": "Indexed “{{name}}” ({{count}} chunks reported by the service).",
+    "ingestCountUnreported": "Document “{{name}}” was returned by the service, but the indexed chunk count was not reported. Check the corpus table for its current status.",
+    "ingestUnverified": "The service did not return a persisted document ID and name. Refresh the corpus before retrying to avoid creating a duplicate.",
+    "ingestRefreshFailed": "The ingestion response was received, but the corpus could not be refreshed. Check the document table before retrying.",
+    "uploadingMedia": "Uploading MediaObject “{{name}}” to {{bucket}}…",
+    "uploadCompleted": "Uploaded MediaObject “{{name}}” to {{bucket}}.",
+    "storageScopeUnavailable": "Select an organization and workspace to display the storage scope prefix.",
+    "copiedStorageScope": "Copied storage scope prefix",
+    "uploadRefreshFailed": "The file and its MediaObject record were created, but the tenant view could not refresh. Check the media table before retrying."
   },
   "nav": {
     "actions": {

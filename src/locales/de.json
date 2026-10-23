@@ -60,7 +60,8 @@
     "back": "Zurück",
     "finish": "Abschließen",
     "on": "Ein",
-    "off": "Aus"
+    "off": "Aus",
+    "notReported": "Nicht angegeben"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio Logo"
@@ -368,7 +369,7 @@
     "searchHeading": "Semantische Vektorsuche",
     "searchPlaceholder": "Frage stellen oder Wissensabschnitte durchsuchen...",
     "similarityThresholdLabel": "Mindest-Ähnlichkeitsschwelle",
-    "storagePathLabel": "Isolierter Speicherpfad:",
+    "storagePathLabel": "Speicherbereich-Präfix des Tenants (der Objektname wird beim Hochladen erzeugt):",
     "subtitle": "Mandantenfähiger Schema.org DigitalDocument-Speicher und 384-dimensionale HNSW-Ähnlichkeitssuche.",
     "suggestionsLabel": "Schnellabfragen:",
     "tabIngest": "Korpus & Erfassung",
@@ -378,7 +379,18 @@
     "title": "Wissensdatenbank & pgvector RAG",
     "uploadDescription": "Dateien in isolierten Mandantenpfad hochladen",
     "uploadHeading": "Mandanten-Speicher-Buckets",
-    "searching": "Wissenskorpus wird durchsucht..."
+    "searching": "Wissenskorpus wird durchsucht...",
+    "foundResults": "{{count}} passende Wissens-Chunks gefunden.",
+    "ingestStarting": "Dokument wird zur Indizierung übermittelt…",
+    "ingestCompleted": "„{{name}}“ indiziert ({{count}} vom Dienst gemeldete Chunks).",
+    "ingestCountUnreported": "Der Dienst hat das Dokument „{{name}}“ zurückgegeben, aber keine Anzahl der indizierten Chunks gemeldet. Prüfen Sie den aktuellen Status in der Korpustabelle.",
+    "ingestUnverified": "Der Dienst hat keine persistierte Dokument-ID und keinen Namen zurückgegeben. Aktualisieren Sie den Korpus vor einem erneuten Versuch, um Duplikate zu vermeiden.",
+    "ingestRefreshFailed": "Die Indizierungsantwort ist eingegangen, aber der Korpus konnte nicht aktualisiert werden. Prüfen Sie vor einem erneuten Versuch die Dokumenttabelle.",
+    "uploadingMedia": "MediaObject „{{name}}“ wird nach {{bucket}} hochgeladen…",
+    "uploadCompleted": "MediaObject „{{name}}“ wurde nach {{bucket}} hochgeladen.",
+    "storageScopeUnavailable": "Wählen Sie eine Organisation und einen Workspace aus, um das Präfix des Speicherbereichs anzuzeigen.",
+    "copiedStorageScope": "Präfix des Speicherbereichs kopiert",
+    "uploadRefreshFailed": "Die Datei und ihr MediaObject-Datensatz wurden erstellt, aber die Mandantenansicht konnte nicht aktualisiert werden. Prüfen Sie die Medientabelle, bevor Sie es erneut versuchen."
   },
   "nav": {
     "actions": {

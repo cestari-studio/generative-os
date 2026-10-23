@@ -60,7 +60,8 @@
     "back": "返回",
     "finish": "完成",
     "on": "开启",
-    "off": "关闭"
+    "off": "关闭",
+    "notReported": "未报告"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio 徽标"
@@ -379,7 +380,7 @@
     "similarityScore": "相似度: {{score}}",
     "similarityThresholdLabel": "最小相似度阈值",
     "sizeLabel": "大小 (字节)",
-    "storagePathLabel": "隔离存储路径:",
+    "storagePathLabel": "租户存储范围前缀（对象名称将在上传时生成）：",
     "subtitle": "基于 Schema.org DigitalDocument 和 MediaObject 分类法构建的 pgvector HNSW 语义检索平台。",
     "suggestionsLabel": "快捷查询:",
     "tabIngest": "语料库与摄入",
@@ -390,7 +391,18 @@
     "uploadAction": "上传媒体",
     "uploadDescription": "向隔离的租户存储桶上传 PDF、Markdown 或多媒体资源",
     "uploadHeading": "对象存储上传",
-    "searching": "正在搜索知识库..."
+    "searching": "正在搜索知识库...",
+    "foundResults": "找到 {{count}} 个匹配的知识片段。",
+    "ingestStarting": "正在提交文档以进行索引…",
+    "ingestCompleted": "已为“{{name}}”建立索引（服务报告 {{count}} 个片段）。",
+    "ingestCountUnreported": "服务返回了文档“{{name}}”，但未报告已索引片段的数量。请在语料表中检查当前状态。",
+    "ingestUnverified": "服务未返回已持久化文档的 ID 和名称。为避免创建重复记录，请先刷新语料，再重试。",
+    "ingestRefreshFailed": "已收到索引请求的响应，但无法刷新语料。重试前请检查文档表。",
+    "uploadingMedia": "正在将 MediaObject“{{name}}”上传到 {{bucket}}…",
+    "uploadCompleted": "已将 MediaObject“{{name}}”上传到 {{bucket}}。",
+    "storageScopeUnavailable": "请选择组织和工作区以显示存储范围前缀。",
+    "copiedStorageScope": "已复制存储范围前缀",
+    "uploadRefreshFailed": "文件及其 MediaObject 记录已创建，但无法刷新租户视图。重试前请检查媒体表。"
   },
   "nav": {
     "actions": {

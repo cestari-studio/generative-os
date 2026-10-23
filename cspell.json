@@ -229,6 +229,8 @@
     "prereq",
     "pricebook",
     "subproduct",
-    "subproducts"
+    "subproducts",
+    "Korpustabelle",
+    "Mandantenansicht"
   ]
 }

@@ -60,7 +60,8 @@
     "back": "戻る",
     "finish": "完了",
     "on": "オン",
-    "off": "オフ"
+    "off": "オフ",
+    "notReported": "未報告"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio ロゴ"
@@ -368,7 +369,7 @@
     "searchHeading": "セマンティック・ベクトル検索",
     "searchPlaceholder": "質問を入力するか、テナントのナレッジチャンクを検索...",
     "similarityThresholdLabel": "最小類似度しきい値",
-    "storagePathLabel": "分離ストレージパス:",
+    "storagePathLabel": "テナントのストレージスコープのプレフィックス（オブジェクト名はアップロード時に生成されます）：",
     "subtitle": "マルチテナント Schema.org DigitalDocument ストレージおよび384次元HNSWコサイン類似度検索。",
     "suggestionsLabel": "推奨クエリ:",
     "tabIngest": "コーパスと取り込み",
@@ -378,7 +379,18 @@
     "title": "ナレッジベース＆pgvector RAG",
     "uploadDescription": "分離されたテナントストレージパスにファイルをアップロード",
     "uploadHeading": "テナントストレージ・バケット",
-    "searching": "ナレッジコーパスを検索中..."
+    "searching": "ナレッジコーパスを検索中...",
+    "foundResults": "一致するナレッジチャンクが {{count}} 件見つかりました。",
+    "ingestStarting": "ドキュメントをインデックス作成に送信しています…",
+    "ingestCompleted": "「{{name}}」をインデックス化しました（サービス報告：{{count}} チャンク）。",
+    "ingestCountUnreported": "サービスからドキュメント「{{name}}」は返されましたが、インデックス化されたチャンク数は報告されませんでした。現在の状態はコーパステーブルで確認してください。",
+    "ingestUnverified": "サービスから永続化されたドキュメント ID と名前が返されませんでした。重複作成を避けるため、再試行する前にコーパスを更新してください。",
+    "ingestRefreshFailed": "インデックス作成の応答は受信しましたが、コーパスを更新できませんでした。再試行する前にドキュメントテーブルを確認してください。",
+    "uploadingMedia": "MediaObject「{{name}}」を {{bucket}} にアップロードしています…",
+    "uploadCompleted": "MediaObject「{{name}}」を {{bucket}} にアップロードしました。",
+    "storageScopeUnavailable": "ストレージスコープのプレフィックスを表示するには、組織とワークスペースを選択してください。",
+    "copiedStorageScope": "ストレージスコープのプレフィックスをコピーしました",
+    "uploadRefreshFailed": "ファイルとMediaObjectレコードは作成されましたが、テナントビューを更新できませんでした。再試行する前にメディアテーブルを確認してください。"
   },
   "nav": {
     "actions": {

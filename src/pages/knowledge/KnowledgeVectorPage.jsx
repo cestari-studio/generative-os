@@ -47,6 +47,13 @@ import { PageLayout } from '../../layouts/page-layout';
 import { Footer } from '../../components/footer/Footer';
 import { useTenant } from '../../context/useTenant';
 import { getSupabaseBrowserClient } from '../../lib/supabase.client';
+import {
+  buildKnowledgeDocumentRows,
+  buildMediaObjectRows,
+  getIndexingStatusTagType,
+  interpretIngestionResult,
+  buildStorageScopePrefix,
+} from '../../data/knowledgePresentation';
 
 const STORAGE_BUCKETS = [
   {
@@ -91,6 +98,7 @@ const KnowledgeVectorPage = () => {
   const [docContent, setDocContent] = useState('');
   const [selectedBucket, setSelectedBucket] = useState('project-knowledge');
   const [statusMsg, setStatusMsg] = useState('');
+  const notReportedLabel = t('common.notReported', 'Not reported');
 
   const handleVectorSearch = async (event) => {
     if (event && event.preventDefault) {
@@ -116,7 +124,11 @@ const KnowledgeVectorPage = () => {
         return;
       }
       setSearchResults(data?.results || []);
-      setStatusMsg(`Found ${(data?.results || []).length} matching knowledge chunks`);
+      setStatusMsg(
+        t('knowledgeVector.foundResults', 'Found {{count}} matching knowledge chunks.', {
+          count: (data?.results || []).length,
+        }),
+      );
     } catch (err) {
       setStatusMsg(err instanceof Error ? err.message : 'Search failed');
     }
@@ -127,7 +139,7 @@ const KnowledgeVectorPage = () => {
       event.preventDefault();
     }
     if (!docTitle.trim() || !docContent.trim()) return;
-    setStatusMsg('Chunking and indexing document in pgvector...');
+    setStatusMsg(t('knowledgeVector.ingestStarting', 'Submitting the document for indexing…'));
     try {
       const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase.functions.invoke('vector-rag', {
@@ -146,10 +158,45 @@ const KnowledgeVectorPage = () => {
         setStatusMsg(error.message);
         return;
       }
-      setDocTitle('');
-      setDocContent('');
-      setStatusMsg(`Indexed "${data?.document?.name}" (${data?.chunksIndexed || 1} vector chunks)`);
-      await refreshTenantData();
+      const ingestionResult = interpretIngestionResult(data);
+      if (ingestionResult.status === 'reported') {
+        setDocTitle('');
+        setDocContent('');
+        setStatusMsg(
+          t('knowledgeVector.ingestCompleted', 'Indexed "{{name}}" ({{count}} chunks reported by the service).', {
+            name: ingestionResult.documentName,
+            count: ingestionResult.chunksIndexed,
+          }),
+        );
+      } else if (ingestionResult.status === 'persisted_without_count') {
+        setDocTitle('');
+        setDocContent('');
+        setStatusMsg(
+          t(
+            'knowledgeVector.ingestCountUnreported',
+            'Document "{{name}}" was returned by the service, but the indexed chunk count was not reported. Check the corpus table for its current status.',
+            { name: ingestionResult.documentName },
+          ),
+        );
+      } else {
+        setStatusMsg(
+          t(
+            'knowledgeVector.ingestUnverified',
+            'The service did not return a persisted document ID and name. Refresh the corpus before retrying to avoid creating a duplicate.',
+          ),
+        );
+      }
+
+      try {
+        await refreshTenantData();
+      } catch {
+        setStatusMsg(
+          t(
+            'knowledgeVector.ingestRefreshFailed',
+            'The ingestion response was received, but the corpus could not be refreshed. Check the document table before retrying.',
+          ),
+        );
+      }
     } catch (err) {
       setStatusMsg(err instanceof Error ? err.message : 'Ingestion failed');
     }
@@ -158,25 +205,28 @@ const KnowledgeVectorPage = () => {
   const handleAddFiles = async (_event, { addedFiles }) => {
     if (!Array.isArray(addedFiles) || addedFiles.length === 0) return;
     const file = addedFiles[0];
-    setStatusMsg(`Uploading MediaObject "${file.name}" to ${selectedBucket}...`);
+    setStatusMsg(
+      t('knowledgeVector.uploadingMedia', 'Uploading MediaObject "{{name}}" to {{bucket}}…', {
+        name: file.name,
+        bucket: selectedBucket,
+      }),
+    );
     try {
       await uploadTenantMedia({ bucketId: selectedBucket, file });
-      setStatusMsg(`Uploaded MediaObject "${file.name}" to ${selectedBucket}`);
+      setStatusMsg(
+        t('knowledgeVector.uploadCompleted', 'Uploaded MediaObject "{{name}}" to {{bucket}}.', {
+          name: file.name,
+          bucket: selectedBucket,
+        }),
+      );
     } catch (err) {
       setStatusMsg(err instanceof Error ? err.message : 'Upload failed');
     }
   };
 
   const documentRows = useMemo(
-    () =>
-      (knowledgeDocuments || []).map((doc) => ({
-        id: String(doc.id),
-        name: doc.name,
-        visibility_scope: doc.visibility_scope || 'organization',
-        in_language: doc.in_language || 'en',
-        indexing_status: doc.indexing_status || 'ready',
-      })),
-    [knowledgeDocuments],
+    () => buildKnowledgeDocumentRows(knowledgeDocuments || [], { notReported: notReportedLabel }),
+    [knowledgeDocuments, notReportedLabel],
   );
 
   const documentHeaders = useMemo(
@@ -191,14 +241,11 @@ const KnowledgeVectorPage = () => {
 
   const mediaRows = useMemo(
     () =>
-      (mediaObjects || []).map((media) => ({
-        id: String(media.id),
-        name: media.name,
-        bucket_id: media.bucket_id,
-        encoding_format: media.encoding_format,
-        content_size: `${Math.max(1, Math.round(Number(media.content_size || 1024) / 1024))} KB`,
-      })),
-    [mediaObjects],
+      buildMediaObjectRows(mediaObjects || [], {
+        notReported: notReportedLabel,
+        locale: i18n.resolvedLanguage || i18n.language || 'en',
+      }),
+    [mediaObjects, i18n.language, i18n.resolvedLanguage, notReportedLabel],
   );
 
   const mediaHeaders = useMemo(
@@ -211,7 +258,7 @@ const KnowledgeVectorPage = () => {
     [],
   );
 
-  const storagePathPreview = `${activeOrganizationId}/${activeWorkspaceId}/${activeProjectId}/knowledge-artifact.md`;
+  const storageScopePreview = buildStorageScopePrefix(activeOrganizationId, activeWorkspaceId);
 
   return (
     <PageLayout className="cs--knowledge-vector">
@@ -251,13 +298,13 @@ const KnowledgeVectorPage = () => {
                       </div>
                       <div className="cs--knowledge-vector__tags">
                         <Tag type="blue" size="sm">
-                          {activeOrganization?.name || 'Organization'}
+                          {activeOrganization?.name || notReportedLabel}
                         </Tag>
                         <Tag type="teal" size="sm">
-                          {activeWorkspace?.name || 'Workspace'}
+                          {activeWorkspace?.name || notReportedLabel}
                         </Tag>
                         <Tag type="purple" size="sm">
-                          {activeProject?.name || 'Project'}
+                          {activeProject?.name || notReportedLabel}
                         </Tag>
                       </div>
                     </div>
@@ -449,7 +496,7 @@ const KnowledgeVectorPage = () => {
                                   {row.cells.map((cell) => (
                                     <TableCell key={cell.id}>
                                       {cell.info.header === 'indexing_status' ? (
-                                        <Tag type="green" size="sm">
+                                        <Tag type={getIndexingStatusTagType(cell.value)} size="sm">
                                           {cell.value}
                                         </Tag>
                                       ) : (
@@ -514,12 +561,27 @@ const KnowledgeVectorPage = () => {
 
                     <div>
                       <p className="cs--knowledge-vector__chips-label">
-                        {t('knowledgeVector.storagePathLabel', 'Isolated Storage Path:')}
+                        {t(
+                          'knowledgeVector.storagePathLabel',
+                          'Tenant storage scope prefix (uploaded objects receive a generated name):',
+                        )}
                       </p>
                       <Layer>
-                        <CodeSnippet type="single" feedback="Copied RLS storage path">
-                          {storagePathPreview}
-                        </CodeSnippet>
+                        {storageScopePreview ? (
+                          <CodeSnippet
+                            type="single"
+                            feedback={t('knowledgeVector.copiedStorageScope', 'Copied storage scope prefix')}
+                          >
+                            {storageScopePreview}
+                          </CodeSnippet>
+                        ) : (
+                          <p className="cs--knowledge-vector__result-text">
+                            {t(
+                              'knowledgeVector.storageScopeUnavailable',
+                              'Select an organization and workspace to display the storage scope prefix.',
+                            )}
+                          </p>
+                        )}
                       </Layer>
                     </div>
                   </Stack>
