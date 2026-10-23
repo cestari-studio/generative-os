@@ -173,3 +173,39 @@ were untracked again (`git rm --cached`, local copies preserved) and added to
 `.gitignore`. Commit `dbea4e0`. **Lesson:** never use bare `git add -A` in
 this repo — stage explicit paths (the owner's untracked drafts live in the
 root).
+
+## Auth flows + zero-inline-layout completion (2026-10-23, cycle 5)
+
+**Forgot-password recovery + magic-link (dc9f213):**
+
+- SignInModal: "Forgot password?" button on the credentials step alongside the
+  magic-link option (two distinct paths: recovery vs passwordless), per Carbon
+  onboarding/Universal Experiences guidance.
+- `requestPasswordReset` via `resetPasswordForEmail` (redirectTo =
+  origin/reset-password); `signInWithOtp` now passes explicit
+  `emailRedirectTo = origin` (works on Preview/production, not just site_url).
+- New public `/reset-password` page (sets new password via
+  `supabase.auth.updateUser`); routes.config.test registers it as a known
+  public route. Full i18n across 6 locales — zero hardcoded text.
+
+**Passkey/WebAuthn via native Supabase Auth (3269275):**
+
+- Replaced fail-closed stubs with Supabase Auth's NATIVE WebAuthn
+  (supabase-js 2.118+: `auth.registerPasskey`, `auth.signInWithPasskey`,
+  `auth.passkey.*`). FIDO2 attestation + assertion verified server-side by
+  Supabase Auth — never pseudo-verified client-side.
+- SignInModal: "Sign in with passkey" button; OnboardingFullPage: "Register a
+  passkey" action with registering/registered/error states (never fake success).
+  WebAuthn requires a secure context; browser errors surface honestly.
+- registerPasskey denies anonymous callers (fail-closed).
+
+**Zero inline layout (f57f6f6):**
+
+- Removed all 18 inline `style={{}}` attributes from runtime JSX across 4
+  files (PaymentManagementPage ×12, ProfilePanel, ProductsCatalogPage,
+  DashboardCharts ×4). All styling now via SCSS classes on original IBM Carbon
+  tokens ($spacing-*, $text-primary/$text-secondary, $border-subtle, type
+  styles) — no hardcoded colors/spacing/layout.
+
+**Preview verification (f57f6f6):** all 4 auth paths present (passkey,
+forgot-password, magic-link, identity-email preserved); preview-smoke 34/34.
