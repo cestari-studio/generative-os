@@ -96,7 +96,18 @@
 | Risk      | An unknown external caller could break — mitigated by the observation window                                                                                                                             |
 | Rollback  | Re-grant EXECUTE via additive migration                                                                                                                                                                  |
 
-## 10. PRIVACY_POLICY* untracked files disposition
+## 10. Dedicated dependency-update PR (supply chain)
+
+| Field              | Value                                                                                                                                                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Resource           | Dev dependency tree (2 critical, dev-only vulnerabilities)                                                                                                                                                                                                                                                   |
+| Finding            | `handlebars <=4.7.9` (3 advisories, via `semantic-release` chain) + `shell-quote 1.8.4-1.10.0` (via `unlighthouse` chain). Production audit: **0 vulnerabilities** — neither ships in the bundle                                                                                                             |
+| Operation          | A dedicated PR that updates the vulnerable transitive packages WITH full lockfile validation (not `npm audit fix` — its dry-run forces breaking changes to `unlighthouse` + `stylelint-plugin-carbon-tokens`; not raw `overrides` — lockfile regeneration bumped 257 transitive packages, reverted per §2.3) |
+| Suggested approach | Pin `handlebars@4.7.10` + `shell-quote@1.12.0` via overrides in the dedicated PR; regenerate the lockfile there; run full CI + dependency review; keep it isolated from feature work                                                                                                                         |
+| Risk               | Lockfile churn in dev tree only; release tooling (`semantic-release`) and lighthouse tooling (`unlighthouse`) must still function — validate with a `release-dry-run` and a lighthouse run in that PR                                                                                                        |
+| Rollback           | Revert the dedicated PR                                                                                                                                                                                                                                                                                      |
+
+## 11. PRIVACY_POLICY* untracked files disposition
 
 | Field         | Value                                                                                                                                                         |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
