@@ -638,7 +638,7 @@
     "suitesDesc": "Cinco sistemas verticais operando sobre runtime compartilhado de agentes Helian, pgvector RAG e ledgers de auditoria imutáveis.",
     "suitesTitle": "Suítes de Produtos genOS Multi-Tenant",
     "supportedLocales": "Idiomas Suportados",
-    "tabBrandDna": "Perfis de Brand DNA (12)",
+    "tabBrandDna": "Perfis de Brand DNA",
     "tabPlatform": "Serviços & Capabilities da Plataforma",
     "tabProducts": "Suítes de Produtos (5)",
     "tabsAriaLabel": "Seções de Produtos e Brand DNA",
@@ -650,7 +650,9 @@
     "notProvisionedTitle": "Catálogo de produtos não provisionado",
     "notProvisionedDesc": "O catálogo normativo de produtos ainda não está provisionado neste ambiente. Quando a fonte do catálogo (migração + seed) for aplicada, as suítes de produtos, subprodutos, capabilities e outcomes aparecerão aqui.",
     "loading": "Carregando o catálogo normativo de produtos…",
-    "suitesCount": "{{count}} Suítes"
+    "suitesCount": "{{count}} Suítes",
+    "brandDnaNotProvisionedTitle": "Registro de Brand DNA não provisionado",
+    "brandDnaNotProvisionedDesc": "Ainda não existe um registro de Brand DNA provisionado neste ambiente. Os perfis de marca dos tenants serão listados aqui quando o serviço e o schema do registro de marcas existirem — nunca a partir de uma lista estática de demonstração."
   },
   "profile": {
     "auth": {

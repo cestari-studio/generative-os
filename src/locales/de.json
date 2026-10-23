@@ -581,7 +581,7 @@
     "suitesDesc": "Fünf domänenspezifische Produktsysteme auf gemeinsamer Helian-Agentenlaufzeit, pgvector-RAG und Audit-Ledgern.",
     "suitesTitle": "Multi-Tenant genOS-Produktsuiten",
     "supportedLocales": "Unterstützte Sprachen",
-    "tabBrandDna": "Brand-DNA-Profile (12)",
+    "tabBrandDna": "Brand-DNA-Profile",
     "tabPlatform": "Plattformdienste & Fähigkeiten",
     "tabProducts": "Produktsuiten (5)",
     "tabsAriaLabel": "Produkt- und Brand-DNA-Bereiche",
@@ -593,7 +593,9 @@
     "notProvisionedTitle": "Produktkatalog nicht bereitgestellt",
     "notProvisionedDesc": "Der normative Produktkatalog ist in dieser Umgebung noch nicht bereitgestellt. Sobald die Katalogquelle (Migration + Seed) angewendet wird, erscheinen hier die Produktsuiten, Subprodukte, Capabilities und Outcomes.",
     "loading": "Normativer Produktkatalog wird geladen…",
-    "suitesCount": "{{count}} Suiten"
+    "suitesCount": "{{count}} Suiten",
+    "brandDnaNotProvisionedTitle": "Brand-DNA-Register nicht bereitgestellt",
+    "brandDnaNotProvisionedDesc": "In dieser Umgebung ist noch kein Brand-DNA-Register bereitgestellt. Mandanten-Markenprofile werden hier aufgelistet, sobald der Registerdienst und das Schema existieren — niemals aus einer statischen Demonstrationsliste."
   },
   "profile": {
     "auth": {

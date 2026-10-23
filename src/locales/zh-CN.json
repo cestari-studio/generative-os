@@ -598,7 +598,7 @@
     "suitesDesc": "运行在共享Helian智能体运行时、pgvector向量RAG与不可篡改审计账本上的五大行业系统。",
     "suitesTitle": "多租户genOS产品套件",
     "supportedLocales": "支持语言",
-    "tabBrandDna": "品牌DNA档案（12）",
+    "tabBrandDna": "品牌 DNA 档案",
     "tabPlatform": "平台服务与能力",
     "tabProducts": "产品套件（5）",
     "tabsAriaLabel": "产品与品牌DNA分类",
@@ -610,7 +610,9 @@
     "notProvisionedTitle": "产品目录尚未配置",
     "notProvisionedDesc": "此环境中尚未配置规范性产品目录。应用目录源（迁移 + 种子）后，产品套件、子产品、能力和成果将显示在此处。",
     "loading": "正在加载规范性产品目录…",
-    "suitesCount": "{{count}} 个套件"
+    "suitesCount": "{{count}} 个套件",
+    "brandDnaNotProvisionedTitle": "品牌 DNA 注册表尚未配置",
+    "brandDnaNotProvisionedDesc": "此环境中尚未配置品牌 DNA 注册表。当注册表服务和模式就绪后，租户品牌档案将显示在此处——绝不会来自静态演示列表。"
   },
   "profile": {
     "auth": {

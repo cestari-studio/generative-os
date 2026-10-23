@@ -573,7 +573,7 @@
     "suitesDesc": "Five domain-specific product systems operating on shared Helian agent runtime, pgvector RAG, and immutable audit ledgers.",
     "suitesTitle": "Multi-Tenant genOS Product Suites",
     "supportedLocales": "Supported Locales",
-    "tabBrandDna": "Brand DNA Profiles (12)",
+    "tabBrandDna": "Brand DNA Profiles",
     "tabPlatform": "Platform Services & Capabilities",
     "tabProducts": "Product Suites (5)",
     "tabsAriaLabel": "Products and Brand DNA Sections",
@@ -585,7 +585,9 @@
     "notProvisionedTitle": "Product catalog not provisioned",
     "notProvisionedDesc": "The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, the product suites, subproducts, capabilities and outcomes will appear here.",
     "loading": "Loading the normative product catalog…",
-    "suitesCount": "{{count}} Suites"
+    "suitesCount": "{{count}} Suites",
+    "brandDnaNotProvisionedTitle": "Brand DNA registry not provisioned",
+    "brandDnaNotProvisionedDesc": "There is no provisioned Brand DNA registry in this environment yet. Tenant brand profiles will be listed here once the brand registry service and schema exist — never from a static demonstration list."
   },
   "profile": {
     "auth": {

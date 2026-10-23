@@ -98,7 +98,7 @@ test('renders the normative product catalog from the backend with all 5 suites a
 
   // 4 Tabs
   expect(screen.getByText('Product Suites (5)')).toBeInTheDocument();
-  expect(screen.getByText('Brand DNA Profiles (12)')).toBeInTheDocument();
+  expect(screen.getByText('Brand DNA Profiles')).toBeInTheDocument();
   expect(screen.getByText('Platform Services & Capabilities')).toBeInTheDocument();
   expect(screen.getByText('Schema.org Taxonomy Graph')).toBeInTheDocument();
 
@@ -137,32 +137,37 @@ test('shows the factual unprovisioned empty state when the catalog is not provis
   expect(screen.queryByText('Content Factory')).not.toBeInTheDocument();
 });
 
-// Heavy render (5 suites + 12 Brand DNA profiles + interactive search) can
-// exceed the 5s default timeout on shared CI runners — allow 20s.
-test('interacts with Brand DNA catalog and search', { timeout: 20000 }, async () => {
-  const user = userEvent.setup();
-  const authContext = {
-    ...DEFAULT_CONTEXT_VALUE,
-    user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'admin@genos.cloud' },
-  };
+// The Brand DNA tab must never present static demo tenants as real data.
+// No backend brand registry exists yet, so the tab shows the factual
+// unprovisioned state instead of the fictional BRAND_DNA_PROFILES list.
+test(
+  'Brand DNA tab shows the factual unprovisioned state — never static demo tenants',
+  { timeout: 20000 },
+  async () => {
+    const user = userEvent.setup();
+    const authContext = {
+      ...DEFAULT_CONTEXT_VALUE,
+      user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'admin@genos.cloud' },
+    };
 
-  renderWithoutProviders(
-    <MemoryRouter>
-      <TenantContext.Provider value={authContext}>
-        <ProductsCatalogPage />
-      </TenantContext.Provider>
-    </MemoryRouter>,
-  );
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={authContext}>
+          <ProductsCatalogPage />
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
 
-  // Switch to Brand DNA tab
-  const brandTab = screen.getByText('Brand DNA Profiles (12)');
-  await user.click(brandTab);
+    // Switch to Brand DNA tab
+    const brandTab = screen.getByText('Brand DNA Profiles');
+    await user.click(brandTab);
 
-  expect(screen.getByText('Brand DNA Multi-Tenant Catalog')).toBeInTheDocument();
-  expect(screen.getAllByText('Cestari Studio Agency').length).toBeGreaterThanOrEqual(1);
+    // Fictional demo tenants must not render anywhere.
+    expect(screen.queryByText('PUTTINATO')).not.toBeInTheDocument();
+    expect(screen.queryByText('All Life Institute')).not.toBeInTheDocument();
+    expect(screen.queryByText('Clareira de Avalon')).not.toBeInTheDocument();
 
-  // Search filter
-  const searchInput = screen.getByRole('searchbox');
-  await user.type(searchInput, 'PUTTINATO');
-  expect(screen.getByText('PUTTINATO')).toBeInTheDocument();
-});
+    // The honest unprovisioned state is shown instead.
+    expect(screen.getByText('Brand DNA registry not provisioned')).toBeInTheDocument();
+  },
+);

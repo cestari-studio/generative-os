@@ -581,7 +581,7 @@
     "suitesDesc": "共有Helianエージェントランタイム、pgvector RAG、不変監査元帳上で稼働する5つのドメイン製品群。",
     "suitesTitle": "マルチテナントgenOS製品スイート",
     "supportedLocales": "対応言語",
-    "tabBrandDna": "ブランドDNAプロファイル（12）",
+    "tabBrandDna": "ブランドDNAプロファイル",
     "tabPlatform": "プラットフォームサービス＆ケイパビリティ",
     "tabProducts": "製品スイート（5）",
     "tabsAriaLabel": "プロダクトおよびブランドDNAセクション",
@@ -593,7 +593,9 @@
     "notProvisionedTitle": "プロダクトカタログがプロビジョニングされていません",
     "notProvisionedDesc": "この環境では、規範的なプロダクトカタログがまだプロビジョニングされていません。カタログソース（マイグレーション＋シード）が適用されると、プロダクトスイート、サブプロダクト、ケイパビリティ、アウトカムがここに表示されます。",
     "loading": "規範的なプロダクトカタログを読み込み中…",
-    "suitesCount": "{{count}} スイート"
+    "suitesCount": "{{count}} スイート",
+    "brandDnaNotProvisionedTitle": "ブランドDNAレジストリがプロビジョニングされていません",
+    "brandDnaNotProvisionedDesc": "この環境では、ブランドDNAレジストリがまだプロビジョニングされていません。テナントのブランドプロファイルは、レジストリサービスとスキーマが整ったらここに表示されます。静的なデモリストからは表示されません。"
   },
   "profile": {
     "auth": {
