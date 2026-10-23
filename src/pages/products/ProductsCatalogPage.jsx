@@ -22,14 +22,7 @@ import {
   Tag,
   Tile,
 } from '@carbon/react';
-import {
-  Application,
-  ArrowRight,
-  Catalog,
-  CheckmarkFilled,
-  DataStructured,
-  Events,
-} from '@carbon/icons-react';
+import { Application, ArrowRight, Catalog, CheckmarkFilled, DataStructured, Events } from '@carbon/icons-react';
 import { PageHeader } from '@carbon/ibm-products';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -101,11 +94,9 @@ const ProductsCatalogPage = () => {
             style={{ color: 'var(--cds-text-secondary, #6f6f6f)', padding: '0.25rem 0' }}
           >
             {[
-              activeOrganization?.name,
-              activeWorkspace?.name,
-              activeProject?.name,
-              'schema:Product',
-            ].filter(Boolean).join(' • ')}
+              activeOrganization?.name, activeWorkspace?.name, activeProject?.name, 'schema:Product']
+                .filter(Boolean)
+                .join(' • ')}
           </p>
         }
       />
