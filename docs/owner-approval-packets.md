@@ -5,7 +5,27 @@
 > per the master directive §3.2. **None of these has been executed.** All
 > local preparation is complete and CI-verified at the SHA cited.
 
-## 1. Supabase runtime reconciliation (non-prod first)
+## 1. Supabase runtime reconciliation — **EXECUTED 2026-10-23 (owner-authorized, production)**
+
+**Status: COMPLETE.** Owner authorized the production Supabase as the deploy
+target with full scope. Executed via `supabase db push` + `supabase db query
+--linked` + `supabase functions deploy` against `ldjfjmihdvdmltrptngf`
+(generative-os project — NOT the sibling genOS).
+
+- **Migrations (4, dependency order, additive):** billing `20261022053203`,
+  catalog `20261022060000`, workspace `20261023000000`, notifications
+  `20261023010000`. Ledger now 21 (was 17). Read-back: all tables + RPCs present.
+- **Catalog seed:** 5 products, 30 subproducts, 9 capabilities, 6 services,
+  1 version (normative registries with provenance).
+- **Functions (6):** passkey-auth v7, settings-cascade v5, vector-rag v7,
+  pagbank-connect v6, pagbank-order v6, pagbank-webhook v7. verify_jwt:
+  5 true, pagbank-webhook false (by design).
+- **Hardening verified live:** passkey anonymous challenge/list → 401;
+  pagbank-order anonymous → 401 gateway; catalog anon read → RLS denies (correct).
+- **Runtime drift RESOLVED** — code verified in CI is the code deployed in
+  production. deploy-manifest v3.0.
+
+The original packet below is retained for the rollback reference.
 
 | Field                                            | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -19,15 +39,14 @@
 | Rollback / forward-recovery                      | Migrations are additive — no drops to reverse; a mid-sequence failure leaves earlier migrations applied (re-runnable, idempotent). Pre-deployment snapshot/backup required                                                                                                                                                                                                                                                                                                        |
 | Validation after approval                        | read-back: ledger shows all 4 versions; `to_regclass` returns the new tables; RPCs present; re-run all 4 SQL suites against the non-prod target; passkey anonymous challenge 401; pagbank-order rejects amountCents; create_workspace cross-tenant denied; notifications cross-tenant invisible                                                                                                                                                                                   |
 
-## 2. Edge Functions `verify_jwt` alignment
+## 2. Edge Functions `verify_jwt` alignment — **EXECUTED 2026-10-23 (with the deploy)**
 
-| Field      | Value                                                                                                                                                                                                                                                                                |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Resource   | The 6 deployed functions in the same project                                                                                                                                                                                                                                         |
-| Operation  | Flip `verify_jwt` to `true` for `passkey-auth`, `settings-cascade`, `vector-rag`, `pagbank-connect`, `pagbank-order`; keep `false` ONLY for `pagbank-webhook` (which validates ECDSA signature in-handler — proof in `_shared/pagbank-security.ts` with DER/P1363 fail-closed tests) |
-| Risk       | Anonymous calls to the 5 functions will 401. Intended. The webhook's signature validation is the alternative authenticity mechanism — its existence and correctness must be re-proven in non-prod before relying on it                                                               |
-| Rollback   | Re-set flags (no code change)                                                                                                                                                                                                                                                        |
-| Validation | Invalid/absent JWT → 401 on the 5; webhook with invalid signature → 401 fail-closed; webhook replay rejected                                                                                                                                                                         |
+**Status: COMPLETE** (folded into the §1 production deploy). `supabase
+functions deploy` applied the config.toml verify_jwt automatically: 5 true
+(`passkey-auth`, `settings-cascade`, `vector-rag`, `pagbank-connect`,
+`pagbank-order`), `pagbank-webhook` false (ECDSA signature in-handler, by
+design). Verified live: anonymous calls to the 5 → 401; the webhook retains
+its signature-based authenticity path.
 
 ## 3. Vercel — Git integration VERIFIED; production promotion still gated
 
