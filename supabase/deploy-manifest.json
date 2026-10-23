@@ -347,6 +347,15 @@
       "pagbank_order_anonymous": "HTTP 401 Missing authorization header (verify_jwt gateway live)",
       "catalog_anon_read": "RLS denies anonymous read ([] \u2014 correct; authenticated-only)"
     },
-    "runtime_drift": "RESOLVED \u2014 code verified in CI is now the code deployed in production"
+    "runtime_drift": "RESOLVED \u2014 code verified in CI is now the code deployed in production",
+    "auth_config": {
+      "site_url": "https://app.cestari.studio",
+      "uri_allow_list": "app.cestari.studio(+/**), generative-*-cestari-studio.vercel.app(+/**), localhost:3000(+/**), localhost:5173(+/**)",
+      "passkey_enabled": true,
+      "webauthn_rp_id": "cestari.studio",
+      "webauthn_rp_display_name": "genOS by Cestari Studio",
+      "webauthn_rp_origins": "https://app.cestari.studio, https://cestari.studio",
+      "note": "Passkeys work on app.cestari.studio (+ subdomains). Vercel Preview URLs (*.vercel.app) and localhost cannot share RP ID cestari.studio (WebAuthn domain constraint) \u2014 passkey testing on those origins requires their own RP ID. Fixed the \"Passkeys are disabled\" error reported by the owner."
+    }
   }
 }
