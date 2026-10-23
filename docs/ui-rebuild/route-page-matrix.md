@@ -113,3 +113,11 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 - `DashboardCharts.jsx` presents explicit Carbon empty states when the cascade or corpus datasets are empty.
 - Regression coverage: `src/__tests__/dashboard-data.test.js` and `src/__tests__/Dashboard.test.jsx`.
 - Status: PR #15 branch; CI and Preview/E2E verification pending.
+
+## Remediation addendum — dashboard tenant roster
+
+- `DashboardUsersTab` no longer infers an organization-owner role from matching the current session, assigns “Active” without a membership status, or labels a missing name “Anonymous Person”. Fields not returned by the tenant `persons` query render “Not reported”.
+- `DashboardWorkspaceTab` no longer renames missing workspace data to “Default Workspace” or prints missing organization/workspace IDs as empty/undefined values.
+- Member-invitation copy now states that the action remains disabled until the authorized membership flow is implemented and audited.
+- Regression coverage: `src/__tests__/DashboardRosterStates.test.jsx`.
+- Status: PR pending CI and human review; no membership write/RLS/runtime change was made.
