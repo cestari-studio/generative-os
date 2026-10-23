@@ -107,6 +107,47 @@ sources.
 less obvious spots continues in the next cycle (settings cascade drafts,
 onboarding copy, notifications).
 
+## P0-3 Hydration mismatch eliminated + browser-smoke gate (THIS CYCLE)
+
+**Found by:** the new local browser smoke (first run caught it).
+
+**Root cause:** lazy route subtrees hydrate AFTER `TenantProvider`'s mount
+effect fires `initializeSession` → `refreshTenantData` → `setLoading(true)`.
+When the suspended subtree finally hydrated, `ProtectedRoute` rendered
+`loading=true` (spinner gate) while the SSR HTML held the anonymous access
+gate — React hydration mismatch on `/dashboard`, `/products`, `/knowledge`.
+Second breaker: `useDashboardData` used `useState(() => Date.now())` — the
+exact pattern the React error message names.
+
+**Fix (TDD via browser smoke RED→GREEN):**
+
+- [x] `refreshTenantData` gains `{ silent }`; mount-time refresh is silent
+      (explicit user refreshes keep the spinner).
+- [x] dashboard clock via `useSyncExternalStore` (server snapshot null,
+      client snapshot cached per-load) + explicit refresh anchor.
+- [x] `scripts/browser-smoke.mjs`: 24 local Chromium assertions — HTTP
+      status, non-empty SSR `#root`, expected anonymous content (access gate on
+      private routes), zero fictional demo tenant content, zero fatal page
+      errors (hydration regressions fail).
+- [x] CI `browser-smoke` job (Chromium via `playwright install`). **Not a
+      required check** — branch protection is owner-only (§16.3); recommend
+      adding `browser-smoke` to required checks after owner review.
+
+**Verification:** 24/24 browser assertions, 219 unit + 7 skipped, lint clean.
+Before the fix the same smoke reported 3 hydration failures.
+
+**CI evidence:** pending — SHA `2f3ffca`.
+
+## P1 matrix consistency gate (THIS CYCLE)
+
+- [x] `scripts/validate-matrices.mjs` + `npm run check:matrices` wired into
+      the quality job: binding counters internally consistent, canonical counts
+      MATCH with equal numbers, no achieved `E2E_VERIFIED`/`ACCEPTED` status
+      without per-SHA artifact evidence, crosswalk/JSON counters agree.
+      Negative path verified (planted `E2E_VERIFIED` status cell fails).
+
+**CI evidence:** pending — SHA `a7ccf68` (in the `2f3ffca` tree).
+
 ## Next non-blocked tasks (queue)
 
 1. **Phase 2 — mock/demo/fake runtime audit** (`src/`, Edge Functions,
