@@ -389,7 +389,8 @@
     "uploadingMedia": "MediaObject「{{name}}」を {{bucket}} にアップロードしています…",
     "uploadCompleted": "MediaObject「{{name}}」を {{bucket}} にアップロードしました。",
     "storageScopeUnavailable": "ストレージスコープのプレフィックスを表示するには、組織とワークスペースを選択してください。",
-    "copiedStorageScope": "ストレージスコープのプレフィックスをコピーしました"
+    "copiedStorageScope": "ストレージスコープのプレフィックスをコピーしました",
+    "uploadRefreshFailed": "ファイルとMediaObjectレコードは作成されましたが、テナントビューを更新できませんでした。再試行する前にメディアテーブルを確認してください。"
   },
   "nav": {
     "actions": {
