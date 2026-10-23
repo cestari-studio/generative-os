@@ -401,7 +401,8 @@
     "uploadingMedia": "正在将 MediaObject“{{name}}”上传到 {{bucket}}…",
     "uploadCompleted": "已将 MediaObject“{{name}}”上传到 {{bucket}}。",
     "storageScopeUnavailable": "请选择组织和工作区以显示存储范围前缀。",
-    "copiedStorageScope": "已复制存储范围前缀"
+    "copiedStorageScope": "已复制存储范围前缀",
+    "uploadRefreshFailed": "文件及其 MediaObject 记录已创建，但无法刷新租户视图。重试前请检查媒体表。"
   },
   "nav": {
     "actions": {
