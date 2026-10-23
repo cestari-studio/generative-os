@@ -94,8 +94,8 @@ describe('knowledge presentation helpers do not fabricate backend metadata', () 
     expect(() => requireUploadedObjectPath({ data: null, error: null })).toThrow(
       'Storage upload did not return a persisted object path.',
     );
-    expect(() =>
-      requireUploadedObjectPath({ data: null, error: new Error('storage permission denied') }),
-    ).toThrow('storage permission denied');
+    expect(() => requireUploadedObjectPath({ data: null, error: new Error('storage permission denied') })).toThrow(
+      'storage permission denied',
+    );
   });
 });
