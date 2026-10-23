@@ -577,19 +577,16 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
       const storagePath = `${currentOrgId}/${currentWsId}/${Date.now()}-${safeName}`;
-      const uploadResult = await supabase.storage
-        .from(bucketId)
-        .upload(storagePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-        });
+      const uploadResult = await supabase.storage.from(bucketId).upload(storagePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
 
       let uploadedObjectPath;
       try {
         uploadedObjectPath = requireUploadedObjectPath(uploadResult);
       } catch (uploadException) {
-        const message =
-          uploadException instanceof Error ? uploadException.message : 'Storage upload failed.';
+        const message = uploadException instanceof Error ? uploadException.message : 'Storage upload failed.';
         setStatusMessage(message);
         throw uploadException;
       }
