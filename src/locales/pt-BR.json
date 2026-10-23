@@ -598,7 +598,15 @@
     "colType": "Tipo @type",
     "connectDesc": "Gerencie contas de parceiros autorizados para split de pagamentos automático no PagBank.",
     "invalidCustomer": "Nome e e-mail do cliente são obrigatórios.",
-    "amountPlaceholder": "0,00"
+    "amountPlaceholder": "0,00",
+    "chargeOutcomeUnknownTitle": "Resultado do pagamento desconhecido",
+    "chargeOutcomeUnknown": "Não foi possível confirmar o resultado do pagamento. Não crie outra cobrança. Tente novamente esta mesma tentativa para reconciliar com o PagBank usando a mesma cotação e referência de idempotência.",
+    "reconcilingCharge": "Reconciliando a mesma tentativa de pagamento…",
+    "retrySameCharge": "Tentar novamente a mesma cobrança",
+    "pendingChargeReference": "Cotação pendente {{quoteId}} · referência {{referenceId}}. A criação de outra cobrança está bloqueada até que este resultado seja resolvido.",
+    "fdwNotProvisionedTitle": "Runtime do FDW não verificado",
+    "fdwNotProvisionedDesc": "Esta aplicação não possui um modelo de leitura verificado para Supabase Wrappers, conectividade do FDW PagBank ou estado do Vault. Endpoints de exemplo, identidades de provedores e valores de saúde não são apresentados como dados reais.",
+    "fdwOwnerGate": "A verificação do runtime exige um ambiente autorizado, configuração server-side verificada e um contrato de saúde somente leitura."
   },
   "placeholder": {
     "description1": "Geralmente não é uma boa ideia manter páginas em construção.",

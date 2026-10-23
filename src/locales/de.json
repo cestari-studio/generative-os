@@ -541,7 +541,15 @@
     "taxonomyHeading": "Implementierte Schema.org-Taxonomie:",
     "title": "PagBank Multi-Tenant & FDW-Engine",
     "invalidCustomer": "Kundenname und E-Mail sind erforderlich.",
-    "amountPlaceholder": "0,00"
+    "amountPlaceholder": "0,00",
+    "chargeOutcomeUnknownTitle": "Zahlungsergebnis unbekannt",
+    "chargeOutcomeUnknown": "Das Zahlungsergebnis ist unbekannt. Erstellen Sie keine neue Forderung. Wiederholen Sie denselben Versuch, um ihn bei PagBank mit derselben Quote und Idempotenzreferenz abzugleichen.",
+    "reconcilingCharge": "Derselbe Zahlungsvorgang wird abgeglichen…",
+    "retrySameCharge": "Denselben Zahlungsvorgang erneut versuchen",
+    "pendingChargeReference": "Ausstehende Quote {{quoteId}} · Referenz {{referenceId}}. Eine weitere Forderung bleibt deaktiviert, bis dieses Ergebnis geklärt ist.",
+    "fdwNotProvisionedTitle": "FDW-Runtime nicht verifiziert",
+    "fdwNotProvisionedDesc": "Diese Anwendung besitzt kein verifiziertes Lesemodell für Live-Supabase-Wrappers, PagBank-FDW-Verbindung oder Vault-Status. Beispielendpunkte, Anbieteridentitäten und Laufzeitstatuswerte werden nicht als Live-Daten angezeigt.",
+    "fdwOwnerGate": "Die Laufzeitprüfung erfordert eine autorisierte Umgebung, verifizierte serverseitige Konfiguration und einen schreibgeschützten Statusvertrag."
   },
   "placeholder": {
     "description1": "Generell ist es keine gute Idee, Seiten im Aufbau zu haben.",

@@ -533,7 +533,15 @@
     "taxonomyHeading": "Schema.org Taxonomy Implemented:",
     "title": "PagBank Multi-Tenant & FDW Engine",
     "invalidCustomer": "Customer name and email are required.",
-    "amountPlaceholder": "0.00"
+    "amountPlaceholder": "0.00",
+    "chargeOutcomeUnknownTitle": "Payment outcome unknown",
+    "chargeOutcomeUnknown": "The payment outcome is unknown. Do not create a new charge. Retry this same attempt to reconcile with PagBank using the same quote and idempotency reference.",
+    "reconcilingCharge": "Reconciling the same payment attempt…",
+    "retrySameCharge": "Retry same payment attempt",
+    "pendingChargeReference": "Pending quote {{quoteId}} · reference {{referenceId}}. Creating another charge is disabled until this outcome is resolved.",
+    "fdwNotProvisionedTitle": "FDW runtime not verified",
+    "fdwNotProvisionedDesc": "This application has no verified read model for live Supabase Wrappers, PagBank FDW connectivity, or Vault status. No example endpoints, provider identities, or runtime health values are presented as live data.",
+    "fdwOwnerGate": "Runtime verification requires an authorized environment, verified server-side configuration, and a read-only health contract."
   },
   "placeholder": {
     "description1": "Generally it is not a good idea to have pages under construction.",
