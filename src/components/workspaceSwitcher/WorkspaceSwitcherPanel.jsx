@@ -140,7 +140,6 @@ export const WorkspaceSwitcherPanel = ({ className }) => {
             <TextInput
               id="new-org-name"
               labelText={t('workspaceSwitcher.orgNamePlaceholder', 'Organization name')}
-              placeholder="Acme AI Corp"
               value={newOrgName}
               onChange={(e) => setNewOrgName(e.target.value)}
               size="sm"
@@ -148,7 +147,6 @@ export const WorkspaceSwitcherPanel = ({ className }) => {
             <TextInput
               id="new-org-identifier"
               labelText={t('workspaceSwitcher.orgIdentifierPlaceholder', 'organization-slug')}
-              placeholder="acme-ai"
               value={newOrgIdentifier}
               onChange={(e) => setNewOrgIdentifier(e.target.value)}
               size="sm"

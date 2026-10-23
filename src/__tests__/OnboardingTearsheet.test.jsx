@@ -63,6 +63,8 @@ describe('OnboardingTearsheet (Carbon preview__Tearsheet Architecture)', () => {
     expect(screen.getByText('Configure Tenant DNA & Identity')).toBeInTheDocument();
     expect(screen.getByLabelText(/Organization Name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Legal Registered Name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Organization Name/i)).not.toHaveAttribute('placeholder');
+    expect(screen.getByLabelText(/Legal Registered Name/i)).not.toHaveAttribute('placeholder');
   });
 
   test('navigates through steps using Back and Next buttons', async () => {

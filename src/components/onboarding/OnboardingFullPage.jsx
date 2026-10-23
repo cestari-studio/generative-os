@@ -729,7 +729,6 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
             <TextInput
               id="pj-rep-name"
               labelText={t('signInModal.repName', 'Legal Representative Full Name')}
-              placeholder="Jane Doe"
               value={repName}
               onChange={(e) => setRepName(e.target.value)}
             />
