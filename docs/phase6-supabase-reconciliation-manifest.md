@@ -264,5 +264,8 @@ destination-owned in the binding ledger.
 
 Notes: `npm audit fix` was deliberately NOT used — its dry-run showed forced
 breaking changes to `unlighthouse` and `stylelint-plugin-carbon-tokens`.
-`overrides` pins only the two vulnerable transitive packages. The production
-bundle does not include either package (verified: `npm audit --omit=dev` = 0).
+An `overrides` attempt pinned the two packages, but the required lockfile
+regeneration upgraded 257 transitive packages — reverted per §2.3; the fix
+belongs in a dedicated dependency-update PR with full lockfile validation.
+The production bundle does not include either package (verified:
+`npm audit --omit=dev` = 0 vulnerabilities).
