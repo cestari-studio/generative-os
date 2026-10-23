@@ -60,7 +60,8 @@
     "back": "Voltar",
     "finish": "Concluir",
     "on": "Ativado",
-    "off": "Desativado"
+    "off": "Desativado",
+    "notReported": "Não informado"
   },
   "commonHeader": {
     "logoAlt": "Logo Cestari Studio"
@@ -90,7 +91,16 @@
       "corpusTitle": "Ativos de Conhecimento e Mídia por Formato",
       "itemsCount": "Quantidade",
       "rulesTotal": "Regras ativas",
-      "timelineAxis": "Linha do tempo"
+      "timelineAxis": "Linha do tempo",
+      "completedActions": "Ações concluídas",
+      "pendingActions": "Pendentes / em andamento",
+      "otherActions": "Outros status / não classificados",
+      "noCascadeDataTitle": "Nenhuma regra de cascata efetiva registrada",
+      "noCascadeDataSubtitle": "O escopo selecionado não possui configurações persistidas com uma regra de cascata reconhecida.",
+      "noCorpusDataTitle": "Nenhum ativo de conhecimento ou mídia registrado",
+      "noCorpusDataSubtitle": "O escopo selecionado não possui documentos de conhecimento ou objetos de mídia persistidos.",
+      "documentFormatNotReported": "Formato do documento não informado",
+      "mediaFormatNotReported": "Formato da mídia não informado"
     },
     "chartsRegion": "Telemetria e Análise de Governança",
     "contextHierarchy": "Hierarquia do inquilino",
