@@ -60,7 +60,8 @@
     "back": "Voltar",
     "finish": "Concluir",
     "on": "Ativado",
-    "off": "Desativado"
+    "off": "Desativado",
+    "notReported": "Não informado"
   },
   "commonHeader": {
     "logoAlt": "Logo Cestari Studio"
@@ -369,7 +370,7 @@
     "searchHeading": "Correspondência Semântica pgvector",
     "searchPlaceholder": "Faça uma pergunta ou pesquise nos trechos de conhecimento do tenant...",
     "similarityThresholdLabel": "Limiar Mínimo de Similaridade",
-    "storagePathLabel": "Caminho de Armazenamento Isolado:",
+    "storagePathLabel": "Prefixo do escopo de armazenamento do tenant (o nome do objeto é gerado no envio):",
     "subtitle": "Armazenamento multi-tenant Schema.org DigitalDocument e busca semântica vetorial HNSW de 384 dimensões.",
     "suggestionsLabel": "Consultas rápidas:",
     "tabIngest": "Corpus & Ingestão",
@@ -381,7 +382,17 @@
     "uploadHeading": "Upload em Armazenamento de Objetos",
     "taxonomyHeading": "Taxonomia Schema.org Implementada:",
     "uploadFileLabel": "Arquivo DigitalDocument para Ingestão",
-    "searching": "Buscando no corpus de conhecimento..."
+    "searching": "Buscando no corpus de conhecimento...",
+    "foundResults": "{{count}} trechos de conhecimento encontrados.",
+    "ingestStarting": "Enviando o documento para indexação…",
+    "ingestCompleted": "Documento “{{name}}” indexado ({{count}} trechos informados pelo serviço).",
+    "ingestCountUnreported": "O serviço retornou o documento “{{name}}”, mas não informou a quantidade de trechos indexados. Verifique o status atual na tabela do corpus.",
+    "ingestUnverified": "O serviço não retornou ID e nome de um documento persistido. Atualize o corpus antes de tentar novamente para evitar duplicidade.",
+    "ingestRefreshFailed": "A resposta da ingestão foi recebida, mas não foi possível atualizar o corpus. Verifique a tabela de documentos antes de tentar novamente.",
+    "uploadingMedia": "Enviando MediaObject “{{name}}” para {{bucket}}…",
+    "uploadCompleted": "MediaObject “{{name}}” enviado para {{bucket}}.",
+    "storageScopeUnavailable": "Selecione uma organização e um workspace para exibir o prefixo do escopo de armazenamento.",
+    "copiedStorageScope": "Prefixo do escopo de armazenamento copiado"
   },
   "nav": {
     "actions": {
