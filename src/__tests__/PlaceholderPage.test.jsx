@@ -25,7 +25,9 @@ describe('registered but unimplemented route state', () => {
         'This route is registered, but its functional page implementation is not available in this build.',
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText('No sample, demo, or placeholder records are displayed on this route.')).toBeInTheDocument();
+    expect(
+      screen.getByText('No sample, demo, or placeholder records are displayed on this route.'),
+    ).toBeInTheDocument();
     expect(screen.getByText("The registered route is '/master/private/finops'.")).toBeInTheDocument();
     expect(screen.queryByText(/demonstrate the global navigation|generally not a good idea/i)).not.toBeInTheDocument();
   });
