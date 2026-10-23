@@ -188,7 +188,7 @@ jobs:
     needs: quality
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17.11
         env:
           POSTGRES_PASSWORD: postgres
         options: >-
