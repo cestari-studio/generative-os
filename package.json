@@ -34,7 +34,8 @@
     "i18n:sync": "node scripts/i18n-sync.js",
     "semantic-release": "semantic-release",
     "test:billing-sql": "./scripts/test-billing-sql.sh",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "check:matrices": "node scripts/validate-matrices.mjs"
   },
   "dependencies": {
     "@carbon-labs/react-theme-settings": "^0.30.0",

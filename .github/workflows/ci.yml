@@ -81,6 +81,9 @@ jobs:
       - name: Product branding & hardcoded-content gate
         run: npm run check:branding
 
+      - name: Ontology/route matrix consistency gate
+        run: npm run check:matrices
+
       - name: Build client and SSR bundles
         run: npm run build
 
