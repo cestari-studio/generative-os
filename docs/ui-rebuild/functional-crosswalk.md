@@ -97,3 +97,12 @@ A autoridade v0.9.1 audita 4 bundles com estado real de runtime:
 - O destino tem **9 rotas físicas + 6 Edge Functions**; a cobertura normativa de 60 páginas / 100 operações / 225 features **não está materializada** — é o backlog de vertical slices (Fase 5+).
 - Não copiar migrations/seeds/IDs do `genOS`; implementar por contrato adaptado ao schema real do destino.
 - O delta de implementação deve ser rastreado pela `route-page-matrix.md` do destino, nunca preenchido com conteúdo fake.
+
+## 8. Fase 5 — primeiro binding materializado no destino
+
+- **Feature:** `platform.configuration_naming.config_cascade_resolve`
+- **Page key:** `tenant.private.settings` → destino `/settings` / `TenantCascadeSettings`
+- **Operation binding:** `effective-config-resolve` → adapter existente `public.resolve_effective_settings`
+- **Estado:** `implemented_unverified`. A migration `20261022070000_catalog_feature_bindings.sql` e o seed de overlay preservam a proveniência da traceability matrix.
+- **Limite:** `public-host-resolve` não é declarado como implementado por este binding; runtime Supabase, autenticação real e Preview E2E continuam pendentes.
+- **Contagem:** 1 binding no candidato do destino; 0 rows observadas no remoto antes da migration autorizada. Os gaps normativos 206/149 continuam iguais — não foram reduzidos por inferência.
