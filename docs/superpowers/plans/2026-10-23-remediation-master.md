@@ -150,21 +150,23 @@ Before the fix the same smoke reported 3 hydration failures.
 
 ## Next non-blocked tasks (queue)
 
-1. **Phase 2 — mock/demo/fake runtime audit** (`src/`, Edge Functions,
-   workflows): automated searches + contextual review; classify per directive
-   taxonomy; replace prohibited findings with real backend or honest states.
-   Focus: Brand DNA tab in `ProductsCatalogPage.jsx` (static
-   `BRAND_DNA_PROFILES` still presented as data), dashboard tabs, knowledge.
-2. **Phase 10 — local E2E/browser layer**: Playwright against local SSR
-   server for auth guards, tenant switch, knowledge empty/error states —
-   clearly labeled LOCAL, not Preview E2E.
-3. **Phase 6 — ontology coverage engine**: recalc counters from
-   `registry-coverage-matrix.json` (never hand-written); keep bindings
-   evidence-based only.
-4. **Runtime reconciliation packet refresh** (read-only): re-pull remote
-   migration ledger + function versions to keep `expected vs observed` fresh.
-5. **SECURITY DEFINER consumer map** (read-only + local analysis): build
-   function→consumers→grants→checks table for the 4 flagged functions.
+1. ~~**Phase 2 — mock/demo/fake runtime audit**~~ **DONE this cycle** (no
+   prohibited findings remain; Brand DNA fictional tenants removed).
+2. ~~**Phase 10 — local E2E/browser layer**~~ **DONE this cycle**
+   (`browser-smoke.mjs`, 24 assertions, CI job added).
+3. ~~**Phase 6 — ontology coverage engine**~~ **PARTIAL** — machine counters
+   - binding ledger + CI validation done; materialization of further
+     normative slices remains.
+4. ~~**Runtime reconciliation packet refresh**~~ **DONE this cycle**
+   (re-confirmed 2026-10-23: 17 migrations, 18/18 expected tables absent).
+5. ~~**SECURITY DEFINER consumer map**~~ **DONE this cycle** (phase6 §12).
+6. **Benchmark baseline** (Phase 10): capture LCP/INP/CLS lab metrics +
+   bundle sizes per route with the browser infrastructure now in place.
+7. **Manual WCAG 2.2 AA checklist prep**: keyboard/screen-reader test script
+   for the human reviewer (automated axe layer already green).
+8. **Normative slice materialization** (next slices after the 3 implemented):
+   settings-cascade page bindings, knowledge pipeline description, workspace
+   management — contract first, then tests, then code.
 
 ## Human gates (unchanged)
 
