@@ -22,18 +22,12 @@ export const formatCompactNumber = (num, locale = 'en') => {
   }).format(parsed);
 };
 
-
 const displayOrNotReported = (value, notReportedLabel) => {
   if (value === null || value === undefined || value === '') return notReportedLabel;
   return String(value);
 };
 
-export const buildActivityChartData = (
-  filteredAudits,
-  referenceTimestamp,
-  timeHorizon,
-  labels = {},
-) => {
+export const buildActivityChartData = (filteredAudits, referenceTimestamp, timeHorizon, labels = {}) => {
   const buckets = {};
   const days = timeHorizon === '24h' ? 24 : timeHorizon === '7d' ? 7 : timeHorizon === '30d' ? 30 : 90;
   const isHourly = timeHorizon === '24h';
@@ -93,14 +87,14 @@ export const buildCascadeDonutData = (effectiveSettings) => {
     .map(([group, value]) => ({ group, value }));
 };
 
-export const buildCorpusBarData = (
-  knowledgeDocuments,
-  mediaObjects,
-  labels = {},
-) => {
+export const buildCorpusBarData = (knowledgeDocuments, mediaObjects, labels = {}) => {
   const formats = {};
   knowledgeDocuments.forEach((document) => {
-    const format = document.file_type || document.encoding_format || labels.documentFormatNotReported || 'Unspecified document format';
+    const format =
+      document.file_type ||
+      document.encoding_format ||
+      labels.documentFormatNotReported ||
+      'Unspecified document format';
     formats[format] = (formats[format] || 0) + 1;
   });
   mediaObjects.forEach((media) => {
@@ -129,8 +123,9 @@ export const buildGovernanceRows = (effectiveSettings, search, notReportedLabel)
   const query = search.trim().toLowerCase();
   if (!query) return rows;
   return rows.filter((row) =>
-    [row.property_id, row.scope, row.source_level, row.effective_cascade_rule]
-      .some((value) => value.toLowerCase().includes(query)),
+    [row.property_id, row.scope, row.source_level, row.effective_cascade_rule].some((value) =>
+      value.toLowerCase().includes(query),
+    ),
   );
 };
 
@@ -150,8 +145,9 @@ export const buildAuditRows = (filteredAudits, search, notReportedLabel, locale)
   const query = search.trim().toLowerCase();
   if (!query) return rows;
   return rows.filter((row) =>
-    [row.schema_type, row.object_type, row.instrument, row.action_status]
-      .some((value) => value.toLowerCase().includes(query)),
+    [row.schema_type, row.object_type, row.instrument, row.action_status].some((value) =>
+      value.toLowerCase().includes(query),
+    ),
   );
 };
 
@@ -243,10 +239,7 @@ export const useDashboardData = () => {
   );
 
   // 5. Cascade Governance Donut Chart Data (@carbon/charts DonutChart)
-  const cascadeDonutData = useMemo(
-    () => buildCascadeDonutData(effectiveSettings),
-    [effectiveSettings],
-  );
+  const cascadeDonutData = useMemo(() => buildCascadeDonutData(effectiveSettings), [effectiveSettings]);
 
   // 6. Corpus by Format SimpleBarChart Data (@carbon/charts SimpleBarChart)
   const corpusBarData = useMemo(
