@@ -45,28 +45,36 @@ function CatalogAvailabilityState({ status, t }) {
       titleKey: 'productsCatalog.notProvisionedTitle',
       title: 'Product catalog not provisioned',
       descriptionKey: 'productsCatalog.notProvisionedDesc',
-      description: 'The required catalog tables are not provisioned in this environment. No static fallback content is displayed.',
+      description:
+        'The required catalog tables are not provisioned in this environment. ' +
+        'No static fallback content is displayed.',
       role: 'status',
     },
     empty: {
       titleKey: 'productsCatalog.emptyTitle',
       title: 'Product catalog is empty',
       descriptionKey: 'productsCatalog.emptyDesc',
-      description: 'The catalog tables are reachable, but no product entries are present. No static fallback content is displayed.',
+      description:
+        'The catalog tables are reachable, but no product entries are present. ' +
+        'No static fallback content is displayed.',
       role: 'status',
     },
     forbidden: {
       titleKey: 'productsCatalog.forbiddenTitle',
       title: 'Catalog access forbidden',
       descriptionKey: 'productsCatalog.forbiddenDesc',
-      description: 'Your current session is not authorized to read the normative catalog. Contact an administrator if you believe access should be granted.',
+      description:
+        'Your current session is not authorized to read the normative catalog. ' +
+        'Contact an administrator if you believe access should be granted.',
       role: 'alert',
     },
     error: {
       titleKey: 'productsCatalog.errorTitle',
       title: 'Product catalog unavailable',
       descriptionKey: 'productsCatalog.errorDesc',
-      description: 'The catalog could not be loaded because of a service or configuration error. Retry later; no static fallback content is displayed.',
+      description:
+        'The catalog could not be loaded because of a service or configuration error. ' +
+        'Retry later; no static fallback content is displayed.',
       role: 'alert',
     },
   };
