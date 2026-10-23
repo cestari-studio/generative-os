@@ -779,16 +779,18 @@ export default function PaymentManagementPage() {
             ) : null}
           </TabPanel>
 
-          {/* TAB 3: Supabase Wrappers (FDW) */}
+          {/* TAB 3: Supabase Wrappers (FDW) — do not render an illustrative runtime/config payload */}
           <TabPanel>
             <Grid>
               <Column sm={4} md={8} lg={16}>
                 <Tile style={{ marginBlockEnd: '1rem' }}>
-                  <h5>{t('payments.fdwHeading', 'Supabase Wrappers & Foreign Data Wrapper Architecture')}</h5>
+                  <h5>
+                    {t('payments.fdwNotProvisionedTitle', 'FDW runtime not verified')}
+                  </h5>
                   <p style={{ marginBlock: '0.5rem' }}>
                     {t(
-                      'payments.fdwDesc',
-                      'The wasm_wrapper Foreign Data Wrapper (wrappers v0.6.3) maps PagBank REST endpoints directly to relational PostgreSQL tables isolated in private pagbank_fdw schema.',
+                      'payments.fdwNotProvisionedDesc',
+                      'This application has no verified read model for live Supabase Wrappers, PagBank FDW connectivity, or Vault status. No example endpoints, provider identities, or runtime health values are presented as live data.',
                     )}
                   </p>
                   <p
@@ -796,37 +798,10 @@ export default function PaymentManagementPage() {
                     style={{ color: 'var(--cds-text-secondary, #6f6f6f)', marginBlockStart: '0.5rem' }}
                   >
                     {t(
-                      'payments.fdwNotVerified',
-                      'Runtime status of wrappers, FDW connectivity, and Vault encryption is not verified by this page.',
+                      'payments.fdwOwnerGate',
+                      'Runtime verification requires an authorized environment, verified server-side configuration, and a read-only health contract.',
                     )}
                   </p>
-                </Tile>
-
-                <Tile>
-                  <h6>{t('payments.taxonomyHeading', 'Schema.org Taxonomy Mapping (contract example):')}</h6>
-                  <CodeSnippet type="multi">
-                    {`{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "FinancialService",
-      "name": "PagBank Multi-Tenant Gateway",
-      "currenciesAccepted": "BRL",
-      "paymentAccepted": ["PIX", "CreditCard", "DebitCard", "Boleto"]
-    },
-    {
-      "@type": "Order",
-      "orderStatus": "https://schema.org/OrderProcessing",
-      "priceCurrency": "BRL"
-    },
-    {
-      "@type": "PayAction",
-      "recipient": "ConnectedSellerAccount",
-      "instrument": "PaymentSplit"
-    }
-  ]
-}`}
-                  </CodeSnippet>
                 </Tile>
               </Column>
             </Grid>
