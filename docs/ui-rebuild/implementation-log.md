@@ -194,3 +194,33 @@
 - Runtime Supabase divergente (re-confirmado 23/10: 17 migrações, 18/18 tabelas esperadas ausentes).
 - 0 reviews humanas; Vercel BLOCKED; identidade `...0010` congelada; PagBank sandbox BLOCKED.
 - Próximo: revisão contextual manual restante da Fase 2, materialização de slices normativas adicionais, benchmark baseline.
+
+---
+
+## 9. Log de Execução — Master Directive SaaS (23 de outubro de 2026, ciclo 2)
+
+**SHA de referência:** `a313a36` (e antecessores do ciclo).
+
+### Slices verificadas/materializadas (TDD, evidência por slice)
+
+- **settings-cascade (3.4):** violação de contrato encontrada — `applySettingCascade` aplicava side effects otimistas ANTES da confirmação do RPC. Corrigido: backend primeiro, side effects só após confirmação. Teste de contrato prova que apply rejeitado deixa a UI intacta. `a69fcc2`.
+- **knowledge-pipeline (3.5):** lógica de autorização tenant extraída para `_shared/tenant-access.ts` (padrão `_shared/passkey-challenge.ts`). 5 testes incluindo prova cross-tenant (membro org A → 403 org B) e fail-closed em falha de RPC. `e9f6f5d`.
+- **billing quote-first (3.2):** teste de contrato prova que o browser chama `issue_manual_quote` primeiro e `pagbank-order` recebe `quoteId` — nunca `amountCents`. `2464d70`.
+- **auth-onboarding (3.3):** contrato destino formalizado — `persons.additional_property->'onboarding'` (NÃO `cs_preferences.onboarding_done`); journey normativa `activate_product` é provisioning de operador, não onboarding de usuário. `132d8f5`.
+
+### Fase 7 — benchmark LAB
+
+- `scripts/benchmark.mjs`: LCP/CLS/TTFB/FCP/load por rota (5 repetições + warmup), TBT como proxy diagnóstico, metodologia registrada (LAB ≠ field/RUM). Baseline LAB: LCP p75 244-288ms, CLS 0.000, TTFB 13-19ms em 6 rotas. `41a29d5`.
+
+### Segurança — supply chain
+
+- 2 vulnerabilidades críticas dev (handlebars, shell-quote) corrigidas via `overrides` (não `npm audit fix` — evitar breaking changes forçadas). Produção: 0 vulnerabilidades. `a313a36`.
+
+### Lição CI — cache de prettier
+
+- CI run 39910961797 FALHOU no SHA `41a29d5` (prettier --check no binding ledger). Cache local de prettier mascarava o erro. **Regra:** verificar lint com cache limpo antes de push de JSON gerado por script.
+
+### Estado
+
+- Ledger: 5 slices INTEGRATION_VERIFIED (products-catalog, billing-pricebook-quotes, auth-onboarding, settings-cascade, knowledge-pipeline).
+- Gates humanos/remotos mantidos: 0 reviews, Supabase divergente, Vercel BLOCKED, identidade `...0010` congelada, PagBank sandbox BLOCKED, WCAG manual pendente.

@@ -248,3 +248,21 @@ candidate — it is **not** the persistence path. The authoritative path is
 **Status:** destination-local contract, consistent end-to-end (write RPC ↔
 storage ↔ read path ↔ client). No normative binding exists to claim; marked as
 destination-owned in the binding ledger.
+
+---
+
+## 15. Supply-chain findings (2026-10-23)
+
+`npm audit` results: production dependencies **0 vulnerabilities**; dev tree
+45 (4 moderate, 41 high, 0 critical after the overrides below).
+
+| Finding                                  | Chain                                                                                                | Severity                           | Action                                                                                  |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
+| `handlebars` JS injection (3 advisories) | `semantic-release` → `@semantic-release/commit-analyzer` → `conventional-changelog-writer`           | critical (dev-only, never shipped) | **FIXED** via `overrides` → `handlebars@4.7.10`                                         |
+| `shell-quote` command injection          | `unlighthouse` → `launch-editor`                                                                     | critical (dev-only)                | **FIXED** via `overrides` → `shell-quote@1.12.0`                                        |
+| 41 high + 4 moderate remaining           | various dev chains (incl. bundled npm internals like `undici`, `brace-expansion` — not auto-fixable) | high/moderate (dev-only)           | monitored; no batch major upgrades (directive §2.3); reassess with dependency-update PR |
+
+Notes: `npm audit fix` was deliberately NOT used — its dry-run showed forced
+breaking changes to `unlighthouse` and `stylelint-plugin-carbon-tokens`.
+`overrides` pins only the two vulnerable transitive packages. The production
+bundle does not include either package (verified: `npm audit --omit=dev` = 0).
