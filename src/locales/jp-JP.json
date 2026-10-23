@@ -546,7 +546,10 @@
     "chargeOutcomeUnknown": "支払い結果を確認できません。新しい請求を作成しないでください。同じ見積もりと冪等性参照を使用して、同じ試行を再実行し PagBank の結果を照合してください。",
     "reconcilingCharge": "同じ支払い試行を照合しています…",
     "retrySameCharge": "同じ支払い試行を再試行",
-    "pendingChargeReference": "保留中の見積もり {{quoteId}} · 参照 {{referenceId}}。結果が解決するまで新しい請求の作成は無効です。"
+    "pendingChargeReference": "保留中の見積もり {{quoteId}} · 参照 {{referenceId}}。結果が解決するまで新しい請求の作成は無効です。",
+    "fdwNotProvisionedTitle": "FDW ランタイムは未検証です",
+    "fdwNotProvisionedDesc": "このアプリケーションには、稼働中の Supabase Wrappers、PagBank FDW 接続、Vault 状態を確認する検証済みの読み取りモデルがありません。サンプルのエンドポイント、プロバイダー識別子、ランタイムの健全性値を実データとして表示しません。",
+    "fdwOwnerGate": "ランタイムの検証には、認可された環境、検証済みのサーバー側設定、読み取り専用のヘルス契約が必要です。"
   },
   "placeholder": {
     "description1": "一般的に、準備中のページを公開したままにすることは推奨されません。",
