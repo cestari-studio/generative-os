@@ -37,6 +37,7 @@ export const DashboardSettingsTab = () => {
     updateThemeSetting,
     updateHeaderInverse,
     applySettingCascade,
+    refreshTenantData,
   } = useTenant();
 
   const [notification, setNotification] = useState(null);
@@ -45,19 +46,40 @@ export const DashboardSettingsTab = () => {
   const themeModeMeta = effectiveSettings.find((s) => s.property_id === 'theme.mode');
   const isThemeLocked = themeModeMeta?.is_locked;
 
+  const sessionOnlyNotification = () => ({
+    kind: 'info',
+    title: t('dashboard.settings.sessionOnlyTitle', 'Applied for this session only'),
+    subtitle: t(
+      'dashboard.settings.sessionOnlyDesc',
+      'Sign in to persist this preference to your tenant profile.',
+    ),
+  });
+
+  const restorePersistedSettings = async () => {
+    try {
+      await refreshTenantData();
+    } catch (refreshError) {
+      console.warn('Could not refresh effective settings after a failed save:', refreshError);
+    }
+  };
+
   const handleLanguageChange = async (event) => {
     const nextLang = event.target.value;
+    const previousLang = i18n.language || 'en';
     setIsSaving(true);
     try {
-      i18n.changeLanguage(nextLang);
-      if (user) {
-        await applySettingCascade({
-          level: 'person',
-          propertyId: 'i18n.in_language',
-          value: nextLang,
-          cascadeRule: 'INHERIT_OVERRIDABLE',
-        });
+      if (!user) {
+        await i18n.changeLanguage(nextLang);
+        setNotification(sessionOnlyNotification());
+        return;
       }
+
+      await applySettingCascade({
+        level: 'person',
+        propertyId: 'i18n.in_language',
+        value: nextLang,
+        cascadeRule: 'INHERIT_OVERRIDABLE',
+      });
       setNotification({
         kind: 'success',
         title: t('dashboard.settings.savedTitle', 'Language preference updated'),
@@ -67,10 +89,15 @@ export const DashboardSettingsTab = () => {
         ),
       });
     } catch {
+      await i18n.changeLanguage(previousLang);
+      await restorePersistedSettings();
       setNotification({
         kind: 'error',
         title: t('common.error', 'Error'),
-        subtitle: t('dashboard.settings.saveError', 'Failed to persist setting.'),
+        subtitle: t(
+          'dashboard.settings.saveError',
+          'The preference could not be confirmed as saved. The previous local value has been restored where possible.',
+        ),
       });
     } finally {
       setIsSaving(false);
@@ -79,17 +106,21 @@ export const DashboardSettingsTab = () => {
 
   const handleThemeModeChange = async (value) => {
     if (isThemeLocked) return;
+    const previousTheme = themeSetting;
     setIsSaving(true);
     try {
-      updateThemeSetting(value);
-      if (user) {
-        await applySettingCascade({
-          level: 'person',
-          propertyId: 'theme.mode',
-          value,
-          cascadeRule: 'INHERIT_OVERRIDABLE',
-        });
+      if (!user) {
+        updateThemeSetting(value);
+        setNotification(sessionOnlyNotification());
+        return;
       }
+
+      await applySettingCascade({
+        level: 'person',
+        propertyId: 'theme.mode',
+        value,
+        cascadeRule: 'INHERIT_OVERRIDABLE',
+      });
       setNotification({
         kind: 'success',
         title: t('dashboard.settings.savedTitle', 'Theme preference updated'),
@@ -99,10 +130,15 @@ export const DashboardSettingsTab = () => {
         ),
       });
     } catch {
+      updateThemeSetting(previousTheme);
+      await restorePersistedSettings();
       setNotification({
         kind: 'error',
         title: t('common.error', 'Error'),
-        subtitle: t('dashboard.settings.saveError', 'Failed to persist setting.'),
+        subtitle: t(
+          'dashboard.settings.saveError',
+          'The preference could not be confirmed as saved. The previous local value has been restored where possible.',
+        ),
       });
     } finally {
       setIsSaving(false);
@@ -110,17 +146,21 @@ export const DashboardSettingsTab = () => {
   };
 
   const handleComplementToggle = async (checked) => {
+    const previousHeaderInverse = headerInverse;
     setIsSaving(true);
     try {
-      updateHeaderInverse(checked);
-      if (user) {
-        await applySettingCascade({
-          level: 'person',
-          propertyId: 'theme.header_inverse',
-          value: checked,
-          cascadeRule: 'INHERIT_OVERRIDABLE',
-        });
+      if (!user) {
+        updateHeaderInverse(checked);
+        setNotification(sessionOnlyNotification());
+        return;
       }
+
+      await applySettingCascade({
+        level: 'person',
+        propertyId: 'theme.header_inverse',
+        value: checked,
+        cascadeRule: 'INHERIT_OVERRIDABLE',
+      });
       setNotification({
         kind: 'success',
         title: t('dashboard.settings.savedTitle', 'Menu theme updated'),
@@ -130,10 +170,15 @@ export const DashboardSettingsTab = () => {
         ),
       });
     } catch {
+      updateHeaderInverse(previousHeaderInverse);
+      await restorePersistedSettings();
       setNotification({
         kind: 'error',
         title: t('common.error', 'Error'),
-        subtitle: t('dashboard.settings.saveError', 'Failed to persist setting.'),
+        subtitle: t(
+          'dashboard.settings.saveError',
+          'The preference could not be confirmed as saved. The previous local value has been restored where possible.',
+        ),
       });
     } finally {
       setIsSaving(false);
