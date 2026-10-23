@@ -22,8 +22,141 @@ export const formatCompactNumber = (num, locale = 'en') => {
   }).format(parsed);
 };
 
+
+const displayOrNotReported = (value, notReportedLabel) => {
+  if (value === null || value === undefined || value === '') return notReportedLabel;
+  return String(value);
+};
+
+export const buildActivityChartData = (
+  filteredAudits,
+  referenceTimestamp,
+  timeHorizon,
+  labels = {},
+) => {
+  const buckets = {};
+  const days = timeHorizon === '24h' ? 24 : timeHorizon === '7d' ? 7 : timeHorizon === '30d' ? 30 : 90;
+  const isHourly = timeHorizon === '24h';
+
+  const now = new Date(referenceTimestamp);
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const d = new Date(now);
+    if (isHourly) {
+      d.setHours(d.getHours() - i);
+      const label = `${String(d.getHours()).padStart(2, '0')}:00`;
+      buckets[label] = { completed: 0, pending: 0, other: 0 };
+    } else {
+      d.setDate(d.getDate() - i);
+      const label = d.toISOString().slice(5, 10);
+      buckets[label] = { completed: 0, pending: 0, other: 0 };
+    }
+  }
+
+  filteredAudits.forEach((audit) => {
+    if (!audit.created_at) return;
+    const timestamp = new Date(audit.created_at);
+    if (Number.isNaN(timestamp.getTime())) return;
+    const label = isHourly
+      ? `${String(timestamp.getHours()).padStart(2, '0')}:00`
+      : timestamp.toISOString().slice(5, 10);
+    if (!buckets[label]) return;
+
+    const status = String(audit.action_status ?? '').toLowerCase();
+    if (status.includes('complete')) {
+      buckets[label].completed += 1;
+    } else if (/(pending|potential|in.?progress|processing)/.test(status)) {
+      buckets[label].pending += 1;
+    } else {
+      // Missing, failed, canceled and other unfamiliar statuses must not be
+      // silently presented as pending/in-progress actions.
+      buckets[label].other += 1;
+    }
+  });
+
+  const rows = [];
+  Object.entries(buckets).forEach(([date, counts]) => {
+    rows.push({ group: labels.completed ?? 'Completed actions', date, value: counts.completed });
+    rows.push({ group: labels.pending ?? 'Pending / in progress', date, value: counts.pending });
+    rows.push({ group: labels.other ?? 'Other / unclassified statuses', date, value: counts.other });
+  });
+  return rows;
+};
+
+export const buildCascadeDonutData = (effectiveSettings) => {
+  const counts = { LOCKED: 0, INHERIT_OVERRIDABLE: 0, MERGE: 0 };
+  effectiveSettings.forEach((setting) => {
+    const rule = setting?.effective_cascade_rule;
+    if (Object.prototype.hasOwnProperty.call(counts, rule)) counts[rule] += 1;
+  });
+  return Object.entries(counts)
+    .filter(([, value]) => value > 0)
+    .map(([group, value]) => ({ group, value }));
+};
+
+export const buildCorpusBarData = (
+  knowledgeDocuments,
+  mediaObjects,
+  labels = {},
+) => {
+  const formats = {};
+  knowledgeDocuments.forEach((document) => {
+    const format = document.file_type || document.encoding_format || labels.documentFormatNotReported || 'Unspecified document format';
+    formats[format] = (formats[format] || 0) + 1;
+  });
+  mediaObjects.forEach((media) => {
+    const format = media.encoding_format || labels.mediaFormatNotReported || 'Unspecified media format';
+    formats[format] = (formats[format] || 0) + 1;
+  });
+  return Object.entries(formats).map(([group, value]) => ({ group, value }));
+};
+
+export const buildGovernanceRows = (effectiveSettings, search, notReportedLabel) => {
+  const rows = effectiveSettings.map((setting, index) => ({
+    // This generated ID is an internal table key only; unknown property IDs
+    // are displayed as missing, never filled with a made-up domain value.
+    id: setting.property_id || `unidentified-setting-${index}`,
+    property_id: displayOrNotReported(setting.property_id, notReportedLabel),
+    scope: displayOrNotReported(setting.scope, notReportedLabel),
+    source_level: displayOrNotReported(setting.source_level, notReportedLabel),
+    effective_cascade_rule: displayOrNotReported(setting.effective_cascade_rule, notReportedLabel),
+    effective_value:
+      setting.effective_value === null || setting.effective_value === undefined
+        ? ''
+        : typeof setting.effective_value === 'object'
+          ? JSON.stringify(setting.effective_value)
+          : String(setting.effective_value),
+  }));
+  const query = search.trim().toLowerCase();
+  if (!query) return rows;
+  return rows.filter((row) =>
+    [row.property_id, row.scope, row.source_level, row.effective_cascade_rule]
+      .some((value) => value.toLowerCase().includes(query)),
+  );
+};
+
+export const buildAuditRows = (filteredAudits, search, notReportedLabel, locale) => {
+  const rows = filteredAudits.map((audit, index) => {
+    const parsedTime = audit.created_at ? new Date(audit.created_at) : null;
+    const hasValidTime = parsedTime && !Number.isNaN(parsedTime.getTime());
+    return {
+      id: audit.id || `audit-${index}`,
+      schema_type: displayOrNotReported(audit.schema_type, notReportedLabel),
+      object_type: displayOrNotReported(audit.object_type, notReportedLabel),
+      instrument: displayOrNotReported(audit.instrument, notReportedLabel),
+      action_status: displayOrNotReported(audit.action_status, notReportedLabel),
+      created_at: hasValidTime ? parsedTime.toLocaleTimeString(locale) : notReportedLabel,
+    };
+  });
+  const query = search.trim().toLowerCase();
+  if (!query) return rows;
+  return rows.filter((row) =>
+    [row.schema_type, row.object_type, row.instrument, row.action_status]
+      .some((value) => value.toLowerCase().includes(query)),
+  );
+};
+
 export const useDashboardData = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     activeOrganization,
     activeWorkspace,
@@ -99,130 +232,43 @@ export const useDashboardData = () => {
   }, [persons, filteredProjects, knowledgeDocuments, mediaObjects, effectiveSettings, i18n.language]);
 
   // 4. Activity Timeline Chart Data (@carbon/charts LineChart/StackedAreaChart)
-  const activityChartData = useMemo(() => {
-    const buckets = {};
-    const days = timeHorizon === '24h' ? 24 : timeHorizon === '7d' ? 7 : timeHorizon === '30d' ? 30 : 90;
-    const isHourly = timeHorizon === '24h';
-
-    // Seed empty buckets
-    const now = new Date(referenceTimestamp);
-    for (let i = days - 1; i >= 0; i -= 1) {
-      const d = new Date(now);
-      if (isHourly) {
-        d.setHours(d.getHours() - i);
-        const label = `${String(d.getHours()).padStart(2, '0')}:00`;
-        buckets[label] = { completed: 0, pending: 0 };
-      } else {
-        d.setDate(d.getDate() - i);
-        const label = d.toISOString().slice(5, 10); // MM-DD
-        buckets[label] = { completed: 0, pending: 0 };
-      }
-    }
-
-    // Populate from real audits
-    filteredAudits.forEach((a) => {
-      const ts = a.created_at ? new Date(a.created_at) : null;
-      if (!ts) return;
-      const label = isHourly ? `${String(ts.getHours()).padStart(2, '0')}:00` : ts.toISOString().slice(5, 10);
-      if (buckets[label]) {
-        const isCompleted = (a.action_status || '').toLowerCase().includes('complete');
-        if (isCompleted) {
-          buckets[label].completed += 1;
-        } else {
-          buckets[label].pending += 1;
-        }
-      }
-    });
-
-    const rows = [];
-    Object.entries(buckets).forEach(([date, counts]) => {
-      rows.push({ group: 'Completed Actions', date, value: counts.completed });
-      rows.push({ group: 'Pending / In Progress', date, value: counts.pending });
-    });
-    return rows;
-  }, [filteredAudits, referenceTimestamp, timeHorizon]);
+  const activityChartData = useMemo(
+    () =>
+      buildActivityChartData(filteredAudits, referenceTimestamp, timeHorizon, {
+        completed: t('dashboard.charts.completedActions', 'Completed actions'),
+        pending: t('dashboard.charts.pendingActions', 'Pending / in progress'),
+        other: t('dashboard.charts.otherActions', 'Other / unclassified statuses'),
+      }),
+    [filteredAudits, referenceTimestamp, timeHorizon, t],
+  );
 
   // 5. Cascade Governance Donut Chart Data (@carbon/charts DonutChart)
-  const cascadeDonutData = useMemo(() => {
-    const counts = { LOCKED: 0, INHERIT_OVERRIDABLE: 0, MERGE: 0 };
-    effectiveSettings.forEach((s) => {
-      const rule = s.effective_cascade_rule || 'INHERIT_OVERRIDABLE';
-      if (counts[rule] !== undefined) {
-        counts[rule] += 1;
-      } else {
-        counts[rule] = 1;
-      }
-    });
-    return [
-      { group: 'LOCKED', value: counts.LOCKED },
-      { group: 'INHERIT_OVERRIDABLE', value: counts.INHERIT_OVERRIDABLE },
-      { group: 'MERGE', value: counts.MERGE },
-    ].filter((item) => item.value > 0);
-  }, [effectiveSettings]);
+  const cascadeDonutData = useMemo(
+    () => buildCascadeDonutData(effectiveSettings),
+    [effectiveSettings],
+  );
 
   // 6. Corpus by Format SimpleBarChart Data (@carbon/charts SimpleBarChart)
-  const corpusBarData = useMemo(() => {
-    const formats = {};
-    knowledgeDocuments.forEach((doc) => {
-      const fmt = doc.file_type || doc.encoding_format || 'Document';
-      formats[fmt] = (formats[fmt] || 0) + 1;
-    });
-    mediaObjects.forEach((media) => {
-      const fmt = media.encoding_format || 'Media Object';
-      formats[fmt] = (formats[fmt] || 0) + 1;
-    });
-
-    const entries = Object.entries(formats);
-    if (!entries.length) {
-      return [
-        { group: 'Schema.org Documents', value: knowledgeDocuments.length || 1 },
-        { group: 'Storage Assets', value: mediaObjects.length || 0 },
-      ];
-    }
-    return entries.map(([group, value]) => ({ group, value }));
-  }, [knowledgeDocuments, mediaObjects]);
+  const corpusBarData = useMemo(
+    () =>
+      buildCorpusBarData(knowledgeDocuments, mediaObjects, {
+        documentFormatNotReported: t('dashboard.charts.documentFormatNotReported', 'Unspecified document format'),
+        mediaFormatNotReported: t('dashboard.charts.mediaFormatNotReported', 'Unspecified media format'),
+      }),
+    [knowledgeDocuments, mediaObjects, t],
+  );
 
   // 7. Table Rows
-  const governanceRows = useMemo(() => {
-    const query = governanceSearch.trim().toLowerCase();
-    const rows = effectiveSettings.map((s) => ({
-      id: s.property_id,
-      property_id: s.property_id,
-      scope: s.scope || 'general',
-      source_level: s.source_level || 'organization',
-      effective_cascade_rule: s.effective_cascade_rule || 'INHERIT_OVERRIDABLE',
-      effective_value:
-        typeof s.effective_value === 'object' ? JSON.stringify(s.effective_value) : String(s.effective_value ?? ''),
-    }));
-    if (!query) return rows;
-    return rows.filter(
-      (r) =>
-        r.property_id.toLowerCase().includes(query) ||
-        r.scope.toLowerCase().includes(query) ||
-        r.source_level.toLowerCase().includes(query) ||
-        r.effective_cascade_rule.toLowerCase().includes(query),
-    );
-  }, [effectiveSettings, governanceSearch]);
+  const notReportedLabel = t('common.notReported', 'Not reported');
+  const governanceRows = useMemo(
+    () => buildGovernanceRows(effectiveSettings, governanceSearch, notReportedLabel),
+    [effectiveSettings, governanceSearch, notReportedLabel],
+  );
 
-  const auditRows = useMemo(() => {
-    const query = auditSearch.trim().toLowerCase();
-    const rows = filteredAudits.map((a, idx) => ({
-      id: a.id || `audit-${idx}`,
-      schema_type: a.schema_type || 'Action',
-      object_type: a.object_type || 'Entity',
-      instrument: a.instrument || 'system',
-      action_status: a.action_status || 'CompletedActionStatus',
-      created_at: a.created_at ? new Date(a.created_at).toLocaleTimeString() : 'Recent',
-    }));
-    if (!query) return rows;
-    return rows.filter(
-      (r) =>
-        r.schema_type.toLowerCase().includes(query) ||
-        r.object_type.toLowerCase().includes(query) ||
-        r.instrument.toLowerCase().includes(query) ||
-        r.action_status.toLowerCase().includes(query),
-    );
-  }, [filteredAudits, auditSearch]);
+  const auditRows = useMemo(
+    () => buildAuditRows(filteredAudits, auditSearch, notReportedLabel, i18n.language || 'en'),
+    [filteredAudits, auditSearch, notReportedLabel, i18n.language],
+  );
 
   const handleRefreshTenantData = useCallback(async () => {
     setReferenceTimestamp(Date.now());
