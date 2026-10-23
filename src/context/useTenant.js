@@ -37,6 +37,7 @@ export const DEFAULT_CONTEXT_VALUE = {
   passkeys: [],
   loading: false,
   statusMessage: '',
+  statusMessageKind: 'info',
   themeSetting: 'system',
   headerInverse: false,
   isSignInModalOpen: false,

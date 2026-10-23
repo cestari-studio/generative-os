@@ -39,6 +39,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
   const [passkeys, setPasskeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [statusMessageKind, setStatusMessageKind] = useState('info');
 
   const userRef = useRef(user);
   const personRef = useRef(person);
@@ -166,7 +167,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
   const loadEffectiveSettings = useCallback(
     async (orgId, wsId, prjId, personId = null) => {
-      if (typeof window === 'undefined' || !orgId) return;
+      if (typeof window === 'undefined' || !orgId) return true;
       try {
         const supabase = getSupabaseBrowserClient();
         const { data, error } = await invokeNormativeOperation(supabase, 'effective-config-resolve', {
@@ -176,15 +177,22 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
           p_person_id: personId,
         });
         if (error) {
+          setStatusMessageKind('error');
           setStatusMessage(error.message);
-          return;
+          return false;
         }
         if (Array.isArray(data)) {
           setEffectiveSettings(data);
           syncSettingsSideEffects(data);
+          return true;
         }
+        setStatusMessageKind('error');
+        setStatusMessage('Effective settings returned an invalid response.');
+        return false;
       } catch (err) {
+        setStatusMessageKind('error');
         setStatusMessage(err instanceof Error ? err.message : 'Failed to load settings');
+        return false;
       }
     },
     [syncSettingsSideEffects],
@@ -192,7 +200,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
   const refreshTenantData = useCallback(
     async (targetOrgId, targetWsId, targetPrjId) => {
-      if (typeof window === 'undefined') return;
+      if (typeof window === 'undefined') return true;
       const orgId = targetOrgId || activeOrgIdRef.current;
       const wsId = targetWsId || activeWsIdRef.current;
       const prjId = targetPrjId || activePrjIdRef.current;
@@ -231,8 +239,9 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
         const queryError = [orgsRes, wsRes, prjRes, docsRes, mediaRes, auditsRes, personsRes].find((r) => r.error);
         if (queryError?.error) {
+          setStatusMessageKind('error');
           setStatusMessage(queryError.error.message);
-          return;
+          return false;
         }
 
         let resolvedOrgId = orgId;
@@ -251,9 +260,11 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         setAuditActions(Array.isArray(auditsRes.data) ? auditsRes.data : []);
         setPersons(Array.isArray(personsRes.data) ? personsRes.data : []);
 
-        await loadEffectiveSettings(resolvedOrgId, wsId, prjId, currentUser ? currentUser.id : null);
+        return await loadEffectiveSettings(resolvedOrgId, wsId, prjId, currentUser ? currentUser.id : null);
       } catch (err) {
+        setStatusMessageKind('error');
         setStatusMessage(err instanceof Error ? err.message : 'Failed to load tenant data');
+        return false;
       } finally {
         setLoading(false);
       }
@@ -388,6 +399,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         p_project_name: projectName || 'Default Project',
       });
       if (error) {
+        setStatusMessageKind('error');
         setStatusMessage(error.message);
         throw error;
       }
@@ -399,6 +411,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
           projectId: data.project_id,
         });
       }
+      setStatusMessageKind('success');
       setStatusMessage(`Created organization ${name}`);
       return data;
     },
@@ -416,6 +429,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         p_is_completed: isCompleted,
       });
       if (error) {
+        setStatusMessageKind('error');
         setStatusMessage(error.message);
         throw error;
       }
@@ -440,6 +454,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       .eq('id', currentUser.id)
       .maybeSingle();
     if (error) {
+      setStatusMessageKind('error');
       setStatusMessage(error.message);
       throw error;
     }
@@ -487,6 +502,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         p_project_name: projectName,
       });
       if (error) {
+        setStatusMessageKind('error');
         setStatusMessage(error.message);
         throw error;
       }
@@ -498,68 +514,46 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
   const applySettingCascade = useCallback(
     async ({ level, propertyId, value, cascadeRule = 'INHERIT_OVERRIDABLE', clearChildOverrides = false }) => {
-      const supabase = getSupabaseBrowserClient();
       const currentOrgId = activeOrgIdRef.current;
       const currentWsId = activeWsIdRef.current;
       const currentPrjId = activePrjIdRef.current;
       const currentUser = userRef.current;
-
-      // Optimistically apply side effects immediately for seamless UI responsiveness
-      if (propertyId === 'i18n.in_language' && typeof value === 'string') {
-        if (['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'].includes(value)) {
-          const canonical = value === 'jp-JP' ? 'ja-JP' : value;
-          i18nRef.current?.changeLanguage(canonical);
-        }
-      } else if (propertyId === 'theme.mode' && typeof value === 'string') {
-        if (value === 'g90' || value === 'g100' || value === 'dark') {
-          updateThemeSetting('dark');
-        } else if (value === 'white' || value === 'g10' || value === 'light') {
-          updateThemeSetting('light');
-        } else if (value === 'system') {
-          updateThemeSetting('system');
-        }
-      } else if (propertyId === 'theme.header_inverse') {
-        updateHeaderInverse(Boolean(value));
-      }
-
-      // Optimistically update effective settings in local React state
-      setEffectiveSettings((prev) =>
-        prev.map((s) => {
-          if (s.property_id === propertyId) {
-            return {
-              ...s,
-              effective_value: value,
-              source_level: level,
-              effective_cascade_rule: cascadeRule,
-            };
-          }
-          return s;
-        }),
-      );
-
       const targetPersonId = level === 'person' ? (currentUser ? currentUser.id : personRef.current?.id || null) : null;
 
-      const { data, error } = await supabase.rpc('apply_setting_cascade', {
-        p_organization_id: currentOrgId,
-        p_level: level,
-        p_property_id: propertyId,
-        p_value: value,
-        p_cascade_rule: cascadeRule,
-        p_workspace_id: level === 'workspace' || level === 'project' ? currentWsId : null,
-        p_project_id: level === 'project' ? currentPrjId : null,
-        p_person_id: targetPersonId,
-        p_clear_child_overrides: clearChildOverrides,
-      });
-
-      if (error) {
-        console.warn('apply_setting_cascade RPC error:', error.message);
-        throw error;
+      let data;
+      try {
+        const { data: result, error } = await getSupabaseBrowserClient().rpc('apply_setting_cascade', {
+          p_organization_id: currentOrgId,
+          p_level: level,
+          p_property_id: propertyId,
+          p_value: value,
+          p_cascade_rule: cascadeRule,
+          p_workspace_id: level === 'workspace' || level === 'project' ? currentWsId : null,
+          p_project_id: level === 'project' ? currentPrjId : null,
+          p_person_id: targetPersonId,
+          p_clear_child_overrides: clearChildOverrides,
+        });
+        if (error) throw error;
+        data = result;
+      } catch (err) {
+        setStatusMessageKind('error');
+        setStatusMessage(err instanceof Error ? err.message : 'Failed to save setting');
+        throw err;
       }
 
-      await refreshTenantData();
+      const refreshed = await refreshTenantData();
+      if (refreshed) {
+        setStatusMessageKind('success');
+        setStatusMessage('Settings saved and effective values refreshed.');
+      } else {
+        setStatusMessageKind('warning');
+        setStatusMessage(
+          'The settings request was accepted, but current effective values could not be refreshed. Verify before retrying.',
+        );
+      }
       return data;
     },
-    [refreshTenantData, updateHeaderInverse, updateThemeSetting],
+    [refreshTenantData],
   );
 
   const uploadTenantMedia = useCallback(
@@ -599,11 +593,13 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       });
 
       if (error) {
+        setStatusMessageKind('error');
         setStatusMessage(error.message);
         throw error;
       }
 
       await refreshTenantData();
+      setStatusMessageKind('success');
       setStatusMessage(`Uploaded MediaObject "${file.name}" to ${bucketId}`);
       return data;
     },
@@ -618,6 +614,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         password,
       });
       if (error) {
+        setStatusMessageKind('error');
         setStatusMessage(error.message);
         throw error;
       }
@@ -665,6 +662,8 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         }
       }
 
+      setStatusMessageKind('success');
+
       setStatusMessage(`Signed in as ${email}`);
       await refreshTenantData(targetOrgId, targetWsId, targetPrjId);
       return { ...data, person: personData };
@@ -676,9 +675,11 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
     const supabase = getSupabaseBrowserClient();
     const { data, error } = await supabase.auth.signInWithOtp({ email });
     if (error) {
+      setStatusMessageKind('error');
       setStatusMessage(error.message);
       throw error;
     }
+    setStatusMessageKind('success');
     setStatusMessage(`Magic link sent to ${email}`);
     return data;
   }, []);
@@ -708,6 +709,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
     activeOrgIdRef.current = null;
     activeWsIdRef.current = null;
     activePrjIdRef.current = null;
+    setStatusMessageKind('success');
     setStatusMessage('Signed out successfully');
   }, []);
 
@@ -723,12 +725,14 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
    */
   const registerPasskey = useCallback(async () => {
     const err = new Error('Passkey registration is unavailable in this version.');
+    setStatusMessageKind('error');
     setStatusMessage(err.message);
     throw err;
   }, []);
 
   const authenticateWithPasskey = useCallback(async () => {
     const err = new Error('Passkey authentication is unavailable in this version.');
+    setStatusMessageKind('error');
     setStatusMessage(err.message);
     throw err;
   }, []);
@@ -775,6 +779,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       passkeys,
       loading,
       statusMessage,
+      statusMessageKind,
       themeSetting,
       headerInverse,
       isSignInModalOpen,
@@ -822,6 +827,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       passkeys,
       loading,
       statusMessage,
+      statusMessageKind,
       themeSetting,
       headerInverse,
       isSignInModalOpen,
