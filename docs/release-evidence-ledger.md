@@ -1,0 +1,44 @@
+# Release evidence ledger — cycle 4 (2026-10-23)
+
+> Maps every required CI result to the exact commit it tested. No result is
+> inherited across SHAs — any newer commit is untested until its own run passes.
+
+## Confirmed CI runs
+
+| PR                                       | Head SHA (full)                            | Run ID      | Run URL                                                                  | Jobs                                                                                                                    | Conclusion  |
+| ---------------------------------------- | ------------------------------------------ | ----------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ----------- |
+| #7 (feat/complete-carbon-page-rebuild)   | `8dc07161d4eb13206cd44577903653e57b6d58c2` | 39916533230 | https://github.com/cestari-studio/generative-os/actions/runs/39916533230 | quality, ssr-smoke, release-dry-run, browser-smoke (smoke+axe+benchmark), billing-sql (billing+workspace+notifications) | 5/5 SUCCESS |
+| #24 (fix/supply-chain-critical-dev-deps) | `eacd7b76e3aaca19a611ec5d5a169a61a29f6811` | 39915650034 | https://github.com/cestari-studio/generative-os/actions/runs/39915650034 | quality, ssr-smoke, release-dry-run, billing-sql, browser-smoke                                                         | 5/5 SUCCESS |
+
+### Key evidence lines (run 39916533230)
+
+- `catalog integration: total=7 passed=7 skipped=0` (07:17:49Z)
+- `[browser-smoke] 24/24 assertions passed` (07:19:48Z)
+- `[axe] OK: no critical/serious violations on 7 routes` (07:20:25Z)
+- `[benchmark] OK: all routes within LAB budgets` (07:22:29Z)
+- `ALL BILLING SQL TESTS PASSED` + `WORKSPACE SQL TESTS PASSED` + `NOTIFICATIONS SQL TESTS PASSED` (07:18:21-22Z)
+
+### Untested-later-commit rule
+
+Any commit after `8dc0716` (PR #7) or `eacd7b76` (PR #24) is **untested** until
+its own CI run completes green. CI results are never inherited across SHAs.
+
+## Vercel Git integration state (read-only, 2026-10-23 ~07:30 UTC)
+
+| Item                             | Value                                                                                                   | Evidence                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| Project                          | `generative-os` / `prj_cgIw3xCnho9TNi37gH5e3VmiwtXC`                                                    | `vercel project inspect`             |
+| Scope                            | `cestari-studio` ("Octavio's projects", pro) — CLI user `octavio-4895`                                  | `vercel teams ls`                    |
+| Git link                         | **CONNECTED 2026-10-23 07:17:46 UTC** (3 min after `8dc0716` was pushed)                                | `/v9/projects/{id}` `link.createdAt` |
+| Link repo                        | `cestari-studio/generative-os` (repoId 1422711827) — **correct repo**                                   | API `link`                           |
+| productionBranch                 | `main`                                                                                                  | API `link`                           |
+| gitCredentialId                  | `cred_1f0e94dd3562f7e509db0103396201e8057d236e`                                                         | API `link`                           |
+| Git-triggered deployments so far | **NONE** — newest deployment is 28h old, all `source: cli`                                              | `/v6/deployments`                    |
+| Production alias                 | `app.cestari.studio` + `generative-os-bay.vercel.app` → `generative-3ifcp8qi3` = `b580fc8` (2026-10-16) | `vercel alias ls` + API meta         |
+| Production staleness             | **146+ commits behind** current PR head                                                                 | `git log b580fc8..HEAD`              |
+
+**Interpretation:** the owner connected the Git integration at 07:17:46 UTC.
+No commit has been pushed since, so no automatic Preview exists yet. The next
+push to a non-production branch should create a Git-sourced Preview for its
+exact SHA — the mechanism the E2E gate needs. Production stays on `b580fc8`
+until separately authorized promotion.
