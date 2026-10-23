@@ -1,0 +1,84 @@
+{
+  "$schema": "feature-binding-ledger/v1",
+  "description": "Machine-readable ledger tracking normative feature bindings in the destination repo. Statuses: UNMAPPED, MAPPED_UNVERIFIED, IMPLEMENTED, INTEGRATION_VERIFIED, E2E_VERIFIED, BLOCKED_OWNER, BLOCKED_SCHEMA, DEFERRED_ADR. Status changes require evidence; E2E_VERIFIED requires a reproducible Preview run by SHA. Counters at the bottom are recomputed by scripts/validate-matrices.mjs patterns \u2014 never hand-edited without recomputation.",
+  "reconciled_at": "2026-10-23",
+  "head_sha": "c27ff9e",
+  "source_registries": {
+    "repo": "cestari-studio/genOS (read-only)",
+    "version": "0.9.0",
+    "note": "Feature semantics come from the normative registries; nothing runtime is copied."
+  },
+  "implemented_slices": [
+    {
+      "slice": "products-catalog",
+      "normative_keys": [
+        "product.content_factory",
+        "product.client_ops",
+        "product.schedule_ops",
+        "product.reputation_ops",
+        "product.academy_ops"
+      ],
+      "page": "/products",
+      "destination_files": [
+        "src/pages/products/ProductsCatalogPage.jsx",
+        "src/data/useNormativeCatalog.js",
+        "supabase/migrations/20261022060000_catalog_normative_source.sql",
+        "supabase/seed/catalog-normative-seed.sql"
+      ],
+      "data": "catalog_products/catalog_subproducts/catalog_capabilities/catalog_platform_services (NOT applied remotely)",
+      "policy": "RLS read=authenticated, write=platform_admin (validated in disposable PG 17.11)",
+      "tests": [
+        "src/__tests__/ProductsCatalogPage.test.jsx (3 tests)",
+        "src/__tests__/catalog-adapter-integration.test.mjs (7 tests, run in CI quality job)"
+      ],
+      "evidence": "CI run 39901369262: catalog integration total=7 passed=7 skipped=0",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Integration-verified against disposable PostgreSQL; NOT E2E_VERIFIED (requires Preview, BLOCKED_OWNER); remote catalog unprovisioned \u2014 page shows honest unprovisioned state in production env until Fase 6 gate.",
+      "last_verified_sha": "2f2a0f2"
+    },
+    {
+      "slice": "billing-pricebook-quotes",
+      "normative_keys": ["billing.pricebook", "billing.quotes", "billing.usage_metering"],
+      "page": "/payments",
+      "destination_files": [
+        "supabase/migrations/20261022053203_billing_pricebook_usage_metering.sql",
+        "supabase/functions/pagbank-order/index.ts",
+        "supabase/tests/billing_pricebook_rls.sql"
+      ],
+      "data": "13 billing tables (NOT applied remotely)",
+      "policy": "RLS per-tenant; quote-driven consume_quote CAS; claim_pagbank_order atomic",
+      "tests": ["supabase/tests/billing_pricebook_rls.sql (44 assertions)", "pagbank-order PSP unit tests (8)"],
+      "evidence": "billing-sql CI job green on current heads",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "SQL integration verified in disposable PG; runtime NOT applied (RUNTIME_DRIFT documented); PagBank sandbox E2E BLOCKED_OWNER (credentials).",
+      "last_verified_sha": "98fc0a0"
+    },
+    {
+      "slice": "auth-onboarding-persistence",
+      "normative_keys": ["identity.session", "onboarding.progress"],
+      "page": "/onboarding",
+      "destination_files": [
+        "src/context/TenantContext.jsx",
+        "src/components/onboarding/OnboardingTearsheet.jsx",
+        "supabase/functions/passkey-auth/index.ts",
+        "supabase/functions/_shared/passkey-challenge.ts"
+      ],
+      "data": "persons.additional_property.onboarding (existing schema)",
+      "policy": "passkey challenge fail-closed; onboarding progress server-persisted",
+      "tests": ["src/__tests__/ (auth/onboarding suites)"],
+      "evidence": "CI green; passkey remote still pre-hardening (RUNTIME_DRIFT)",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Local tests green; remote passkey-auth is the old version (anonymous challenge flaw) until Fase 6 deploy gate.",
+      "last_verified_sha": "5e0ab676"
+    }
+  ],
+  "summary": {
+    "features_total": 225,
+    "features_with_page_keys_normative": 19,
+    "features_with_operation_ids_normative": 76,
+    "slices_implemented_destination": 3,
+    "slices_integration_verified": 3,
+    "slices_e2e_verified": 0,
+    "note": "206/225 features lack normative page bindings and 149/225 lack operation bindings at the registry level; the 3 slices above are the destination-implemented surfaces with test evidence. No status here authorizes claiming E2E or ACCEPTED \u2014 those need the blocked Preview environment and human review."
+  }
+}

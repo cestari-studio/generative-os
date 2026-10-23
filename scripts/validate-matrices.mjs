@@ -82,6 +82,58 @@ for (const counter of crosswalkCounters) {
   }
 }
 
+// --- 4. feature-binding-ledger.json: statuses + evidence rules --------------
+const ALLOWED_STATUSES = new Set([
+  'UNMAPPED',
+  'MAPPED_UNVERIFIED',
+  'IMPLEMENTED',
+  'INTEGRATION_VERIFIED',
+  'E2E_VERIFIED',
+  'BLOCKED_OWNER',
+  'BLOCKED_SCHEMA',
+  'DEFERRED_ADR',
+]);
+
+try {
+  const ledger = JSON.parse(readFileSync('docs/ui-rebuild/feature-binding-ledger.json', 'utf8'));
+  for (const slice of ledger.implemented_slices ?? []) {
+    if (!ALLOWED_STATUSES.has(slice.status)) {
+      fail(`feature-binding-ledger: slice "${slice.slice}" has invalid status "${slice.status}"`);
+    }
+    if (slice.status === 'E2E_VERIFIED') {
+      fail(
+        `feature-binding-ledger: slice "${slice.slice}" claims E2E_VERIFIED — E2E requires the reproducible Preview environment (BLOCKED_OWNER). Downgrade or attach per-SHA Preview artifact evidence.`,
+      );
+    }
+    if (!Array.isArray(slice.tests) || slice.tests.length === 0) {
+      fail(`feature-binding-ledger: slice "${slice.slice}" has no test evidence listed`);
+    }
+    if (!slice.last_verified_sha) {
+      fail(`feature-binding-ledger: slice "${slice.slice}" missing last_verified_sha`);
+    }
+  }
+  // Summary counters must match the actual slices
+  const summary = ledger.summary ?? {};
+  const actualSlices = (ledger.implemented_slices ?? []).length;
+  if (summary.slices_implemented_destination !== actualSlices) {
+    fail(
+      `feature-binding-ledger: summary.slices_implemented_destination (${summary.slices_implemented_destination}) !== actual slices (${actualSlices})`,
+    );
+  }
+  const actualE2E = (ledger.implemented_slices ?? []).filter((s) => s.status === 'E2E_VERIFIED').length;
+  if (summary.slices_e2e_verified !== actualE2E) {
+    fail(
+      `feature-binding-ledger: summary.slices_e2e_verified (${summary.slices_e2e_verified}) !== actual (${actualE2E})`,
+    );
+  }
+} catch (err) {
+  if (err.code === 'ENOENT') {
+    fail('feature-binding-ledger.json missing (required by directive §11)');
+  } else {
+    throw err;
+  }
+}
+
 // --- Report -----------------------------------------------------------------
 if (failures.length > 0) {
   console.error('Matrix validation FAILED:');
