@@ -13,6 +13,33 @@ import { renderWithoutProviders } from '../test/test-utils';
 import { TenantProvider } from '../context/TenantContext';
 import PaymentManagementPage from '../pages/payments/PaymentManagementPage';
 
+// Shared spies: the quote-first contract test asserts on these directly.
+const rpcSpy = vi.fn().mockImplementation((fn) => {
+  if (fn === 'issue_manual_quote') {
+    return Promise.resolve({ data: { quote_id: 'quote-123' }, error: null });
+  }
+  return Promise.resolve({
+    data: {
+      total_transacted_cents: 250000,
+      paid_charges_count: 12,
+      pending_charges_count: 3,
+      active_sellers_count: 5,
+    },
+    error: null,
+  });
+});
+const invokeSpy = vi.fn().mockResolvedValue({
+  data: {
+    success: true,
+    charge: { id: 'ch_new', pagbank_charge_id: 'CHAR_9999' },
+    pix: {
+      emv: '00020126580014br.gov.bcb.pix...',
+      qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=pix',
+    },
+  },
+  error: null,
+});
+
 // Mock Supabase browser client functions
 vi.mock('../lib/supabase.client', () => ({
   getSupabaseBrowserClient: () => ({
@@ -21,15 +48,7 @@ vi.mock('../lib/supabase.client', () => ({
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
     },
-    rpc: vi.fn().mockResolvedValue({
-      data: {
-        total_transacted_cents: 250000,
-        paid_charges_count: 12,
-        pending_charges_count: 3,
-        active_sellers_count: 5,
-      },
-      error: null,
-    }),
+    rpc: rpcSpy,
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -50,20 +69,7 @@ vi.mock('../lib/supabase.client', () => ({
       }),
     }),
     functions: {
-      invoke: vi.fn().mockResolvedValue({
-        data: {
-          success: true,
-          charge: {
-            id: 'ch_new',
-            pagbank_charge_id: 'CHAR_9999',
-          },
-          pix: {
-            emv: '00020126580014br.gov.bcb.pix...',
-            qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=pix',
-          },
-        },
-        error: null,
-      }),
+      invoke: invokeSpy,
     },
   }),
 }));
@@ -127,5 +133,51 @@ describe('PaymentManagementPage UI & PagBank Integration', () => {
     expect(screen.getByText(/Extension: wrappers \(Active\)/i)).toBeInTheDocument();
     expect(screen.getByText(/FDW: wasm_wrapper/i)).toBeInTheDocument();
     expect(screen.getByText(/Schema.org Taxonomy Implemented:/i)).toBeInTheDocument();
+  });
+});
+
+describe('quote-first billing contract (directive §9: browser sends quoteId, never amountCents)', () => {
+  test('charge submission issues a server quote first, then orders by quoteId without amountCents', async () => {
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantProvider>
+          <PaymentManagementPage />
+        </TenantProvider>
+      </MemoryRouter>,
+    );
+
+    // Open the modal and fill the form.
+    fireEvent.click(screen.getByRole('button', { name: /New Instant Charge/i }));
+    fireEvent.change(screen.getByLabelText(/Charge Amount \(BRL\)/i), { target: { value: '150.00' } });
+    fireEvent.change(screen.getByLabelText(/Customer Name/i), { target: { value: 'Real Customer' } });
+    fireEvent.change(screen.getByLabelText(/Customer Email/i), { target: { value: 'customer@real.example' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Generate Charge/i }));
+
+    // 1. The server-issued quote RPC must be called with the proposed amount.
+    await vi.waitFor(() => {
+      expect(rpcSpy).toHaveBeenCalledWith(
+        'issue_manual_quote',
+        expect.objectContaining({
+          p_amount_cents: 15000,
+          p_currency: 'BRL',
+        }),
+      );
+    });
+
+    // 2. The order function must receive quoteId — and NEVER amountCents.
+    await vi.waitFor(() => {
+      expect(invokeSpy).toHaveBeenCalledWith(
+        'pagbank-order',
+        expect.objectContaining({
+          body: expect.objectContaining({ quoteId: 'quote-123' }),
+        }),
+      );
+    });
+
+    const orderCall = invokeSpy.mock.calls.find(([fn]) => fn === 'pagbank-order');
+    expect(orderCall).toBeTruthy();
+    expect(orderCall[1].body).not.toHaveProperty('amountCents');
+    expect(orderCall[1].body).not.toHaveProperty('amount_cents');
   });
 });
