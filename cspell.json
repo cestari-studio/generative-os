@@ -224,6 +224,7 @@
     "Postg",
     "PGUSER",
     "PGHOST",
+    "PGRST",
     "PGPORT",
     "regclass",
     "prereq",
