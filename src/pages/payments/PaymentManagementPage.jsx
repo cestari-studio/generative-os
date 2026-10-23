@@ -183,8 +183,12 @@ export default function PaymentManagementPage() {
   }, [organizationId]);
 
   useEffect(() => {
-    void loadPaymentData();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) void loadPaymentData();
+    });
     return () => {
+      cancelled = true;
       paymentRequestVersion.current += 1;
     };
   }, [loadPaymentData]);
@@ -193,27 +197,44 @@ export default function PaymentManagementPage() {
     loading: {
       kind: 'info',
       title: t('payments.loadingTitle', 'Loading payment data'),
-      subtitle: t('payments.loadingDesc', 'Retrieving payment totals, orders, seller accounts, and audit events for the active organization.'),
+      subtitle: t(
+        'payments.loadingDesc',
+        'Retrieving payment totals, orders, seller accounts, and audit events for the active organization.',
+      ),
     },
     'no-scope': {
       kind: 'warning',
       title: t('payments.noOrganizationTitle', 'Organization not selected'),
-      subtitle: t('payments.noOrganizationDesc', 'Select an organization to view financial records or initiate a payment.'),
+      subtitle: t(
+        'payments.noOrganizationDesc',
+        'Select an organization to view financial records or initiate a payment.',
+      ),
     },
     forbidden: {
       kind: 'error',
       title: t('payments.paymentAccessDeniedTitle', 'Payment access restricted'),
-      subtitle: t('payments.paymentAccessDeniedDesc', 'The current session is not authorized to read payment data for this organization.'),
+      subtitle: t(
+        'payments.paymentAccessDeniedDesc',
+        'The current session is not authorized to read payment data for this organization.',
+      ),
     },
     unprovisioned: {
       kind: 'warning',
       title: t('payments.paymentSchemaMissingTitle', 'Payment data is not provisioned'),
-      subtitle: t('payments.paymentSchemaMissingDesc', 'The payment schema or read endpoint is not provisioned in this environment. No empty ledger or zero totals are inferred.'),
+      subtitle: t(
+        'payments.paymentSchemaMissingDesc',
+        'The payment schema or read endpoint is not provisioned in this environment. No empty ledger or zero totals are inferred.',
+      ),
     },
     error: {
       kind: 'error',
       title: t('payments.paymentLoadErrorTitle', 'Payment data could not be loaded'),
-      subtitle: paymentLoadState.error || t('payments.paymentLoadErrorDesc', 'The payment data request failed. Retry after investigating the service response.'),
+      subtitle:
+        paymentLoadState.error ||
+        t(
+          'payments.paymentLoadErrorDesc',
+          'The payment data request failed. Retry after investigating the service response.',
+        ),
     },
   }[paymentLoadState.status];
 
@@ -427,13 +448,21 @@ export default function PaymentManagementPage() {
         <Column sm={4} md={2} lg={4}>
           <Tile className="cs--payment-management__kpi-tile">
             <span className="cs--payment-management__kpi-label">{t('payments.kpiPaid', 'Paid Charges')}</span>
-            <span className="cs--payment-management__kpi-value">{paymentLoadState.status === 'ready' && kpis?.paid_charges_count != null ? kpis.paid_charges_count : '—'}</span>
+            <span className="cs--payment-management__kpi-value">
+              {paymentLoadState.status === 'ready' && kpis?.paid_charges_count != null
+                ? kpis.paid_charges_count
+                : '—'}
+            </span>
           </Tile>
         </Column>
         <Column sm={4} md={2} lg={4}>
           <Tile className="cs--payment-management__kpi-tile">
             <span className="cs--payment-management__kpi-label">{t('payments.kpiPending', 'Pending Charges')}</span>
-            <span className="cs--payment-management__kpi-value">{paymentLoadState.status === 'ready' && kpis?.pending_charges_count != null ? kpis.pending_charges_count : '—'}</span>
+            <span className="cs--payment-management__kpi-value">
+              {paymentLoadState.status === 'ready' && kpis?.pending_charges_count != null
+                ? kpis.pending_charges_count
+                : '—'}
+            </span>
           </Tile>
         </Column>
         <Column sm={4} md={2} lg={4}>
@@ -441,7 +470,11 @@ export default function PaymentManagementPage() {
             <span className="cs--payment-management__kpi-label">
               {t('payments.kpiSellers', 'Connected Sellers (Split)')}
             </span>
-            <span className="cs--payment-management__kpi-value">{paymentLoadState.status === 'ready' && kpis?.active_sellers_count != null ? kpis.active_sellers_count : '—'}</span>
+            <span className="cs--payment-management__kpi-value">
+              {paymentLoadState.status === 'ready' && kpis?.active_sellers_count != null
+                ? kpis.active_sellers_count
+                : '—'}
+            </span>
           </Tile>
         </Column>
       </Grid>
@@ -616,7 +649,10 @@ export default function PaymentManagementPage() {
                           <TableRow>
                             <TableCell colSpan={headers.length} className="cs--data-table__empty-cell">
                               <p className="cs--data-table__empty-text">
-                                {t('payments.emptySellers', 'No connected seller accounts are recorded for this organization.')}
+                                {t(
+                                  'payments.emptySellers',
+                                  'No connected seller accounts are recorded for this organization.',
+                                )}
                               </p>
                             </TableCell>
                           </TableRow>
