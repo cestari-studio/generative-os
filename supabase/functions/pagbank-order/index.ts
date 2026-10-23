@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
       workspaceId,
       projectId,
       quoteId,
-      referenceId = `ORD_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      referenceId: requestedReferenceId,
       customer,
       items = [],
       paymentMethod = 'PIX',
@@ -62,6 +62,17 @@ Deno.serve(async (req: Request) => {
 
     if (!organizationId || !quoteId) {
       return new Response(JSON.stringify({ error: 'organizationId and quoteId are required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // One canonical reference per server-issued quote. Every recovery attempt
+    // therefore reuses the same payment_orders row and persisted PSP key.
+    // A caller-supplied mismatch is rejected before quote consumption.
+    const referenceId = `Q_${quoteId}`;
+    if (requestedReferenceId && requestedReferenceId !== referenceId) {
+      return new Response(JSON.stringify({ error: 'referenceId must match the quote-bound payment reference.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
