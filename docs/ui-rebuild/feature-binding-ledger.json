@@ -2,7 +2,7 @@
   "$schema": "feature-binding-ledger/v1",
   "description": "Machine-readable ledger tracking normative feature bindings in the destination repo. Statuses: UNMAPPED, MAPPED_UNVERIFIED, IMPLEMENTED, INTEGRATION_VERIFIED, E2E_VERIFIED, BLOCKED_OWNER, BLOCKED_SCHEMA, DEFERRED_ADR. Status changes require evidence; E2E_VERIFIED requires a reproducible Preview run by SHA. Counters at the bottom are recomputed by scripts/validate-matrices.mjs patterns \u2014 never hand-edited without recomputation.",
   "reconciled_at": "2026-10-23",
-  "head_sha": "e9f6f5d",
+  "head_sha": "2464d70",
   "source_registries": {
     "repo": "cestari-studio/genOS (read-only)",
     "version": "0.9.0",
@@ -38,7 +38,11 @@
     },
     {
       "slice": "billing-pricebook-quotes",
-      "normative_keys": ["billing.pricebook", "billing.quotes", "billing.usage_metering"],
+      "normative_keys": [
+        "billing.pricebook",
+        "billing.quotes",
+        "billing.usage_metering"
+      ],
       "page": "/payments",
       "destination_files": [
         "supabase/migrations/20261022053203_billing_pricebook_usage_metering.sql",
@@ -47,15 +51,22 @@
       ],
       "data": "13 billing tables (NOT applied remotely)",
       "policy": "RLS per-tenant; quote-driven consume_quote CAS; claim_pagbank_order atomic",
-      "tests": ["supabase/tests/billing_pricebook_rls.sql (44 assertions)", "pagbank-order PSP unit tests (8)"],
+      "tests": [
+        "supabase/tests/billing_pricebook_rls.sql (44 assertions)",
+        "pagbank-order PSP unit tests (8)",
+        "src/__tests__/PaymentManagementPage.test.jsx quote-first contract (issue_manual_quote first; pagbank-order gets quoteId, never amountCents)"
+      ],
       "evidence": "billing-sql CI job green on current heads",
       "status": "INTEGRATION_VERIFIED",
       "status_note": "SQL integration verified in disposable PG; runtime NOT applied (RUNTIME_DRIFT documented); PagBank sandbox E2E BLOCKED_OWNER (credentials).",
-      "last_verified_sha": "98fc0a0"
+      "last_verified_sha": "2464d70"
     },
     {
       "slice": "auth-onboarding-persistence",
-      "normative_keys": ["identity.session", "onboarding.progress"],
+      "normative_keys": [
+        "identity.session",
+        "onboarding.progress"
+      ],
       "page": "/onboarding",
       "destination_files": [
         "src/context/TenantContext.jsx",
@@ -65,7 +76,9 @@
       ],
       "data": "persons.additional_property.onboarding (existing schema)",
       "policy": "passkey challenge fail-closed; onboarding progress server-persisted",
-      "tests": ["src/__tests__/ (auth/onboarding suites)"],
+      "tests": [
+        "src/__tests__/ (auth/onboarding suites)"
+      ],
       "evidence": "CI green; passkey remote still pre-hardening (RUNTIME_DRIFT)",
       "status": "INTEGRATION_VERIFIED",
       "status_note": "Local tests green; remote passkey-auth is the old version (anonymous challenge flaw) until Fase 6 deploy gate.",
@@ -73,9 +86,14 @@
     },
     {
       "slice": "settings-cascade",
-      "normative_keys": ["platform.configuration_naming.config_cascade_resolve"],
+      "normative_keys": [
+        "platform.configuration_naming.config_cascade_resolve"
+      ],
       "page": "/settings",
-      "destination_files": ["src/pages/settings/TenantCascadeSettings.jsx", "src/context/TenantContext.jsx"],
+      "destination_files": [
+        "src/pages/settings/TenantCascadeSettings.jsx",
+        "src/context/TenantContext.jsx"
+      ],
       "data": "resolve_effective_settings RPC (existing schema); apply_setting_cascade RPC",
       "policy": "apply_setting_cascade validates auth.uid() + is_org_member (SECURITY DEFINER, search_path=\"\")",
       "tests": [
