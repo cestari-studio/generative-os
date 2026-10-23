@@ -97,3 +97,20 @@ A autoridade v0.9.1 audita 4 bundles com estado real de runtime:
 - O destino tem **9 rotas físicas + 6 Edge Functions**; a cobertura normativa de 60 páginas / 100 operações / 225 features **não está materializada** — é o backlog de vertical slices (Fase 5+).
 - Não copiar migrations/seeds/IDs do `genOS`; implementar por contrato adaptado ao schema real do destino.
 - O delta de implementação deve ser rastreado pela `route-page-matrix.md` do destino, nunca preenchido com conteúdo fake.
+
+## 8. Phase 5 — vertical slice 1: tenant settings resolution
+
+Read-only normative source: traceability-matrix.json, blob SHA 6ab81cd669004460796387de28e4d654a626e161. The row platform.configuration_naming.config_cascade_resolve names tenant.private.settings and the operations effective-config-resolve plus public-host-resolve. No runtime, migration, seed, or database ID was copied from genOS.
+
+| Binding | Destination implementation | Classification |
+| :-- | :-- | :-- |
+| tenant.private.settings | /settings → TenantCascadeSettings, declared in src/routes/config.js using normativeBinding | CODE_BOUND |
+| effective-config-resolve | src/data/normative-operation-bindings.js dispatches to resolve_effective_settings through the session-scoped browser client; TenantContext.loadEffectiveSettings uses the adapter | CODE_BOUND |
+| public-host-resolve | No authoritative handler wired; adapter rejects the operation rather than fabricating resolution | BLOCKED_FAIL_CLOSED |
+| Write RPC apply_setting_cascade | Continues to be used by the existing context/screen but does not match the two operation IDs on this feature | UNMAPPED |
+| Security/runtime | Session-scoped client does not certify deployed grants, remote RLS or Supabase runtime state. No migration/deploy performed. | RUNTIME_UNVERIFIED |
+
+### Acceptance criteria for this slice
+
+The unit test validates route association, the effective-config-resolve RPC target and fail-closed behavior for public-host-resolve. This proves code wiring only, not the remote database, Preview authorization flow, or WCAG acceptance. The source-registry counts (206 features without page_keys and 149 without operation_ids) remain source counts; this destination slice does not rewrite them.
+

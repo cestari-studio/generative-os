@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
+import { invokeNormativeOperation } from '../data/normative-operation-bindings.js';
 import { getThemeSettings, setHeaderInverse, setThemeSetting } from '../utils/theme.js';
 import { TenantContext } from './useTenant.js';
 
@@ -168,7 +169,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       if (typeof window === 'undefined' || !orgId) return;
       try {
         const supabase = getSupabaseBrowserClient();
-        const { data, error } = await supabase.rpc('resolve_effective_settings', {
+        const { data, error } = await invokeNormativeOperation(supabase, 'effective-config-resolve', {
           p_organization_id: orgId,
           p_workspace_id: wsId,
           p_project_id: prjId,

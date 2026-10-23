@@ -106,3 +106,19 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 
 - As 9 rotas físicas permanecem `IMPLEMENTED` (wiring real de PRs anteriores); **nenhuma `VALIDATED`** — Fase 7 (Preview E2E/screenshots/WCAG) continua `BLOCKED — owner action required`.
 - A cobertura normativa (60 páginas/100 operações/225 features) é backlog de vertical slices, não implementado no destino.
+
+## 6. Phase 5 — first executable normative binding (settings)
+
+Normative read-only source: genOS traceability matrix, blob SHA 6ab81cd669004460796387de28e4d654a626e161. Destination inspected at baseline 98fc0a0903cb.
+
+| Layer | Binding / destination evidence | State |
+| :-- | :-- | :-- |
+| Feature | platform.configuration_naming.config_cascade_resolve | Partial |
+| Normative page | tenant.private.settings → physical route /settings → TenantCascadeSettings | Code-bound |
+| Normative operation | effective-config-resolve → invokeNormativeOperation → real destination RPC resolve_effective_settings | Code-bound; unit test added |
+| Normative operation | public-host-resolve | BLOCKED — no authoritative destination handler verified; no synthetic fallback or dispatch |
+| Related write path | apply_setting_cascade is used by the screen but is not one of this feature's two normative operation IDs | UNMAPPED; do not relabel as canonical |
+| Acceptance | Remote RLS/grants, browser Preview, tenant authorization and manual WCAG review | PENDING |
+
+This slice only materializes the association supported by the inspected source. It does not claim full feature coverage or deployed runtime parity. The remaining operation and the write path require independent bindings and evidence before E2E_VERIFIED or ACCEPTED.
+

@@ -6,6 +6,7 @@
  */
 import { lazy } from 'react';
 import { Analytics, Catalog, Folder, SettingsAdjust, UserFollow, Wallet } from '@carbon/icons-react';
+import { NORMATIVE_SETTINGS_FEATURE_BINDING } from '../data/normative-operation-bindings.js';
 
 // This project splits the pages each in different JavaScript bundles.
 // You might also split part of the pages that incur significant
@@ -278,6 +279,7 @@ export const routes = [
     resourceType: 'settings',
     schemaType: 'schema:PropertyValue',
     capabilityKey: 'platform.configuration_naming',
+    normativeBinding: NORMATIVE_SETTINGS_FEATURE_BINDING,
     carbon: {
       labelKey: 'routes.settings',
       label: 'Cascade Settings',
