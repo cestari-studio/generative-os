@@ -438,7 +438,7 @@
     "newTenantTitle": "Provisioning Target:",
     "nextButton": "Next",
     "orgSelectLabel": "Organization (Tier 1)",
-    "passkeyDesc": "Register your hardware device authenticator (Touch ID, Face ID, Windows Hello, or YubiKey) for passwordless multi-factor authentication.",
+    "passkeyDesc": "Register a hardware authenticator (Touch ID, Face ID, Windows Hello, or a security key) to sign in without a password next time.",
     "passkeyHeading": "FIDO2 / WebAuthn Biometric Security",
     "passkeySuccessDesc": "Your hardware biometric credential is now enrolled for passwordless enterprise sign-in.",
     "prjSelectLabel": "Project / CreativeWork (Tier 3)",
@@ -466,7 +466,13 @@
       "required": "Organization name is required"
     },
     "passkeyUnavailableTitle": "Passkeys unavailable in this version",
-    "passkeyUnavailableDesc": "Hardware authenticator enrollment (Touch ID, Face ID, Windows Hello, security keys) will be enabled after server-verified WebAuthn registration is available. You can finish onboarding now and use email and password to sign in."
+    "passkeyUnavailableDesc": "Hardware authenticator enrollment (Touch ID, Face ID, Windows Hello, security keys) will be enabled after server-verified WebAuthn registration is available. You can finish onboarding now and use email and password to sign in.",
+    "passkeyRegisterBtn": "Register a passkey",
+    "passkeyRegistering": "Follow your device prompt...",
+    "passkeyRegisteredTitle": "Passkey registered",
+    "passkeyRegisteredDesc": "You can sign in with this authenticator next time.",
+    "passkeyRegisterErrorTitle": "Passkey registration failed",
+    "passkeyRegisterErrorDesc": "You can finish onboarding and register a passkey later from your profile."
   },
   "payments": {
     "amountLabel": "Charge Amount (BRL)",
@@ -683,7 +689,8 @@
       "invalidCredentials": "Incorrect email or password. Try again.",
       "invalidEmail": "Enter a valid email address.",
       "title": "Authentication error",
-      "resetFailed": "Failed to send password reset link"
+      "resetFailed": "Failed to send password reset link",
+      "passkeyFailed": "Passkey sign-in failed. Try another method."
     },
     "fullName": "Full Name",
     "headerLabel": "Cestari Studio Authentication",
@@ -725,7 +732,8 @@
     "passkeyUnavailableDesc": "Passwordless sign-in will be enabled after server-verified WebAuthn registration is available.",
     "forgotPasswordBtn": "Forgot password?",
     "resetSentTitle": "Password reset link sent",
-    "resetSentDesc": "Check your email inbox for the password reset link to choose a new password."
+    "resetSentDesc": "Check your email inbox for the password reset link to choose a new password.",
+    "passkeySignInBtn": "Sign in with passkey"
   },
   "taxonomy": {
     "billing": {

@@ -23,16 +23,14 @@ describe('onboarding persistence contract', () => {
     expect(typeof result.current.saveOnboardingProgress).toBe('function');
   });
 
-  test('registerPasskey and authenticateWithPasskey fail closed (never simulate success)', async () => {
+  test('registerPasskey denies anonymous callers (never simulates success)', async () => {
     const { result } = renderHook(() => useTenant(), { wrapper });
+    // Anonymous users cannot register a passkey — the operation requires an
+    // authenticated user. This is a fail-closed denial, not a simulated path.
     await act(async () => {
-      await expect(result.current.registerPasskey()).rejects.toThrow(/unavailable in this version/i);
+      await expect(result.current.registerPasskey()).rejects.toThrow(/sign in before registering/i);
     });
-    expect(result.current.statusMessage).toMatch(/unavailable in this version/i);
-    await act(async () => {
-      await expect(result.current.authenticateWithPasskey()).rejects.toThrow(/unavailable in this version/i);
-    });
-    expect(result.current.statusMessage).toMatch(/unavailable in this version/i);
+    expect(result.current.statusMessage).toMatch(/sign in before registering/i);
     // No synthetic credential was added to state.
     expect(result.current.passkeys).toEqual([]);
   });

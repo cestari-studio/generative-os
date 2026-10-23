@@ -444,7 +444,7 @@
     "newTenantTitle": "プロビジョニングターゲット:",
     "nextButton": "次へ",
     "orgSelectLabel": "組織 (第1層)",
-    "passkeyDesc": "パスワードレス多要素認証のために、ハードウェア認証器 (Touch ID、Face ID、Windows Hello、またはYubiKey) を登録します。",
+    "passkeyDesc": "ハードウェア認証器（Touch ID、Face ID、Windows Hello、セキュリティキー）を登録すると、次回からパスワードなしでサインインできます。",
     "passkeyHeading": "FIDO2 / WebAuthn 生体認証セキュリティ",
     "passkeySuccessDesc": "パスワードレスのエンタープライズサインイン用にハードウェア生体認証資格情報が登録されました。",
     "prjSelectLabel": "プロジェクト / CreativeWork (第3層)",
@@ -472,7 +472,13 @@
       "required": "組織名は必須です"
     },
     "passkeyUnavailableTitle": "このバージョンではパスキーは利用できません",
-    "passkeyUnavailableDesc": "ハードウェア認証デバイス（Touch ID、Face ID、Windows Hello、セキュリティキー）の登録は、サーバー検証済みの WebAuthn 登録が利用可能になった後に有効になります。今すぐオンボーディングを完了し、メールとパスワードでサインインできます。"
+    "passkeyUnavailableDesc": "ハードウェア認証デバイス（Touch ID、Face ID、Windows Hello、セキュリティキー）の登録は、サーバー検証済みの WebAuthn 登録が利用可能になった後に有効になります。今すぐオンボーディングを完了し、メールとパスワードでサインインできます。",
+    "passkeyRegisterBtn": "パスキーを登録",
+    "passkeyRegistering": "デバイスのプロンプトに従ってください...",
+    "passkeyRegisteredTitle": "パスキーを登録しました",
+    "passkeyRegisteredDesc": "次回からこの認証器でサインインできます。",
+    "passkeyRegisterErrorTitle": "パスキーの登録に失敗しました",
+    "passkeyRegisterErrorDesc": "オンボーディングを完了し、後でプロフィールからパスキーを登録できます。"
   },
   "payments": {
     "amountLabel": "請求金額 (BRL)",
@@ -691,7 +697,8 @@
       "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。再試行してください。",
       "invalidEmail": "有効なメールアドレスを入力してください。",
       "title": "認証エラー",
-      "resetFailed": "パスワードリセットリンクの送信に失敗しました"
+      "resetFailed": "パスワードリセットリンクの送信に失敗しました",
+      "passkeyFailed": "パスキーでのサインインに失敗しました。別の方法をお試しください。"
     },
     "fullName": "氏名（フルネーム）",
     "headerLabel": "Cestari Studio 認証",
@@ -733,7 +740,8 @@
     "passkeyUnavailableDesc": "サーバー検証済みの WebAuthn 登録が利用可能になった後、パスワードレスサインインが有効になります。",
     "forgotPasswordBtn": "パスワードをお忘れですか？",
     "resetSentTitle": "パスワードリセットリンクを送信しました",
-    "resetSentDesc": "受信トレイでパスワードリセットリンクを確認し、新しいパスワードを設定してください。"
+    "resetSentDesc": "受信トレイでパスワードリセットリンクを確認し、新しいパスワードを設定してください。",
+    "passkeySignInBtn": "パスキーでサインイン"
   },
   "taxonomy": {
     "billing": {

@@ -164,12 +164,14 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
     saveOnboardingProgress,
     loadOnboardingProgress,
     createOrUpdateCorporateTenant,
+    registerPasskey,
   } = useTenant();
 
   const initialName = person?.name || user?.user_metadata?.name || '';
 
   // Step 1 States: Account classification, Jurisdiction, Language
   const [accountType, setAccountType] = useState('individual'); // 'individual' (PF) | 'organization_member' (PJ)
+  const [passkeyState, setPasskeyState] = useState({ status: 'idle', message: '' }); // idle | registering | registered | error
   const [countryCode, setCountryCode] = useState('BR');
   const [preferredLanguage, setPreferredLanguage] = useState(i18n.language || 'en');
 
@@ -884,16 +886,60 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
             </div>
 
             <Stack gap={4}>
-              <InlineNotification
-                lowContrast
-                hideCloseButton
-                kind="info"
-                title={t('onboarding.passkeyUnavailableTitle', 'Passkeys unavailable in this version')}
-                subtitle={t(
-                  'onboarding.passkeyUnavailableDesc',
-                  'Hardware authenticator enrollment (Touch ID, Face ID, Windows Hello, security keys) will be enabled after server-verified WebAuthn registration is available. You can finish onboarding now and use email and password to sign in.',
+              <p className="cs--onboarding-passkey-desc">
+                {t(
+                  'onboarding.passkeyDesc',
+                  'Register a hardware authenticator (Touch ID, Face ID, Windows Hello, or a security key) to sign in without a password next time.',
                 )}
-              />
+              </p>
+
+              {passkeyState.status === 'registered' ? (
+                <InlineNotification
+                  lowContrast
+                  hideCloseButton
+                  kind="success"
+                  title={t('onboarding.passkeyRegisteredTitle', 'Passkey registered')}
+                  subtitle={t('onboarding.passkeyRegisteredDesc', 'You can sign in with this authenticator next time.')}
+                />
+              ) : (
+                <Button
+                  kind="tertiary"
+                  renderIcon={Password}
+                  onClick={async () => {
+                    setPasskeyState({ status: 'registering', message: '' });
+                    try {
+                      await registerPasskey();
+                      setPasskeyState({ status: 'registered', message: '' });
+                    } catch (err) {
+                      setPasskeyState({
+                        status: 'error',
+                        message: err instanceof Error && err.message ? err.message : '',
+                      });
+                    }
+                  }}
+                  disabled={passkeyState.status === 'registering'}
+                >
+                  {passkeyState.status === 'registering'
+                    ? t('onboarding.passkeyRegistering', 'Follow your device prompt...')
+                    : t('onboarding.passkeyRegisterBtn', 'Register a passkey')}
+                </Button>
+              )}
+
+              {passkeyState.status === 'error' && (
+                <InlineNotification
+                  lowContrast
+                  kind="error"
+                  title={t('onboarding.passkeyRegisterErrorTitle', 'Passkey registration failed')}
+                  subtitle={
+                    passkeyState.message ||
+                    t(
+                      'onboarding.passkeyRegisterErrorDesc',
+                      'You can finish onboarding and register a passkey later from your profile.',
+                    )
+                  }
+                  onClose={() => setPasskeyState({ status: 'idle', message: '' })}
+                />
+              )}
             </Stack>
           </div>
         </div>

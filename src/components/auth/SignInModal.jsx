@@ -41,6 +41,7 @@ export const SignInModal = ({ className }) => {
     signInWithPassword,
     signInWithOtp,
     requestPasswordReset,
+    authenticateWithPasskey,
   } = useTenant();
 
   const [email, setEmail] = useState('');
@@ -122,6 +123,30 @@ export const SignInModal = ({ className }) => {
     }
   };
 
+  const handlePasskeySignIn = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      await authenticateWithPasskey();
+      setIsLoading(false);
+      closeSignInModal();
+      const authenticatedPerson = person;
+      if (!authenticatedPerson?.account_type) {
+        openOnboardingFlow();
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      // Honest browser/WebAuthn errors (unsupported, user cancel, no credential).
+      setErrorMessage(
+        err instanceof Error && err.message
+          ? err.message
+          : t('signInModal.error.passkeyFailed', 'Passkey sign-in failed. Try another method.'),
+      );
+    }
+  };
+
   return (
     <ComposedModal
       open={isSignInModalOpen}
@@ -176,16 +201,15 @@ export const SignInModal = ({ className }) => {
                 onChange={(_e, { checked }) => setRememberId(checked)}
               />
 
-              <InlineNotification
-                lowContrast
-                hideCloseButton
-                kind="info"
-                title={t('signInModal.passkeyUnavailableTitle', 'Passkeys unavailable in this version')}
-                subtitle={t(
-                  'signInModal.passkeyUnavailableDesc',
-                  'Passwordless sign-in will be enabled after server-verified WebAuthn registration is available.',
-                )}
-              />
+              <Button
+                kind="tertiary"
+                renderIcon={Login}
+                onClick={handlePasskeySignIn}
+                disabled={isLoading}
+                className="cs--sign-in-modal__passkey-btn"
+              >
+                {t('signInModal.passkeySignInBtn', 'Sign in with passkey')}
+              </Button>
             </Stack>
           </Form>
         )}

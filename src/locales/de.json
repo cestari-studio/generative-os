@@ -444,7 +444,7 @@
     "newTenantTitle": "Bereitstellungsziel:",
     "nextButton": "Weiter",
     "orgSelectLabel": "Organisation (Ebene 1)",
-    "passkeyDesc": "Registrieren Sie Ihren Hardware-Geräte-Authenticator (Touch ID, Face ID, Windows Hello oder YubiKey) für die passwortlose Multi-Faktor-Authentifizierung.",
+    "passkeyDesc": "Registrieren Sie einen Hardware-Authenticator (Touch ID, Face ID, Windows Hello oder einen Sicherheitsschlüssel), um sich beim nächsten Mal ohne Passwort anzumelden.",
     "passkeyHeading": "FIDO2 / WebAuthn Biometrische Sicherheit",
     "passkeySuccessDesc": "Ihre biometrische Hardware-Anmeldeinformation ist jetzt für die passwortlose Unternehmensanmeldung registriert.",
     "prjSelectLabel": "Projekt / CreativeWork (Ebene 3)",
@@ -472,7 +472,13 @@
       "required": "Organisationsname ist erforderlich"
     },
     "passkeyUnavailableTitle": "Passkeys in dieser Version nicht verfügbar",
-    "passkeyUnavailableDesc": "Die Registrierung von Hardware-Authentikatoren (Touch ID, Face ID, Windows Hello, Sicherheitsschlüssel) wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist. Sie können das Onboarding jetzt abschließen und sich mit E-Mail und Passwort anmelden."
+    "passkeyUnavailableDesc": "Die Registrierung von Hardware-Authentikatoren (Touch ID, Face ID, Windows Hello, Sicherheitsschlüssel) wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist. Sie können das Onboarding jetzt abschließen und sich mit E-Mail und Passwort anmelden.",
+    "passkeyRegisterBtn": "Passkey registrieren",
+    "passkeyRegistering": "Folgen Sie der Geräteaufforderung...",
+    "passkeyRegisteredTitle": "Passkey registriert",
+    "passkeyRegisteredDesc": "Sie können sich beim nächsten Mal mit diesem Authenticator anmelden.",
+    "passkeyRegisterErrorTitle": "Passkey-Registrierung fehlgeschlagen",
+    "passkeyRegisterErrorDesc": "Sie können das Onboarding abschließen und später eine Passkey in Ihrem Profil registrieren."
   },
   "payments": {
     "amountLabel": "Zahlungsbetrag (BRL)",
@@ -691,7 +697,8 @@
       "invalidCredentials": "E-Mail oder Passwort ungültig. Bitte erneut versuchen.",
       "invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein.",
       "title": "Authentifizierungsfehler",
-      "resetFailed": "Link zum Zurücksetzen konnte nicht gesendet werden"
+      "resetFailed": "Link zum Zurücksetzen konnte nicht gesendet werden",
+      "passkeyFailed": "Anmeldung mit Passkey fehlgeschlagen. Versuchen Sie eine andere Methode."
     },
     "fullName": "Vollständiger Name",
     "headerLabel": "Cestari Studio Authentifizierung",
@@ -733,7 +740,8 @@
     "passkeyUnavailableDesc": "Die passwortlose Anmeldung wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist.",
     "forgotPasswordBtn": "Passwort vergessen?",
     "resetSentTitle": "Link zum Zurücksetzen gesendet",
-    "resetSentDesc": "Prüfen Sie Ihren Posteingang nach dem Link zum Zurücksetzen des Passworts, um ein neues Passwort zu wählen."
+    "resetSentDesc": "Prüfen Sie Ihren Posteingang nach dem Link zum Zurücksetzen des Passworts, um ein neues Passwort zu wählen.",
+    "passkeySignInBtn": "Mit Passkey anmelden"
   },
   "taxonomy": {
     "billing": {

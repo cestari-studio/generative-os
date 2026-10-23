@@ -55,9 +55,9 @@ describe('SignInModal (Enterprise Authentication)', () => {
     expect(screen.queryByText(/anne\.profile@ibm\.com/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/ruth\.leach@ibm\.com/i)).not.toBeInTheDocument();
 
-    // Passkeys are advertised as unavailable, never as an actionable flow.
-    expect(screen.getByText('Passkeys unavailable in this version')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Biometric|Passkey/i })).not.toBeInTheDocument();
+    // Passkeys are offered as a real passwordless action (native Supabase
+    // WebAuthn), not a disabled stub. No fake credentials anywhere.
+    expect(screen.getByRole('button', { name: /Sign in with passkey/i })).toBeInTheDocument();
 
     const emailInput = screen.getByLabelText('Work email');
     await user.type(emailInput, 'person@example.com');

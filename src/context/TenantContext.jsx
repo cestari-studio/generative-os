@@ -735,20 +735,54 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
    * The passkey-auth Edge Function does not implement the WebAuthn ceremony
    * yet, so there is no server-verified registration or assertion flow. These
    * helpers fail closed: they never fabricate challenges, credentials or
-   * sessions, and never report success for a credential the server did not
-   * register. The UI hides passkey actions until the ceremony is implemented
-   * end to end.
+   * Passkeys via Supabase Auth's NATIVE WebAuthn support (supabase-js 2.118+):
+   * auth.registerPasskey() and auth.signInWithPasskey() drive the full FIDO2
+   * ceremony — attestation and assertion are verified server-side by Supabase
+   * Auth, never pseudo-verified client-side. WebAuthn requires a secure
+   * context (HTTPS or localhost); callers surface the browser's errors
+   * honestly (unsupported browser, user cancel, no platform authenticator).
    */
   const registerPasskey = useCallback(async () => {
-    const err = new Error('Passkey registration is unavailable in this version.');
-    setStatusMessage(err.message);
-    throw err;
+    const supabase = getSupabaseBrowserClient();
+    const currentUser = userRef.current;
+    if (!currentUser?.id) {
+      const err = new Error('Sign in before registering a passkey.');
+      setStatusMessage(err.message);
+      throw err;
+    }
+    const { data, error } = await supabase.auth.registerPasskey();
+    if (error) {
+      setStatusMessage(error.message);
+      throw error;
+    }
+    // Refresh the credential list from the server (never assume success).
+    try {
+      const { data: creds } = await supabase
+        .from('passkey_credentials')
+        .select('*')
+        .eq('person_id', currentUser.id)
+        .order('created_at', { ascending: false });
+      if (Array.isArray(creds)) {
+        setPasskeys(creds);
+      }
+    } catch {
+      // Non-fatal: the registration succeeded; the list will refresh on next load.
+    }
+    setStatusMessage('Passkey registered');
+    return data;
   }, []);
 
   const authenticateWithPasskey = useCallback(async () => {
-    const err = new Error('Passkey authentication is unavailable in this version.');
-    setStatusMessage(err.message);
-    throw err;
+    const supabase = getSupabaseBrowserClient();
+    const { data, error } = await supabase.auth.signInWithPasskey();
+    if (error) {
+      setStatusMessage(error.message);
+      throw error;
+    }
+    // Native passkey sign-in establishes the session via onAuthStateChange,
+    // which sets the user and refreshes tenant data.
+    setStatusMessage('Signed in with passkey');
+    return data;
   }, []);
 
   const activeOrganization = useMemo(

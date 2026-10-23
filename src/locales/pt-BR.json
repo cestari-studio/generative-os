@@ -447,7 +447,7 @@
     "newTenantTitle": "Destino da Configuração:",
     "nextButton": "Próximo",
     "orgSelectLabel": "Organização (Nível 1)",
-    "passkeyDesc": "Cadastre o autenticador do seu dispositivo físico (Touch ID, Face ID, Windows Hello ou YubiKey) para autenticação multifator sem senhas.",
+    "passkeyDesc": "Registre um autenticador de hardware (Touch ID, Face ID, Windows Hello ou uma chave de segurança) para entrar sem senha da próxima vez.",
     "passkeyHeading": "Segurança Biométrica FIDO2 / WebAuthn",
     "passkeySuccessDesc": "Sua credencial biométrica física foi cadastrada com sucesso e está pronta para login corporativo sem senhas.",
     "prjSelectLabel": "Projeto / CreativeWork (Nível 3)",
@@ -495,7 +495,7 @@
     "organization": "Pessoa Jurídica (Schema.org Organization)",
     "passkeyPrompt": "Toque no sensor do seu dispositivo ou insira a chave de segurança física...",
     "passkeyRegistered": "Chave de Acesso WebAuthn Registrada com Sucesso",
-    "passkeyRegistering": "Registrando chave de acesso biométrica...",
+    "passkeyRegistering": "Siga o prompt do seu dispositivo...",
     "passkeyUnavailable": "A autenticação WebAuthn biométrica não está disponível neste navegador.",
     "passkeyVerified": "Chave WebAuthn Verificada",
     "registerPasskey": "Registrar Chave de Acesso FIDO2",
@@ -511,7 +511,12 @@
       "required": "O nome da organização é obrigatório"
     },
     "passkeyUnavailableTitle": "Passkeys indisponíveis nesta versão",
-    "passkeyUnavailableDesc": "O registro de autenticadores de hardware (Touch ID, Face ID, Windows Hello, chaves de segurança) será ativado quando o registro WebAuthn verificado no servidor estiver disponível. Você pode concluir o onboarding agora e entrar com e-mail e senha."
+    "passkeyUnavailableDesc": "O registro de autenticadores de hardware (Touch ID, Face ID, Windows Hello, chaves de segurança) será ativado quando o registro WebAuthn verificado no servidor estiver disponível. Você pode concluir o onboarding agora e entrar com e-mail e senha.",
+    "passkeyRegisterBtn": "Registrar uma passkey",
+    "passkeyRegisteredTitle": "Passkey registrada",
+    "passkeyRegisteredDesc": "Você pode entrar com este autenticador da próxima vez.",
+    "passkeyRegisterErrorTitle": "Falha ao registrar a passkey",
+    "passkeyRegisterErrorDesc": "Você pode concluir o onboarding e registrar uma passkey depois no seu perfil."
   },
   "payments": {
     "amountLabel": "Valor da Cobrança (BRL)",
@@ -749,7 +754,8 @@
       "invalidCredentials": "E-mail ou senha incorretos. Tente novamente.",
       "invalidEmail": "Insira um endereço de e-mail válido.",
       "title": "Erro de autenticação",
-      "resetFailed": "Falha ao enviar o link de redefinição de senha"
+      "resetFailed": "Falha ao enviar o link de redefinição de senha",
+      "passkeyFailed": "Falha ao entrar com passkey. Tente outro método."
     },
     "fullName": "Nome Completo",
     "headerLabel": "Autenticação Cestari Studio",
@@ -791,7 +797,8 @@
     "passkeyUnavailableDesc": "O acesso sem senha será ativado quando o registro WebAuthn verificado no servidor estiver disponível.",
     "forgotPasswordBtn": "Esqueceu a senha?",
     "resetSentTitle": "Link de redefinição enviado",
-    "resetSentDesc": "Verifique sua caixa de entrada para o link de redefinição de senha e escolha uma nova senha."
+    "resetSentDesc": "Verifique sua caixa de entrada para o link de redefinição de senha e escolha uma nova senha.",
+    "passkeySignInBtn": "Entrar com passkey"
   },
   "taxonomy": {
     "billing": {

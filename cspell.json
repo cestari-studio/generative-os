@@ -235,6 +235,7 @@
     "subproduct",
     "subproducts",
     "datname",
-    "PGPASSWORD"
+    "PGPASSWORD",
+    "creds"
   ]
 }
