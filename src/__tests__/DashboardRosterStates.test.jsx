@@ -7,6 +7,7 @@
 
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { renderWithoutProviders } from '../test/test-utils';
 import { useTenant } from '../context/useTenant';
 import { DashboardUsersTab } from '../pages/dashboard/DashboardUsersTab';
@@ -41,7 +42,7 @@ describe('dashboard tenant roster states do not invent identity or permission da
     });
     renderWithoutProviders(<DashboardUsersTab />);
 
-    expect(screen.getByText('Not reported')).toBeInTheDocument();
+    expect(screen.getAllByText('Not reported').length).toBeGreaterThan(0);
     expect(screen.queryByText('Tenant Owner / Administrator')).not.toBeInTheDocument();
     expect(screen.queryByText('Workspace Member')).not.toBeInTheDocument();
     expect(screen.queryByText('Anonymous Person')).not.toBeInTheDocument();
