@@ -65,3 +65,21 @@ exact SHA → serves correctly via authenticated access. The code verified by CI
 
 **Production unchanged:** `app.cestari.studio` still serves `b580fc8` — no
 promotion has been authorized or executed.
+
+## Preview functional verification via Safari Technology Preview (2026-10-23, ~08:00 UTC)
+
+After the owner-authorized env-var setup (`VITE_SUPABASE_URL` +
+`VITE_SUPABASE_PUBLISHABLE_KEY` for Preview + Production), a fresh Git Preview
+was verified functionally in Safari Technology Preview:
+
+| Check                 | Result                                                                                                                                              | Evidence                               |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Preview URL           | `generative-e3xsqpj8c-cestari-studio.vercel.app` (SHA `3405000`, source=git, READY)                                                                 | `/v6/deployments`                      |
+| Landing SSR           | "genOS by Cestari Studio" renders with brand content, feature cards, hierarchy, copyright                                                           | Safari TP screenshot                   |
+| Supabase config error | **RESOLVED** — no `Supabase client configuration missing` error; env vars active                                                                    | Safari TP (absence of the prior error) |
+| Sign-in path          | "Sign in to Workspace" opens the "Log in to genOS" modal with the 2-step flow (1. Identity → 2. Credentials), work email field, credential autofill | Safari TP screenshot                   |
+| Deployment Protection | Accessible in the owner's authenticated Safari TP session                                                                                           | navigation succeeded                   |
+
+**Full chain verified end-to-end:** GitHub push → Git integration → Preview
+with exact SHA + publishable env vars → app loads → Supabase client
+initializes → auth flow accessible. **Production unchanged** (`b580fc8`).
