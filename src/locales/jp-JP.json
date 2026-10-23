@@ -541,7 +541,12 @@
     "taxonomyHeading": "実装されたSchema.orgタクソノミー:",
     "title": "PagBank マルチテナント & FDW エンジン",
     "invalidCustomer": "顧客名とメールアドレスは必須です。",
-    "amountPlaceholder": "0.00"
+    "amountPlaceholder": "0.00",
+    "chargeOutcomeUnknownTitle": "支払い結果を確認できません",
+    "chargeOutcomeUnknown": "支払い結果を確認できません。新しい請求を作成しないでください。同じ見積もりと冪等性参照を使用して、同じ試行を再実行し PagBank の結果を照合してください。",
+    "reconcilingCharge": "同じ支払い試行を照合しています…",
+    "retrySameCharge": "同じ支払い試行を再試行",
+    "pendingChargeReference": "保留中の見積もり {{quoteId}} · 参照 {{referenceId}}。結果が解決するまで新しい請求の作成は無効です。"
   },
   "placeholder": {
     "description1": "一般的に、準備中のページを公開したままにすることは推奨されません。",
