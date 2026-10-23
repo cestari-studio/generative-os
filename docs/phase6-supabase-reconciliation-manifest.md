@@ -216,3 +216,35 @@ reset flow exists via Supabase Auth recovery.
 **Evidence to capture:** supabase auth config read-back (read-only),
 signup/reset attempt logs (no password values), UI screenshots of the error
 state, and the advisor finding clearing after enablement.
+
+---
+
+## 14. Onboarding persistence — destination contract formalization (2026-10-23)
+
+**Normative source check (read-only genOS registries):** the normative ontology
+does **not** define a user-onboarding journey or feature. The closest journey,
+`journey.platform.activate_product` ("Provisionar e ativar produto"), is
+operator-side provisioning — actors `master_operator`, `agency_admin`,
+`tenant_admin`, `provisioning_worker`; steps: tenant/workspace provision →
+entitlement resolve → product activation. Per the directive, it is **not** a
+substitute for user onboarding.
+
+**Destination contract (formal, with evidence):**
+
+| Aspect     | Value                                                                                                               | Evidence                            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Write path | `save_onboarding_progress(text, text, integer, jsonb, boolean)` RPC                                                 | migration `20261018225420`          |
+| Security   | `SECURITY INVOKER`, `search_path=''`, requires `auth.uid()` + existing person                                       | migration `20261018225420`          |
+| Storage    | `public.persons.additional_property->'onboarding'`                                                                  | RPC body + `loadOnboardingProgress` |
+| Shape      | `{account_type, country_code, current_step, status, last_updated_at, step_data, completed_at?}`                     | RPC body                            |
+| Semantics  | progressive `step_data` merge (atomic jsonb `\|\|`), status `in_progress`/`completed`, `completed_at` on completion | RPC body                            |
+| Read path  | `persons.additional_property->'onboarding'` via `loadOnboardingProgress`                                            | `TenantContext.jsx`                 |
+| Client     | `OnboardingTearsheet` saves per step; reload rehydrates from backend                                                | component                           |
+
+**Not the contract:** `public.cs_preferences.onboarding_done` was previously a
+candidate — it is **not** the persistence path. The authoritative path is
+`persons.additional_property->'onboarding'`.
+
+**Status:** destination-local contract, consistent end-to-end (write RPC ↔
+storage ↔ read path ↔ client). No normative binding exists to claim; marked as
+destination-owned in the binding ledger.
