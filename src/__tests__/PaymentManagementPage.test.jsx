@@ -198,15 +198,15 @@ describe('PaymentManagementPage UI & PagBank Integration', () => {
     expect(source).not.toContain('referenceId = `ORD_${Date.now()}_${Math.floor(Math.random() * 1000)}`');
   });
 
-  test('renders FDW architecture and Schema.org taxonomy overview in tab', async () => {
+  test('does not present example FDW configuration as verified runtime state', async () => {
     renderPaymentPage();
 
     const fdwTab = screen.getByRole('tab', { name: /Supabase Wrappers/i });
     fireEvent.click(fdwTab);
 
-    expect(screen.getByText('Supabase Wrappers & Foreign Data Wrapper Architecture')).toBeInTheDocument();
-    expect(screen.getByText(/Extension: wrappers \(Active\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/FDW: wasm_wrapper/i)).toBeInTheDocument();
-    expect(screen.getByText(/Schema.org Taxonomy Implemented:/i)).toBeInTheDocument();
+    expect(screen.getByText('FDW runtime not verified')).toBeInTheDocument();
+    expect(screen.getByText(/no verified read model for live Supabase Wrappers/i)).toBeInTheDocument();
+    expect(screen.queryByText('PagBank Multi-Tenant Gateway')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Extension: wrappers \(Active\)/i)).not.toBeInTheDocument();
   });
 });
