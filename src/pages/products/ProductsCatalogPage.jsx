@@ -5,41 +5,24 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNormativeCatalog } from '../../data/useNormativeCatalog';
 import {
   Button,
   CodeSnippet,
   Column,
-  DataTable,
   Grid,
   Layer,
-  Search,
   Stack,
   Tab,
   TabList,
   TabPanel,
   TabPanels,
   Tabs,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
   Tag,
   Tile,
 } from '@carbon/react';
-import {
-  Application,
-  ArrowRight,
-  Catalog,
-  CheckmarkFilled,
-  DataStructured,
-  Events,
-  SettingsAdjust,
-} from '@carbon/icons-react';
+import { Application, ArrowRight, Catalog, CheckmarkFilled, DataStructured, Events } from '@carbon/icons-react';
 import { PageHeader } from '@carbon/ibm-products';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -47,8 +30,69 @@ import { useTranslation } from 'react-i18next';
 import { PageLayout } from '../../layouts/page-layout';
 import { Footer } from '../../components/footer/Footer';
 import { useTenant } from '../../context/useTenant';
-import { BRAND_DNA_PROFILES } from '../../data/genOsCatalog';
 import { RESOURCE_TAXONOMY } from '../../routes/config';
+
+function CatalogAvailabilityState({ status, t }) {
+  const copy = {
+    loading: {
+      titleKey: 'productsCatalog.loadingTitle',
+      title: 'Loading product catalog',
+      descriptionKey: 'productsCatalog.loadingDesc',
+      description: 'Loading the normative catalog from the configured backend.',
+      role: 'status',
+    },
+    unprovisioned: {
+      titleKey: 'productsCatalog.notProvisionedTitle',
+      title: 'Product catalog not provisioned',
+      descriptionKey: 'productsCatalog.notProvisionedDesc',
+      description:
+        'The required catalog tables are not provisioned in this environment. ' +
+        'No static fallback content is displayed.',
+      role: 'status',
+    },
+    empty: {
+      titleKey: 'productsCatalog.emptyTitle',
+      title: 'Product catalog is empty',
+      descriptionKey: 'productsCatalog.emptyDesc',
+      description:
+        'The catalog tables are reachable, but no product entries are present. ' +
+        'No static fallback content is displayed.',
+      role: 'status',
+    },
+    forbidden: {
+      titleKey: 'productsCatalog.forbiddenTitle',
+      title: 'Catalog access forbidden',
+      descriptionKey: 'productsCatalog.forbiddenDesc',
+      description:
+        'Your current session is not authorized to read the normative catalog. ' +
+        'Contact an administrator if you believe access should be granted.',
+      role: 'alert',
+    },
+    error: {
+      titleKey: 'productsCatalog.errorTitle',
+      title: 'Product catalog unavailable',
+      descriptionKey: 'productsCatalog.errorDesc',
+      description:
+        'The catalog could not be loaded because of a service or configuration error. ' +
+        'Retry later; no static fallback content is displayed.',
+      role: 'alert',
+    },
+  };
+  const state = copy[status] || copy.error;
+
+  return (
+    <Tile
+      className="cs--products-page__empty"
+      role={state.role}
+      aria-live={state.role === 'status' ? 'polite' : 'assertive'}
+    >
+      <Stack gap={3}>
+        <h3 className="cs--products-page__empty-title">{t(state.titleKey, state.title)}</h3>
+        <p className="cs--products-page__empty-text">{t(state.descriptionKey, state.description)}</p>
+      </Stack>
+    </Tile>
+  );
+}
 
 const ProductsCatalogPage = () => {
   const { t } = useTranslation();
@@ -61,78 +105,40 @@ const ProductsCatalogPage = () => {
   const catalog = useNormativeCatalog();
   const catalogReady = catalog.status === 'ready';
 
-  const [brandSearch, setBrandSearch] = useState('');
-  const [selectedBrandSlug, setSelectedBrandSlug] = useState('cestari-studio');
-
-  // Filtered Brand Profiles
-  const filteredBrands = useMemo(() => {
-    if (!brandSearch.trim()) return BRAND_DNA_PROFILES;
-    const q = brandSearch.toLowerCase();
-    return BRAND_DNA_PROFILES.filter(
-      (b) =>
-        b.displayName.toLowerCase().includes(q) ||
-        b.segment.toLowerCase().includes(q) ||
-        b.category.toLowerCase().includes(q),
-    );
-  }, [brandSearch]);
-
-  const activeBrand = useMemo(() => {
-    return BRAND_DNA_PROFILES.find((b) => b.slug === selectedBrandSlug) || BRAND_DNA_PROFILES[0];
-  }, [selectedBrandSlug]);
-
-  const brandTableHeaders = useMemo(
-    () => [
-      { key: 'displayName', header: t('productsCatalog.brandName', 'Brand Profile') },
-      { key: 'category', header: t('productsCatalog.segment', 'Market Category') },
-      { key: 'maturity', header: t('productsCatalog.maturity', 'Maturity Status') },
-      { key: 'defaultLocale', header: t('productsCatalog.locale', 'Locale') },
-    ],
-    [t],
-  );
-
-  const brandTableRows = useMemo(
-    () =>
-      filteredBrands.map((b) => ({
-        id: b.slug,
-        displayName: b.displayName,
-        category: b.category,
-        maturity: b.maturity,
-        defaultLocale: b.defaultLocale,
-      })),
-    [filteredBrands],
-  );
-
-  // Schema.org JSON-LD Representation
+  // Emit tenant identity only when the authenticated tenant context provides it.
+  // The product catalog itself remains sourced from the backend adapter.
   const schemaOrgJsonLd = useMemo(() => {
-    return JSON.stringify(
-      {
-        '@context': 'https://schema.org',
-        '@graph': [
-          {
-            '@type': 'Organization',
-            '@id': `urn:genos:org:${activeOrganization?.identifier || 'cestari-studio'}`,
-            name: activeOrganization?.name || 'Cestari Studio Agency',
-            url: 'https://genos.cloud',
-            owns: catalog.products.map((prod) => ({
-              '@type': 'Product',
-              name: prod.name,
-              identifier: prod.key,
-              description: prod.summary,
-              category: 'genOS product suite',
-            })),
-          },
-          ...Object.values(RESOURCE_TAXONOMY).map((res) => ({
-            '@type': res.shortSchema.replace('schema:', ''),
-            '@id': `urn:genos:taxonomy:${res.id}`,
-            name: res.defaultLabel,
-            description: res.defaultDescription,
-            url: res.primaryRoute,
-          })),
-        ],
-      },
-      null,
-      2,
+    const graph = [];
+
+    if (activeOrganization?.identifier || activeOrganization?.name) {
+      const organization = { '@type': 'Organization' };
+      if (activeOrganization.identifier) {
+        organization['@id'] = `urn:genos:org:${activeOrganization.identifier}`;
+      }
+      if (activeOrganization.name) {
+        organization.name = activeOrganization.name;
+      }
+      organization.owns = catalog.products.map((prod) => ({
+        '@type': 'Product',
+        name: prod.name,
+        identifier: prod.key,
+        description: prod.summary,
+        category: 'genOS product suite',
+      }));
+      graph.push(organization);
+    }
+
+    graph.push(
+      ...Object.values(RESOURCE_TAXONOMY).map((res) => ({
+        '@type': res.shortSchema.replace('schema:', ''),
+        '@id': `urn:genos:taxonomy:${res.id}`,
+        name: res.defaultLabel,
+        description: res.defaultDescription,
+        url: res.primaryRoute,
+      })),
     );
+
+    return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }, null, 2);
   }, [activeOrganization, catalog.products]);
 
   return (
@@ -141,7 +147,7 @@ const ProductsCatalogPage = () => {
         title={t('productsCatalog.title', 'Products & Brand DNA Catalog')}
         subtitle={t(
           'productsCatalog.subtitle',
-          'Autonomous multi-tenant product suites, Brand DNA profiles, and platform services governed under Schema.org taxonomies.',
+          'Normative product suites, subproducts, capabilities, and platform services from the backend catalog.',
         )}
         className="cs--products-page__header"
         navigation={
@@ -149,20 +155,17 @@ const ProductsCatalogPage = () => {
             className="cds--type-caption"
             style={{ color: 'var(--cds-text-secondary, #6f6f6f)', padding: '0.25rem 0' }}
           >
-            {[
-              activeOrganization?.name || 'Cestari Studio Agency',
-              activeWorkspace?.name || 'Core Platform',
-              activeProject?.name || 'Production Tenant',
-              'schema:Product',
-            ].join(' • ')}
+            {[activeOrganization?.name, activeWorkspace?.name, activeProject?.name, 'schema:Product']
+              .filter(Boolean)
+              .join(' • ')}
           </p>
         }
       />
 
       <Tabs className="cs--products-page__tabs">
         <TabList aria-label={t('productsCatalog.tabsAriaLabel', 'Products and Brand DNA Sections')}>
-          <Tab renderIcon={Catalog}>{t('productsCatalog.tabProducts', 'Product Suites (5)')}</Tab>
-          <Tab renderIcon={Application}>{t('productsCatalog.tabBrandDna', 'Brand DNA Profiles (12)')}</Tab>
+          <Tab renderIcon={Catalog}>{t('productsCatalog.tabProducts', 'Product Suites')}</Tab>
+          <Tab renderIcon={Application}>{t('productsCatalog.tabBrandDna', 'Brand DNA')}</Tab>
           <Tab renderIcon={Events}>{t('productsCatalog.tabPlatform', 'Platform Services & Capabilities')}</Tab>
           <Tab renderIcon={DataStructured}>{t('productsCatalog.tabTaxonomy', 'Schema.org Taxonomy Graph')}</Tab>
         </TabList>
@@ -195,21 +198,7 @@ const ProductsCatalogPage = () => {
               </Tile>
 
               {!catalogReady ? (
-                <Tile className="cs--products-page__empty">
-                  <Stack gap={3}>
-                    <h3 className="cs--products-page__empty-title">
-                      {t('productsCatalog.notProvisionedTitle', 'Product catalog not provisioned')}
-                    </h3>
-                    <p className="cs--products-page__empty-text">
-                      {catalog.status === 'loading'
-                        ? t('productsCatalog.loading', 'Loading the normative product catalog…')
-                        : t(
-                            'productsCatalog.notProvisionedDesc',
-                            'The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, the five product suites with their subproducts, capabilities and outcomes will appear here.',
-                          )}
-                    </p>
-                  </Stack>
-                </Tile>
+                <CatalogAvailabilityState status={catalog.status} t={t} />
               ) : (
                 <Grid narrow>
                   {catalog.products.map((product) => {
@@ -284,217 +273,27 @@ const ProductsCatalogPage = () => {
             </Stack>
           </TabPanel>
 
-          {/* TAB 2: BRAND DNA PROFILES */}
+          {/* TAB 2: Brand DNA stays empty until an authoritative backend binding exists. */}
           <TabPanel>
-            <Stack gap={6}>
-              <Tile className="cs--products-page__banner">
-                <Stack gap={3}>
-                  <div className="cs--products-page__banner-header">
-                    <div>
-                      <h3 className="cs--products-page__banner-title">
-                        {t('productsCatalog.brandDnaTitle', 'Brand DNA Multi-Tenant Catalog')}
-                      </h3>
-                      <p className="cs--products-page__banner-lead">
-                        {t(
-                          'productsCatalog.brandDnaDesc',
-                          'Verbal, visual and behavioral identity models resolved across client tenants under Cestari Studio Agency.',
-                        )}
-                      </p>
-                    </div>
-                    <Tag type="purple" size="md">
-                      12 Brand Profiles
-                    </Tag>
-                  </div>
-                </Stack>
-              </Tile>
-
-              <Grid narrow>
-                <Column sm={4} md={8} lg={10}>
-                  <Search
-                    id="brand-dna-search"
-                    labelText={t('productsCatalog.searchBrands', 'Search Brand Profiles')}
-                    placeholder={t(
-                      'productsCatalog.searchPlaceholder',
-                      'Filter by name, market segment, or category...',
-                    )}
-                    value={brandSearch}
-                    onChange={(e) => setBrandSearch(e.target.value)}
-                    size="md"
-                    className="cs--products-page__brand-search"
-                  />
-
-                  <Tile className="cs--products-page__table-tile">
-                    <DataTable rows={brandTableRows} headers={brandTableHeaders} size="md">
-                      {({ rows, headers, getHeaderProps, getRowProps, getTableProps }) => (
-                        <TableContainer
-                          title={t('productsCatalog.brandTableTitle', 'Active Tenant Brand Profiles')}
-                          description={t(
-                            'productsCatalog.brandTableDesc',
-                            'Select a profile to inspect Brand DNA semantic tokens, voice guidelines, and positioning.',
-                          )}
-                        >
-                          <Table {...getTableProps()}>
-                            <TableHead>
-                              <TableRow>
-                                {headers.map((header) => (
-                                  <TableHeader key={header.key} {...getHeaderProps({ header })}>
-                                    {header.header}
-                                  </TableHeader>
-                                ))}
-                                <TableHeader>{t('common.actions', 'Action')}</TableHeader>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {rows.length === 0 ? (
-                                <TableRow>
-                                  <TableCell colSpan={headers.length + 1} className="cs--data-table__empty-cell">
-                                    <p className="cs--data-table__empty-text">
-                                      {t(
-                                        'productsCatalog.emptyBrands',
-                                        'No brand profiles match your search criteria.',
-                                      )}
-                                    </p>
-                                  </TableCell>
-                                </TableRow>
-                              ) : (
-                                rows.map((row) => (
-                                  <TableRow
-                                    key={row.id}
-                                    {...getRowProps({ row })}
-                                    className={row.id === selectedBrandSlug ? 'cs--products-page__row--active' : ''}
-                                  >
-                                    {row.cells.map((cell) => (
-                                      <TableCell key={cell.id}>
-                                        {cell.info.header === 'maturity' ? (
-                                          <Tag
-                                            type={
-                                              cell.value === 'active'
-                                                ? 'green'
-                                                : cell.value === 'needs_review'
-                                                  ? 'warm-gray'
-                                                  : 'cyan'
-                                            }
-                                            size="sm"
-                                          >
-                                            {cell.value}
-                                          </Tag>
-                                        ) : cell.info.header === 'displayName' && row.id === 'cestari-studio' ? (
-                                          <span>
-                                            <strong>{cell.value}</strong>{' '}
-                                            <Tag size="sm" type="magenta">
-                                              Agency Master
-                                            </Tag>
-                                          </span>
-                                        ) : (
-                                          cell.value
-                                        )}
-                                      </TableCell>
-                                    ))}
-                                    <TableCell>
-                                      <Button
-                                        kind="ghost"
-                                        size="sm"
-                                        renderIcon={ArrowRight}
-                                        onClick={() => setSelectedBrandSlug(row.id)}
-                                      >
-                                        {t('productsCatalog.inspectTokens', 'Inspect')}
-                                      </Button>
-                                    </TableCell>
-                                  </TableRow>
-                                ))
-                              )}
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      )}
-                    </DataTable>
-                  </Tile>
-                </Column>
-
-                {/* Brand Inspector Sidebar */}
-                <Column sm={4} md={8} lg={6}>
-                  <Layer level={1}>
-                    <Tile className="cs--products-page__brand-inspector">
-                      <Stack gap={5}>
-                        <div>
-                          <Tag type="blue" size="sm">
-                            {activeBrand.tenantKind === 'agency_master' ? 'Master Agency' : 'Client Tenant'}
-                          </Tag>
-                          <h4 className="cs--products-page__inspector-title">{activeBrand.displayName}</h4>
-                          <p className="cs--products-page__inspector-key">{activeBrand.brandKey}</p>
-                        </div>
-
-                        <div>
-                          <h5 className="cs--products-page__section-subtitle">
-                            {t('productsCatalog.marketSegment', 'Market Segment')}
-                          </h5>
-                          <p className="cs--products-page__inspector-text">{activeBrand.segment}</p>
-                        </div>
-
-                        <div>
-                          <h5 className="cs--products-page__section-subtitle">
-                            {t('productsCatalog.supportedLocales', 'Supported Locales')}
-                          </h5>
-                          <div className="cs--products-page__subproducts-tags">
-                            {activeBrand.locales.map((loc) => (
-                              <Tag key={loc} size="sm" type="cool-gray">
-                                {loc}
-                              </Tag>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h5 className="cs--products-page__section-subtitle">
-                            {t('productsCatalog.brandTokensHeading', 'Brand DNA Semantic Tokens')}
-                          </h5>
-                          <div className="cs--products-page__capabilities-tags">
-                            {activeBrand.brandTokens.length > 0 ? (
-                              activeBrand.brandTokens.map((tok) => (
-                                <Tag key={tok} size="sm" type="magenta">
-                                  {tok}
-                                </Tag>
-                              ))
-                            ) : (
-                              <Tag size="sm" type="warm-gray">
-                                Inherits Agency Defaults
-                              </Tag>
-                            )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <h5 className="cs--products-page__section-subtitle">
-                            {t('productsCatalog.parentTenant', 'Parent Tenant Authority')}
-                          </h5>
-                          <CodeSnippet type="inline">tenant.cestari_studio_agency</CodeSnippet>
-                        </div>
-                      </Stack>
-                    </Tile>
-                  </Layer>
-                </Column>
-              </Grid>
-            </Stack>
+            <Tile className="cs--products-page__empty">
+              <Stack gap={3}>
+                <h3 className="cs--products-page__empty-title">
+                  {t('productsCatalog.brandDnaNotProvisionedTitle', 'Brand DNA backend binding unavailable')}
+                </h3>
+                <p className="cs--products-page__empty-text">
+                  {t(
+                    'productsCatalog.brandDnaNotProvisionedDesc',
+                    'This view is not connected to an authoritative backend resource for tenant brand profiles. Static or synthetic profiles are intentionally not displayed.',
+                  )}
+                </p>
+              </Stack>
+            </Tile>
           </TabPanel>
 
           {/* TAB 3: PLATFORM SERVICES & CAPABILITIES (normative catalog from backend) */}
           <TabPanel>
             {!catalogReady ? (
-              <Tile className="cs--products-page__empty">
-                <Stack gap={3}>
-                  <h3 className="cs--products-page__empty-title">
-                    {t('productsCatalog.notProvisionedTitle', 'Product catalog not provisioned')}
-                  </h3>
-                  <p className="cs--products-page__empty-text">
-                    {catalog.status === 'loading'
-                      ? t('productsCatalog.loading', 'Loading the normative product catalog…')
-                      : t(
-                          'productsCatalog.notProvisionedDesc',
-                          'The normative product catalog is not provisioned in this environment yet. When the catalog source (migration + seed) is applied, platform services and shared capabilities will appear here.',
-                        )}
-                  </p>
-                </Stack>
-              </Tile>
+              <CatalogAvailabilityState status={catalog.status} t={t} />
             ) : (
               <Stack gap={6}>
                 <div>

@@ -97,8 +97,8 @@ test('renders the normative product catalog from the backend with all 5 suites a
   expect(screen.getAllByText('schema:Product').length).toBeGreaterThanOrEqual(1);
 
   // 4 Tabs
-  expect(screen.getByText('Product Suites (5)')).toBeInTheDocument();
-  expect(screen.getByText('Brand DNA Profiles (12)')).toBeInTheDocument();
+  expect(screen.getByText('Product Suites')).toBeInTheDocument();
+  expect(screen.getByText('Brand DNA')).toBeInTheDocument();
   expect(screen.getByText('Platform Services & Capabilities')).toBeInTheDocument();
   expect(screen.getByText('Schema.org Taxonomy Graph')).toBeInTheDocument();
 
@@ -108,6 +108,33 @@ test('renders the normative product catalog from the backend with all 5 suites a
   expect(screen.getByText('Schedule Ops')).toBeInTheDocument();
   expect(screen.getByText('Reputation Ops')).toBeInTheDocument();
   expect(screen.getByText('Academy Ops')).toBeInTheDocument();
+});
+
+test.each([
+  ['empty', 'Product catalog is empty', /no product entries are present/i],
+  ['forbidden', 'Catalog access forbidden', /not authorized to read the normative catalog/i],
+  ['error', 'Product catalog unavailable', /service or configuration error/i],
+])('renders the distinct %s catalog state without static product fallback', (status, title, description) => {
+  vi.spyOn(catalogModule, 'useNormativeCatalog').mockReturnValue({
+    status,
+    products: [],
+    subproductsByProduct: {},
+    capabilities: [],
+    platformServices: [],
+    error: status === 'error' ? 'backend unreachable' : null,
+  });
+
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider value={DEFAULT_CONTEXT_VALUE}>
+        <ProductsCatalogPage />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
+
+  expect(screen.getAllByText(title).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(description).length).toBeGreaterThan(0);
+  expect(screen.queryByText('Content Factory')).not.toBeInTheDocument();
 });
 
 test('shows the factual unprovisioned empty state when the catalog is not provisioned', () => {
@@ -137,9 +164,8 @@ test('shows the factual unprovisioned empty state when the catalog is not provis
   expect(screen.queryByText('Content Factory')).not.toBeInTheDocument();
 });
 
-// Heavy render (5 suites + 12 Brand DNA profiles + interactive search) can
-// exceed the 5s default timeout on shared CI runners — allow 20s.
-test('interacts with Brand DNA catalog and search', { timeout: 20000 }, async () => {
+test('shows Brand DNA as not provisioned until an authoritative backend binding exists', async () => {
+  mockCatalogReady();
   const user = userEvent.setup();
   const authContext = {
     ...DEFAULT_CONTEXT_VALUE,
@@ -154,15 +180,11 @@ test('interacts with Brand DNA catalog and search', { timeout: 20000 }, async ()
     </MemoryRouter>,
   );
 
-  // Switch to Brand DNA tab
-  const brandTab = screen.getByText('Brand DNA Profiles (12)');
-  await user.click(brandTab);
+  await user.click(screen.getByRole('tab', { name: 'Brand DNA' }));
 
-  expect(screen.getByText('Brand DNA Multi-Tenant Catalog')).toBeInTheDocument();
-  expect(screen.getAllByText('Cestari Studio Agency').length).toBeGreaterThanOrEqual(1);
-
-  // Search filter
-  const searchInput = screen.getByRole('searchbox');
-  await user.type(searchInput, 'PUTTINATO');
-  expect(screen.getByText('PUTTINATO')).toBeInTheDocument();
+  expect(screen.getByText('Brand DNA backend binding unavailable')).toBeInTheDocument();
+  expect(screen.getByText(/Static or synthetic profiles are intentionally not displayed/)).toBeInTheDocument();
+  expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+  expect(screen.queryByText('PUTTINATO')).not.toBeInTheDocument();
+  expect(screen.queryByText('Cestari Studio Agency')).not.toBeInTheDocument();
 });

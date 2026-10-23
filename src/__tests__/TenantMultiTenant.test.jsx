@@ -69,6 +69,11 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
     );
 
     expect(screen.getByText('Knowledge Base & pgvector RAG')).toBeInTheDocument();
+    expect(screen.getByLabelText('Document Title (Schema.org name)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Document Title (Schema.org name)')).not.toHaveAttribute(
+      'placeholder',
+      'Carbon v11 Multi-Tenant Architecture Guide',
+    );
     expect(screen.getByText('Search Vectors')).toBeInTheDocument();
     expect(screen.getByText('Chunk & Index Document')).toBeInTheDocument();
     expect(screen.getByText('Tenant Storage Buckets')).toBeInTheDocument();
