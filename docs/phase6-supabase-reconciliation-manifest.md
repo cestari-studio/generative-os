@@ -178,3 +178,41 @@ Análise read-only de grants, corpo e consumidores — **nenhuma revogação exe
   decisão `BLOCKED_OWNER` (requer decisão do owner + janela de observação).
 - Nenhuma revogação automática: qualquer mudança de grant exige migração
   aditiva versionada + teste dos consumidores + autorização de ambiente.
+
+---
+
+## 13. Leaked-password protection — policy + test plan (2026-10-23)
+
+**Remote state:** `auth_leaked_password_protection` **disabled** (advisor).
+Config changes are `BLOCKED_OWNER` — no remote Auth mutation without explicit
+policy confirmation + environment authorization.
+
+**What the feature does:** Supabase Auth can reject passwords known to have
+appeared in public breaches (HaveIBeenPwned corpus) at signup and password
+change/reset. Without it, users may register breach-compromised passwords.
+
+**Auth surfaces in this product:** password sign-in (`signInWithPassword` in
+`TenantContext.jsx`, used by `SignInModal.jsx`). No self-service signup UI
+exists yet (users are provisioned via onboarding/invite flows); password
+reset flow exists via Supabase Auth recovery.
+
+**Policy decision needed from owner:**
+
+1. Enable `password_security_leaked_password_protection` in Supabase Auth for
+   the non-prod isolated environment first, then production.
+2. Decide minimum password strength policy (length/strength) alongside it —
+   current client enforces only non-empty password.
+
+**Test plan (to run after enablement in the authorized non-prod env):**
+
+| #   | Case                                                              | Expected                                                                                         |
+| --- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 1   | Signup/reset with a known breached password (e.g. `Password123!`) | Supabase rejects with `weak_password`/leaked-password error; UI surfaces the auth error honestly |
+| 2   | Signup/reset with a strong unique passphrase                      | Accepted                                                                                         |
+| 3   | Existing user with an old (possibly breached) password signs in   | Sign-in still works (protection applies at set/reset time, not login)                            |
+| 4   | Password change to a breached password via reset flow             | Rejected with clear error                                                                        |
+| 5   | UI error mapping                                                  | `SignInModal` shows the auth error message, never a generic success                              |
+
+**Evidence to capture:** supabase auth config read-back (read-only),
+signup/reset attempt logs (no password values), UI screenshots of the error
+state, and the advisor finding clearing after enablement.
