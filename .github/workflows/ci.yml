@@ -279,6 +279,14 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:workspace-sql
 
+      - name: Run notifications foundation SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:notifications-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

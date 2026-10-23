@@ -136,14 +136,33 @@
       "status": "INTEGRATION_VERIFIED",
       "status_note": "Standalone create_workspace RPC closes the gap (workspaces previously only created inside hierarchy/corporate RPCs). UI management page not built \u2014 workspace switcher already consumes workspaces. NOT E2E_VERIFIED (Preview BLOCKED_OWNER).",
       "last_verified_sha": "PENDING_COMMIT"
+    },
+    {
+      "slice": "notifications-foundation",
+      "normative_keys": ["capability.integration_notification.notification_dispatch_receipt (foundation only)"],
+      "page": "(no notifications page yet \u2014 persistence foundation)",
+      "destination_files": [
+        "supabase/migrations/20261023010000_notifications_foundation.sql",
+        "supabase/tests/notifications_rls.sql",
+        "scripts/test-notifications-sql.sh"
+      ],
+      "data": "notifications table (new, NOT applied remotely)",
+      "policy": "RLS select/update per org member; no client INSERT/DELETE policy (server-only writes); mark_notification_read SECURITY INVOKER with membership check",
+      "tests": [
+        "supabase/tests/notifications_rls.sql (5 assertions: org member reads, cross-tenant invisible, mark-read works, cross-tenant mark-read denied, direct insert denied)"
+      ],
+      "evidence": "notifications-sql CI step added; 5/5 pass on disposable PG 17.11 as authenticated with RLS",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Minimal honest foundation per normative integration_notification entities (NotificationIntent/DeliveryAttempt). Dispatch/channel/template machinery intentionally OUT of scope until provider integrations exist \u2014 no fake dispatch. NOT E2E_VERIFIED (Preview BLOCKED_OWNER).",
+      "last_verified_sha": "PENDING_COMMIT"
     }
   ],
   "summary": {
     "features_total": 225,
     "features_with_page_keys_normative": 19,
     "features_with_operation_ids_normative": 76,
-    "slices_implemented_destination": 6,
-    "slices_integration_verified": 6,
+    "slices_implemented_destination": 7,
+    "slices_integration_verified": 7,
     "slices_e2e_verified": 0,
     "note": "206/225 features lack normative page bindings and 149/225 lack operation bindings at the registry level; the 3 slices above are the destination-implemented surfaces with test evidence. No status here authorizes claiming E2E or ACCEPTED \u2014 those need the blocked Preview environment and human review."
   }
