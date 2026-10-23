@@ -388,7 +388,8 @@
     "uploadingMedia": "Uploading MediaObject “{{name}}” to {{bucket}}…",
     "uploadCompleted": "Uploaded MediaObject “{{name}}” to {{bucket}}.",
     "storageScopeUnavailable": "Select an organization and workspace to display the storage scope prefix.",
-    "copiedStorageScope": "Copied storage scope prefix"
+    "copiedStorageScope": "Copied storage scope prefix",
+    "uploadRefreshFailed": "The file and its MediaObject record were created, but the tenant view could not refresh. Check the media table before retrying."
   },
   "nav": {
     "actions": {
