@@ -229,6 +229,7 @@
     "prereq",
     "pricebook",
     "subproduct",
-    "subproducts"
+    "subproducts",
+    "Organisationsmitgliedschaftsablauf"
   ]
 }
