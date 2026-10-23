@@ -55,8 +55,14 @@ describe('routes configuration', () => {
     const notFoundRoute = routes.find((route) => route.path === '*');
     expect(notFoundRoute.isPrivate).toBe(false);
 
+    // The password-reset route is public (users arrive from the email recovery
+    // link without a session). It must not require auth.
+    const resetRoute = routes.find((route) => route.path === '/reset-password');
+    expect(resetRoute.isPrivate).toBe(false);
+
     // All other routes are private and part of tenant-level settings
-    const privateRoutes = routes.filter((route) => route.path !== '/' && route.path !== '*');
+    const publicPaths = ['/', '*', '/reset-password'];
+    const privateRoutes = routes.filter((route) => !publicPaths.includes(route.path));
     expect(privateRoutes.length).toBeGreaterThan(0);
 
     const categoryIds = TENANT_SETTINGS_CATEGORIES.map((c) => c.id);

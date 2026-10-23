@@ -40,6 +40,7 @@ export const SignInModal = ({ className }) => {
     openOnboardingFlow,
     signInWithPassword,
     signInWithOtp,
+    requestPasswordReset,
   } = useTenant();
 
   const [email, setEmail] = useState('');
@@ -48,6 +49,7 @@ export const SignInModal = ({ className }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleStep1Continue = (e) => {
     e?.preventDefault();
@@ -96,9 +98,27 @@ export const SignInModal = ({ className }) => {
       await signInWithOtp(email.trim());
       setIsLoading(false);
       setOtpSent(true);
+      setResetSent(false);
     } catch (err) {
       setIsLoading(false);
       setErrorMessage(err.message || 'Failed to send magic link');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim() || !email.includes('@')) {
+      setErrorMessage(t('signInModal.error.invalidEmail', 'Enter a valid email address.'));
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await requestPasswordReset(email.trim());
+      setIsLoading(false);
+      setResetSent(true);
+      setOtpSent(false);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMessage(err.message || t('signInModal.error.resetFailed', 'Failed to send password reset link'));
     }
   };
 
@@ -190,10 +210,25 @@ export const SignInModal = ({ className }) => {
               />
 
               <div className="cs--sign-in-modal__alt-actions">
+                <Button kind="ghost" size="sm" onClick={handleForgotPassword} disabled={isLoading}>
+                  {t('signInModal.forgotPasswordBtn', 'Forgot password?')}
+                </Button>
                 <Button kind="ghost" size="sm" onClick={handleMagicLink} disabled={isLoading}>
                   {t('signInModal.magicLinkBtn', 'Email magic link instead')}
                 </Button>
               </div>
+
+              {resetSent && (
+                <InlineNotification
+                  lowContrast
+                  kind="info"
+                  title={t('signInModal.resetSentTitle', 'Password reset link sent')}
+                  subtitle={t(
+                    'signInModal.resetSentDesc',
+                    'Check your email inbox for the password reset link to choose a new password.',
+                  )}
+                />
+              )}
 
               {otpSent && (
                 <InlineNotification

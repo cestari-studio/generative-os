@@ -13,6 +13,7 @@ import { Analytics, Catalog, Folder, SettingsAdjust, UserFollow, Wallet } from '
 // away when the page loads.
 const Dashboard = lazy(() => import('../pages/dashboard/Dashboard'));
 const NotFound = lazy(() => import('../pages/not-found/NotFound'));
+const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPasswordPage'));
 const Welcome = lazy(() => import('../pages/welcome/Welcome'));
 const TenantCascadeSettings = lazy(() => import('../pages/settings/TenantCascadeSettings'));
 const KnowledgeVectorPage = lazy(() => import('../pages/knowledge/KnowledgeVectorPage'));
@@ -310,6 +311,14 @@ export const routes = [
       schemaType: 'schema:ProfilePage',
       categoryParent: 'governance',
     },
+  },
+  {
+    path: '/reset-password',
+    element: ResetPasswordPage,
+    isPrivate: false,
+    category: 'auth',
+    resourceType: 'auth',
+    schemaType: 'schema:UpdateAction',
   },
   {
     path: '*',

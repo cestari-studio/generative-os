@@ -690,7 +690,8 @@
       "emptyPassword": "Passwort ist erforderlich.",
       "invalidCredentials": "E-Mail oder Passwort ungültig. Bitte erneut versuchen.",
       "invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein.",
-      "title": "Authentifizierungsfehler"
+      "title": "Authentifizierungsfehler",
+      "resetFailed": "Link zum Zurücksetzen konnte nicht gesendet werden"
     },
     "fullName": "Vollständiger Name",
     "headerLabel": "Cestari Studio Authentifizierung",
@@ -729,7 +730,10 @@
     "verifiedBadge": "Identität verifiziert",
     "emailPlaceholder": "sie@firma.com",
     "passkeyUnavailableTitle": "Passkeys in dieser Version nicht verfügbar",
-    "passkeyUnavailableDesc": "Die passwortlose Anmeldung wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist."
+    "passkeyUnavailableDesc": "Die passwortlose Anmeldung wird aktiviert, sobald die serververifizierte WebAuthn-Registrierung verfügbar ist.",
+    "forgotPasswordBtn": "Passwort vergessen?",
+    "resetSentTitle": "Link zum Zurücksetzen gesendet",
+    "resetSentDesc": "Prüfen Sie Ihren Posteingang nach dem Link zum Zurücksetzen des Passworts, um ein neues Passwort zu wählen."
   },
   "taxonomy": {
     "billing": {
@@ -842,5 +846,22 @@
     "chunkSizeLabel": "Dokument-Chunk-Größe",
     "metricLabel": "pgvector-Distanzmetrik",
     "autoIndexLabel": "Uploads automatisch segmentieren und vektorisieren"
+  },
+  "resetPassword": {
+    "title": "Neues Passwort wählen",
+    "subtitle": "Legen Sie ein neues Passwort für Ihr Cestari-Studio-Konto fest. Der Wiederherstellungslink funktioniert einmalig und läuft ab.",
+    "newLabel": "Neues Passwort",
+    "confirmLabel": "Neues Passwort bestätigen",
+    "submit": "Neues Passwort festlegen",
+    "updating": "Passwort wird aktualisiert...",
+    "backToSignIn": "Zurück zur Anmeldung",
+    "successTitle": "Passwort aktualisiert",
+    "successDesc": "Ihr Passwort wurde geändert. Sie können sich jetzt damit anmelden.",
+    "errorTitle": "Passwort konnte nicht aktualisiert werden",
+    "error": {
+      "tooShort": "Mindestens 8 Zeichen verwenden.",
+      "mismatch": "Passwörter stimmen nicht überein.",
+      "generic": "Passwort konnte nicht aktualisiert werden."
+    }
   }
 }

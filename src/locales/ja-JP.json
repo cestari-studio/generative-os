@@ -690,7 +690,8 @@
       "emptyPassword": "パスワードは必須です。",
       "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。再試行してください。",
       "invalidEmail": "有効なメールアドレスを入力してください。",
-      "title": "認証エラー"
+      "title": "認証エラー",
+      "resetFailed": "パスワードリセットリンクの送信に失敗しました"
     },
     "fullName": "氏名（フルネーム）",
     "headerLabel": "Cestari Studio 認証",
@@ -729,7 +730,10 @@
     "verifiedBadge": "アイデンティティ確認済み",
     "emailPlaceholder": "you@company.com",
     "passkeyUnavailableTitle": "このバージョンではパスキーは利用できません",
-    "passkeyUnavailableDesc": "サーバー検証済みの WebAuthn 登録が利用可能になった後、パスワードレスサインインが有効になります。"
+    "passkeyUnavailableDesc": "サーバー検証済みの WebAuthn 登録が利用可能になった後、パスワードレスサインインが有効になります。",
+    "forgotPasswordBtn": "パスワードをお忘れですか？",
+    "resetSentTitle": "パスワードリセットリンクを送信しました",
+    "resetSentDesc": "受信トレイでパスワードリセットリンクを確認し、新しいパスワードを設定してください。"
   },
   "taxonomy": {
     "billing": {
@@ -842,5 +846,22 @@
     "chunkSizeLabel": "ドキュメントチャンクサイズ",
     "metricLabel": "pgvector距離メトリック",
     "autoIndexLabel": "アップロード時の自動チャンクおよびベクトル化"
+  },
+  "resetPassword": {
+    "title": "新しいパスワードを選択",
+    "subtitle": "Cestari Studioアカウントの新しいパスワードを設定します。リカバリリンクは一度だけ有効で、期限切れになります。",
+    "newLabel": "新しいパスワード",
+    "confirmLabel": "新しいパスワードを確認",
+    "submit": "新しいパスワードを設定",
+    "updating": "パスワードを更新中...",
+    "backToSignIn": "サインインに戻る",
+    "successTitle": "パスワードを更新しました",
+    "successDesc": "パスワードが変更されました。新しいパスワードでサインインできます。",
+    "errorTitle": "パスワードを更新できませんでした",
+    "error": {
+      "tooShort": "8文字以上で入力してください。",
+      "mismatch": "パスワードが一致しません。",
+      "generic": "パスワードの更新に失敗しました。"
+    }
   }
 }

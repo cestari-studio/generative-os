@@ -748,7 +748,8 @@
       "emptyPassword": "A senha é obrigatória.",
       "invalidCredentials": "E-mail ou senha incorretos. Tente novamente.",
       "invalidEmail": "Insira um endereço de e-mail válido.",
-      "title": "Erro de autenticação"
+      "title": "Erro de autenticação",
+      "resetFailed": "Falha ao enviar o link de redefinição de senha"
     },
     "fullName": "Nome Completo",
     "headerLabel": "Autenticação Cestari Studio",
@@ -787,7 +788,10 @@
     "verifiedBadge": "Identidade Verificada",
     "emailPlaceholder": "voce@empresa.com",
     "passkeyUnavailableTitle": "Passkeys indisponíveis nesta versão",
-    "passkeyUnavailableDesc": "O acesso sem senha será ativado quando o registro WebAuthn verificado no servidor estiver disponível."
+    "passkeyUnavailableDesc": "O acesso sem senha será ativado quando o registro WebAuthn verificado no servidor estiver disponível.",
+    "forgotPasswordBtn": "Esqueceu a senha?",
+    "resetSentTitle": "Link de redefinição enviado",
+    "resetSentDesc": "Verifique sua caixa de entrada para o link de redefinição de senha e escolha uma nova senha."
   },
   "taxonomy": {
     "billing": {
@@ -900,5 +904,22 @@
     "chunkSizeLabel": "Tamanho do Chunk de Documento",
     "metricLabel": "Métrica de Distância pgvector",
     "autoIndexLabel": "Segmentar e vetorizar uploads automaticamente"
+  },
+  "resetPassword": {
+    "title": "Escolha uma nova senha",
+    "subtitle": "Defina uma nova senha para sua conta Cestari Studio. O link de recuperação funciona uma vez e expira.",
+    "newLabel": "Nova senha",
+    "confirmLabel": "Confirmar nova senha",
+    "submit": "Definir nova senha",
+    "updating": "Atualizando senha...",
+    "backToSignIn": "Voltar para entrar",
+    "successTitle": "Senha atualizada",
+    "successDesc": "Sua senha foi alterada. Você já pode entrar com ela.",
+    "errorTitle": "Não foi possível atualizar a senha",
+    "error": {
+      "tooShort": "Use pelo menos 8 caracteres.",
+      "mismatch": "As senhas não coincidem.",
+      "generic": "Falha ao atualizar a senha."
+    }
   }
 }

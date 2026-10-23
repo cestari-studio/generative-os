@@ -711,7 +711,8 @@
       "emptyPassword": "密码不能为空。",
       "invalidCredentials": "邮箱或密码错误，请重试。",
       "invalidEmail": "请输入有效的邮箱地址。",
-      "title": "身份验证错误"
+      "title": "身份验证错误",
+      "resetFailed": "发送密码重置链接失败"
     },
     "fullName": "姓名 / Full Name",
     "headerLabel": "Cestari Studio 身份验证",
@@ -753,7 +754,10 @@
     "verifiedBadge": "身份已验证",
     "emailPlaceholder": "you@company.com",
     "passkeyUnavailableTitle": "此版本暂不支持 Passkey",
-    "passkeyUnavailableDesc": "在服务器验证的 WebAuthn 注册可用后，将启用免密登录。"
+    "passkeyUnavailableDesc": "在服务器验证的 WebAuthn 注册可用后，将启用免密登录。",
+    "forgotPasswordBtn": "忘记密码？",
+    "resetSentTitle": "密码重置链接已发送",
+    "resetSentDesc": "请查看收件箱中的密码重置链接，以设置新密码。"
   },
   "taxonomy": {
     "billing": {
@@ -873,5 +877,22 @@
     "chunkSizeLabel": "文档分块大小",
     "metricLabel": "pgvector 距离度量",
     "autoIndexLabel": "上传时自动分块并向量化"
+  },
+  "resetPassword": {
+    "title": "选择新密码",
+    "subtitle": "为您的 Cestari Studio 账户设置新密码。恢复链接只能使用一次，且会过期。",
+    "newLabel": "新密码",
+    "confirmLabel": "确认新密码",
+    "submit": "设置新密码",
+    "updating": "正在更新密码...",
+    "backToSignIn": "返回登录",
+    "successTitle": "密码已更新",
+    "successDesc": "您的密码已更改。您现在可以使用它登录。",
+    "errorTitle": "无法更新密码",
+    "error": {
+      "tooShort": "请至少使用 8 个字符。",
+      "mismatch": "两次输入的密码不一致。",
+      "generic": "更新密码失败。"
+    }
   }
 }

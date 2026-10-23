@@ -56,6 +56,7 @@ export const DEFAULT_CONTEXT_VALUE = {
   uploadTenantMedia: async () => {},
   signInWithPassword: async () => {},
   signInWithOtp: async () => {},
+  requestPasswordReset: async () => {},
   signOut: async () => {},
   registerPasskey: async () => {},
   authenticateWithPasskey: async () => {},

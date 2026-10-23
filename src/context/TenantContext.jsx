@@ -673,12 +673,31 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
   const signInWithOtp = useCallback(async (email) => {
     const supabase = getSupabaseBrowserClient();
-    const { data, error } = await supabase.auth.signInWithOtp({ email });
+    // Explicit redirect so the magic link returns to this app's origin (works
+    // on Preview/production domains, not just the Auth-configured site_url).
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    });
     if (error) {
       setStatusMessage(error.message);
       throw error;
     }
     setStatusMessage(`Magic link sent to ${email}`);
+    return data;
+  }, []);
+
+  const requestPasswordReset = useCallback(async (email) => {
+    const supabase = getSupabaseBrowserClient();
+    // Supabase sends a recovery email with a link that lands on /reset-password.
+    // The redirect must point at an app route that handles the recovery token.
+    const redirectTo = `${window.location.origin}/reset-password`;
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) {
+      setStatusMessage(error.message);
+      throw error;
+    }
+    setStatusMessage(`Password reset link sent to ${email}`);
     return data;
   }, []);
 
@@ -793,6 +812,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       uploadTenantMedia,
       signInWithPassword,
       signInWithOtp,
+      requestPasswordReset,
       signOut,
       registerPasskey,
       authenticateWithPasskey,
@@ -840,6 +860,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       uploadTenantMedia,
       signInWithPassword,
       signInWithOtp,
+      requestPasswordReset,
       signOut,
       registerPasskey,
       authenticateWithPasskey,

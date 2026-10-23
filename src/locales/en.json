@@ -682,7 +682,8 @@
       "emptyPassword": "Password is required.",
       "invalidCredentials": "Incorrect email or password. Try again.",
       "invalidEmail": "Enter a valid email address.",
-      "title": "Authentication error"
+      "title": "Authentication error",
+      "resetFailed": "Failed to send password reset link"
     },
     "fullName": "Full Name",
     "headerLabel": "Cestari Studio Authentication",
@@ -721,7 +722,10 @@
     "verifiedBadge": "Identity Verified",
     "emailPlaceholder": "you@company.com",
     "passkeyUnavailableTitle": "Passkeys unavailable in this version",
-    "passkeyUnavailableDesc": "Passwordless sign-in will be enabled after server-verified WebAuthn registration is available."
+    "passkeyUnavailableDesc": "Passwordless sign-in will be enabled after server-verified WebAuthn registration is available.",
+    "forgotPasswordBtn": "Forgot password?",
+    "resetSentTitle": "Password reset link sent",
+    "resetSentDesc": "Check your email inbox for the password reset link to choose a new password."
   },
   "taxonomy": {
     "billing": {
@@ -834,5 +838,22 @@
     "chunkSizeLabel": "Document Chunk Size",
     "metricLabel": "pgvector Distance Metric",
     "autoIndexLabel": "Auto-chunk and vectorize uploads"
+  },
+  "resetPassword": {
+    "title": "Choose a new password",
+    "subtitle": "Set a new password for your Cestari Studio account. The recovery link works once and expires.",
+    "newLabel": "New password",
+    "confirmLabel": "Confirm new password",
+    "submit": "Set new password",
+    "updating": "Updating password...",
+    "backToSignIn": "Back to sign in",
+    "successTitle": "Password updated",
+    "successDesc": "Your password was changed. You can sign in with it now.",
+    "errorTitle": "Could not update password",
+    "error": {
+      "tooShort": "Use at least 8 characters.",
+      "mismatch": "Passwords do not match.",
+      "generic": "Failed to update password."
+    }
   }
 }
