@@ -114,3 +114,38 @@ the `generative-os` database belongs to the `generative-os` Vercel project.
 The pre-existing production-only `POSTGRES_*` / `SUPABASE_*` server-side vars
 in the Vercel project are for other consumers (Edge Functions / other
 frameworks) — this SPA does not read them. Separation is correct.
+
+## Commit author identity — FIXED (2026-10-23)
+
+Owner directive: commits must be attributed to users registered in the
+cestari-studio GitHub org/project.
+
+**Problem found:** commits were authored by `Octavio Cestari
+<octaviocestari1989@gmail.com>` (personal Gmail). GitHub resolves that email
+to **`KBMN512`** (no name, no company) — NOT `ocestari` (Octavio Cestari,
+company `@cestari-studio`, the org member). Pushes used `ocestari`
+credentials but commit authorship linked to `KBMN512`.
+
+**Fix:** local repo git identity set to the GitHub noreply for `ocestari`:
+`user.name = Octavio Cestari`, `user.email = 102308332+ocestari@users.noreply.github.com`.
+The unpushed sign-in fix commit was amended to the correct author.
+
+**Verified:** commit `eddf748` now shows `github author login: ocestari` +
+`github committer login: ocestari` (was `KBMN512` before). Local repo config
+(not global) so other repos are unaffected.
+
+**Note for owner:** if other contributors exist, each should set their own
+GitHub noreply (`{id}+{username}@users.noreply.github.com`) in their local
+repo config. The pre-existing history (authored with the Gmail) remains
+unchanged — rewriting published history is not done.
+
+## Sign-in modal email-loss bug — FIXED (2026-10-23)
+
+Reproduced: typing the email in step 0 and clicking Continue moved to step 1
+with the identity bar EMPTY (email lost), blocking password/magic-link/
+passkey. Root cause: SignInModal + OnboardingTearsheet were inside the
+`HeaderContainer` render prop; the inline render arrow is re-created on
+context updates (`setSignInStep`), remounting the subtree and wiping local
+form state. Fix: hoisted both modals to stable Nav-level siblings outside the
+render prop. Verified: identity bar shows the typed email after Continue.
+Commit `eddf748`.
