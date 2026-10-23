@@ -784,9 +784,7 @@ export default function PaymentManagementPage() {
             <Grid>
               <Column sm={4} md={8} lg={16}>
                 <Tile style={{ marginBlockEnd: '1rem' }}>
-                  <h5>
-                    {t('payments.fdwNotProvisionedTitle', 'FDW runtime not verified')}
-                  </h5>
+                  <h5>{t('payments.fdwNotProvisionedTitle', 'FDW runtime not verified')}</h5>
                   <p style={{ marginBlock: '0.5rem' }}>
                     {t(
                       'payments.fdwNotProvisionedDesc',
