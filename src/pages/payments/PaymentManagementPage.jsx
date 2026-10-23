@@ -376,7 +376,11 @@ export default function PaymentManagementPage() {
       setPendingChargeAttempt(attempt);
       await submitChargeAttempt(attempt);
     } catch (err) {
-      setStatusMsg(err instanceof Error ? err.message : t('payments.quoteError', 'Could not issue a server quote for this charge.'));
+      setStatusMsg(
+        err instanceof Error
+          ? err.message
+          : t('payments.quoteError', 'Could not issue a server quote for this charge.'),
+      );
       setStatusType('error');
     } finally {
       setIsSubmittingCharge(false);
@@ -505,12 +509,7 @@ export default function PaymentManagementPage() {
 
       {pendingChargeAttempt && (
         <div className="cs--payment-management__pending-charge" style={{ marginBlockEnd: '1rem' }}>
-          <Button
-            kind="tertiary"
-            renderIcon={Renew}
-            disabled={isSubmittingCharge}
-            onClick={handleRetryPendingCharge}
-          >
+          <Button kind="tertiary" renderIcon={Renew} disabled={isSubmittingCharge} onClick={handleRetryPendingCharge}>
             {isSubmittingCharge
               ? t('payments.reconcilingCharge', 'Reconciling the same payment attempt…')
               : t('payments.retrySameCharge', 'Retry same payment attempt')}
@@ -657,7 +656,12 @@ export default function PaymentManagementPage() {
                   kind="primary"
                   size="sm"
                   renderIcon={Add}
-                  disabled={!organizationId || paymentLoadState.status !== 'ready' || Boolean(pendingChargeAttempt) || isSubmittingCharge}
+                  disabled={
+                  !organizationId ||
+                  paymentLoadState.status !== 'ready' ||
+                  Boolean(pendingChargeAttempt) ||
+                  isSubmittingCharge
+                }
                   onClick={() => setIsModalOpen(true)}
                 >
                   {t('payments.newCharge', 'New Instant Charge')}
