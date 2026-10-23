@@ -78,3 +78,11 @@ export function buildStorageScopePrefix(organizationId, workspaceId) {
   if (workspaceId === null || workspaceId === undefined || workspaceId === '') return null;
   return `${organizationId}/${workspaceId}/`;
 }
+
+export function requireUploadedObjectPath({ data, error }) {
+  if (error) throw error;
+  if (typeof data?.path !== 'string' || data.path.trim() === '') {
+    throw new Error('Storage upload did not return a persisted object path.');
+  }
+  return data.path;
+}
