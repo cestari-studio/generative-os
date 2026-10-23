@@ -173,12 +173,7 @@ export const useDashboardData = () => {
     });
 
     const entries = Object.entries(formats);
-    if (!entries.length) {
-      return [
-        { group: 'Schema.org Documents', value: knowledgeDocuments.length || 1 },
-        { group: 'Storage Assets', value: mediaObjects.length || 0 },
-      ];
-    }
+    if (!entries.length) return [];
     return entries.map(([group, value]) => ({ group, value }));
   }, [knowledgeDocuments, mediaObjects]);
 
