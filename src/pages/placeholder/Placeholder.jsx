@@ -19,7 +19,12 @@ const Placeholder = () => {
       <CommonHeader
         title={t('placeholder.title', 'Route not implemented')}
         paragraphs={[
-          <>{t('placeholder.description1', 'This route is registered, but its functional page implementation is not available in this build.')}</>,
+            <>
+              {t(
+                'placeholder.description1',
+                'This route is registered, but its functional page implementation is not available in this build.',
+              )}
+            </>,
           <>{t('placeholder.description2', 'No sample, demo, or placeholder records are displayed on this route.')}</>,
           <>
             {t('placeholder.routeInfo', "The registered route is '{{pathname}}'.", {
