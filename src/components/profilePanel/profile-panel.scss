@@ -66,3 +66,8 @@
 .cs--profile-status-note {
   margin-block-start: $spacing-03;
 }
+
+.cs--profile-status-note__icon {
+  vertical-align: middle;
+  margin-inline-end: $spacing-02;
+}

@@ -19,7 +19,7 @@ const getServerSnapshot = () => false;
 const ClientOnlyChart = ({ children }) => {
   const isClient = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot);
   if (!isClient) {
-    return <SkeletonPlaceholder style={{ inlineSize: '100%', blockSize: '280px' }} />;
+    return <SkeletonPlaceholder className="cs--dashboard__chart-skeleton cs--dashboard__chart-skeleton--md" />;
   }
   return children;
 };
@@ -123,7 +123,7 @@ export const DashboardCharts = ({ activityChartData, cascadeDonutData, corpusBar
                 )}
               </p>
               {loading ? (
-                <SkeletonPlaceholder style={{ inlineSize: '100%', blockSize: '300px' }} />
+                <SkeletonPlaceholder className="cs--dashboard__chart-skeleton cs--dashboard__chart-skeleton--lg" />
               ) : (
                 <ClientOnlyChart>
                   <AreaChart data={activityChartData} options={activityOptions} />
@@ -147,7 +147,7 @@ export const DashboardCharts = ({ activityChartData, cascadeDonutData, corpusBar
                 )}
               </p>
               {loading ? (
-                <SkeletonPlaceholder style={{ inlineSize: '100%', blockSize: '300px' }} />
+                <SkeletonPlaceholder className="cs--dashboard__chart-skeleton cs--dashboard__chart-skeleton--lg" />
               ) : (
                 <ClientOnlyChart>
                   <DonutChart data={cascadeDonutData} options={donutOptions} />
@@ -171,7 +171,7 @@ export const DashboardCharts = ({ activityChartData, cascadeDonutData, corpusBar
                 )}
               </p>
               {loading ? (
-                <SkeletonPlaceholder style={{ inlineSize: '100%', blockSize: '260px' }} />
+                <SkeletonPlaceholder className="cs--dashboard__chart-skeleton cs--dashboard__chart-skeleton--sm" />
               ) : (
                 <ClientOnlyChart>
                   <SimpleBarChart data={corpusBarData} options={barOptions} />

@@ -94,10 +94,7 @@ const ProductsCatalogPage = () => {
         )}
         className="cs--products-page__header"
         navigation={
-          <p
-            className="cds--type-caption"
-            style={{ color: 'var(--cds-text-secondary, #6f6f6f)', padding: '0.25rem 0' }}
-          >
+          <p className="cds--type-caption cs--products-page__header-caption">
             {[
               activeOrganization?.name || 'Cestari Studio Agency',
               activeWorkspace?.name || 'Core Platform',

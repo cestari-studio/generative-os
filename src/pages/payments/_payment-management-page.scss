@@ -68,3 +68,63 @@
   border-radius: 4px;
   border: 1px solid $border-subtle;
 }
+
+// Layout + spacing utilities (Carbon tokens only — replaces inline styles).
+.cs--payment-management__notification {
+  margin-block-end: $spacing-05;
+}
+
+.cs--payment-management__section-grid {
+  margin-block-end: $spacing-06;
+}
+
+.cs--payment-management__row-actions {
+  display: flex;
+  gap: $spacing-03;
+}
+
+.cs--payment-management__tile-spaced {
+  margin-block-end: $spacing-05;
+}
+
+.cs--payment-management__text-spaced {
+  margin-block: $spacing-03;
+}
+
+.cs--payment-management__text-secondary {
+  color: $text-secondary;
+  margin-block-start: $spacing-03;
+}
+
+.cs--payment-management__form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-05;
+  padding-block: $spacing-03;
+}
+
+.cs--payment-management__field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-03;
+}
+
+.cs--payment-management__split-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cs--payment-management__split-note {
+  @include type-style('body-compact-01');
+
+  color: $text-secondary;
+  margin-block: $spacing-02;
+}
+
+.cs--payment-management__modal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-05;
+  padding-block: $spacing-03;
+}

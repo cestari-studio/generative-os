@@ -147,7 +147,7 @@ export const ProfilePanel = ({ className, onClose }) => {
       <ThemeSettings legendText={t('profile.settings.themeLegend', 'Theme')}>
         {isThemeLocked && (
           <p className="cs--profile-status-note">
-            <Locked size={14} style={{ verticalAlign: 'middle', marginInlineEnd: 4 }} />
+            <Locked size={14} className="cs--profile-status-note__icon" />
             {t('cascadeSettings.lockedBadge', {
               level: themeModeMeta?.locked_by_level || 'organization',
               defaultValue: `Locked by ${themeModeMeta?.locked_by_level || 'organization'}`,

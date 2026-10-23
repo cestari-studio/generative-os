@@ -362,7 +362,7 @@ export default function PaymentManagementPage() {
           title={statusType === 'error' ? t('common.error', 'Error') : t('payments.status', 'Status')}
           subtitle={statusMsg}
           onCloseButtonClick={() => setStatusMsg('')}
-          style={{ marginBlockEnd: '1rem' }}
+          className="cs--payment-management__notification"
         />
       )}
 
@@ -402,7 +402,7 @@ export default function PaymentManagementPage() {
 
       {/* Active Instant Payment Detail Card (QR Code or Boleto) */}
       {activePaymentResult?.pix && (
-        <Grid style={{ marginBlockEnd: '1.5rem' }}>
+        <Grid className="cs--payment-management__section-grid">
           <Column sm={4} md={8} lg={16}>
             <Tile className="cs--payment-management__qr-card">
               <QrCode size={32} />
@@ -430,7 +430,7 @@ export default function PaymentManagementPage() {
       )}
 
       {activePaymentResult?.boleto && (
-        <Grid style={{ marginBlockEnd: '1.5rem' }}>
+        <Grid className="cs--payment-management__section-grid">
           <Column sm={4} md={8} lg={16}>
             <Tile className="cs--payment-management__qr-card">
               <Receipt size={32} />
@@ -468,7 +468,7 @@ export default function PaymentManagementPage() {
           <TabPanel>
             <div className="cs--payment-management__action-bar">
               <h5>{t('payments.chargesSectionHeading', 'Tenant Transactions Ledger')}</h5>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="cs--payment-management__row-actions">
                 <Button kind="ghost" size="sm" renderIcon={Renew} onClick={loadPaymentData}>
                   {t('payments.refresh', 'Refresh')}
                 </Button>
@@ -582,18 +582,15 @@ export default function PaymentManagementPage() {
           <TabPanel>
             <Grid>
               <Column sm={4} md={8} lg={16}>
-                <Tile style={{ marginBlockEnd: '1rem' }}>
+                <Tile className="cs--payment-management__tile-spaced">
                   <h5>{t('payments.fdwHeading', 'Supabase Wrappers & Foreign Data Wrapper Architecture')}</h5>
-                  <p style={{ marginBlock: '0.5rem' }}>
+                  <p className="cs--payment-management__text-spaced">
                     {t(
                       'payments.fdwDesc',
                       'The wasm_wrapper Foreign Data Wrapper (wrappers v0.6.3) maps PagBank REST endpoints directly to relational PostgreSQL tables isolated in private pagbank_fdw schema.',
                     )}
                   </p>
-                  <p
-                    className="cds--type-caption"
-                    style={{ color: 'var(--cds-text-secondary, #6f6f6f)', marginBlockStart: '0.5rem' }}
-                  >
+                  <p className="cds--type-caption" className="cs--payment-management__text-secondary">
                     Extension: wrappers (Active) • FDW: wasm_wrapper • Vault: supabase_vault Encrypted
                   </p>
                 </Tile>
@@ -631,19 +628,19 @@ export default function PaymentManagementPage() {
           {/* TAB 4: Audit Ledger */}
           <TabPanel>
             <h5>{t('payments.auditHeading', 'Real-Time Audit Ledger Events (public.audit_actions)')}</h5>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBlockStart: '1rem' }}>
+            <div className="cs--payment-management__field-stack">
               {auditEvents.length === 0 ? (
                 <p>{t('payments.noAuditEvents', 'No payment audit events recorded yet.')}</p>
               ) : (
                 auditEvents.map((evt) => (
                   <Tile key={evt.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="cs--payment-management__split-row">
                       <strong>{evt.schema_type}</strong>
                       <Tag type={evt.action_status === 'CompletedActionStatus' ? 'green' : 'warm-gray'}>
                         {evt.action_status}
                       </Tag>
                     </div>
-                    <p style={{ fontSize: '0.875rem', color: 'gray', marginBlock: '0.25rem' }}>
+                    <p className="cs--payment-management__split-note">
                       Object: {evt.object_type} ({evt.object_id}) | Instrument: {evt.instrument}
                     </p>
                     <CodeSnippet type="inline">{JSON.stringify(evt.result || {})}</CodeSnippet>
@@ -664,7 +661,7 @@ export default function PaymentManagementPage() {
         onRequestClose={() => setIsModalOpen(false)}
         onRequestSubmit={handleCreateCharge}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingBlock: '0.5rem' }}>
+        <div className="cs--payment-management__modal-stack">
           <TextInput
             id="amount-input"
             labelText={t('payments.amountLabel', 'Charge Amount (BRL)')}
@@ -699,7 +696,7 @@ export default function PaymentManagementPage() {
           />
 
           {sellers.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="cs--payment-management__field-stack">
               <label className="cds--label" htmlFor="seller-select">
                 {t('payments.sellerSplitLabel', 'Seller for Payment Split (Optional)')}
               </label>

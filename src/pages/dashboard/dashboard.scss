@@ -477,3 +477,19 @@
 
   color: $text-secondary;
 }
+
+.cs--dashboard__chart-skeleton {
+  inline-size: 100%;
+
+  &--md {
+    block-size: 280px;
+  }
+
+  &--lg {
+    block-size: 300px;
+  }
+
+  &--sm {
+    block-size: 260px;
+  }
+}
