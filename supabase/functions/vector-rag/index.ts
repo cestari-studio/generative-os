@@ -7,6 +7,7 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { evaluateTenantAccess } from '../_shared/tenant-access.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,14 +79,21 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 2. Authorize caller against tenant membership
-    const { data: isMember, error: membershipError } = await supabaseUser.rpc('is_org_member', {
-      p_org_id: organizationId,
+    // 2. Authorize caller against tenant membership (shared helper — the
+    // browser-supplied organizationId is untrusted until proven).
+    const access = await evaluateTenantAccess(organizationId, {
+      getUserId: async () => user.id,
+      isOrgMember: async (_userId, orgId) => {
+        const { data: isMember, error: membershipError } = await supabaseUser.rpc('is_org_member', {
+          p_org_id: orgId,
+        });
+        return !membershipError && Boolean(isMember);
+      },
     });
 
-    if (membershipError || !isMember) {
-      return new Response(JSON.stringify({ error: 'Access denied: not an organization member' }), {
-        status: 403,
+    if (access.status !== 200) {
+      return new Response(JSON.stringify({ error: access.error }), {
+        status: access.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

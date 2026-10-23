@@ -85,14 +85,37 @@
       "status": "INTEGRATION_VERIFIED",
       "status_note": "Contract test proves no unconfirmed override in UI state; backend RPC contract verified via mocks. Multi-level cascade precedence + audit rows visible in UI. NOT E2E_VERIFIED (Preview BLOCKED_OWNER).",
       "last_verified_sha": "PENDING_COMMIT"
+    },
+    {
+      "slice": "knowledge-pipeline",
+      "normative_keys": [
+        "capability.knowledge_ops.knowledge_source_document_manage",
+        "capability.knowledge_ops.ingestion_chunking",
+        "capability.knowledge_ops.hybrid_search_rag"
+      ],
+      "page": "/knowledge",
+      "destination_files": [
+        "src/pages/knowledge/KnowledgeVectorPage.jsx",
+        "supabase/functions/vector-rag/index.ts",
+        "supabase/functions/_shared/tenant-access.ts"
+      ],
+      "data": "knowledge_documents, knowledge_chunks (existing schema); match_knowledge_chunks RPC",
+      "policy": "vector-rag: user JWT + is_org_member per request (shared tenant-access helper); RLS via user-scoped client (no service role)",
+      "tests": [
+        "src/__tests__/tenant-access.test.ts (5 tests: missing orgId 400, unauthenticated 401, cross-tenant org-B denial 403, membership-check failure fails closed, valid member 200)"
+      ],
+      "evidence": "226 unit + 7 skipped; function validates user JWT + org membership before ingest/search; search scoped via match_knowledge_chunks RPC with org/workspace/project params; UI honestly describes 'deterministic lexical-hash vector retrieval' (not semantic embeddings)",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Cross-tenant denial proven via shared helper unit tests; auth/membership flow preserved from existing function (no behavior change, logic extracted for testability). NOT E2E_VERIFIED (Preview BLOCKED_OWNER). Deterministic embedding, not a semantic model \u2014 description preserved per directive.",
+      "last_verified_sha": "PENDING_COMMIT"
     }
   ],
   "summary": {
     "features_total": 225,
     "features_with_page_keys_normative": 19,
     "features_with_operation_ids_normative": 76,
-    "slices_implemented_destination": 4,
-    "slices_integration_verified": 4,
+    "slices_implemented_destination": 5,
+    "slices_integration_verified": 5,
     "slices_e2e_verified": 0,
     "note": "206/225 features lack normative page bindings and 149/225 lack operation bindings at the registry level; the 3 slices above are the destination-implemented surfaces with test evidence. No status here authorizes claiming E2E or ACCEPTED \u2014 those need the blocked Preview environment and human review."
   }
