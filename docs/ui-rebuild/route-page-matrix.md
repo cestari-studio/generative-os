@@ -109,5 +109,4 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 
 ### Cycle evidence — 2026-10-22
 
-- `/products`: removed bundled Brand DNA tenant profiles and synthesized organization/site defaults.
-  The tab reports not provisioned until a persisted tenant-scoped read model and RLS are verified.
+- `/products`: static Brand DNA profiles removed; tenant-scoped profiles remain unprovisioned.
