@@ -657,11 +657,11 @@ export default function PaymentManagementPage() {
                   size="sm"
                   renderIcon={Add}
                   disabled={
-                  !organizationId ||
-                  paymentLoadState.status !== 'ready' ||
-                  Boolean(pendingChargeAttempt) ||
-                  isSubmittingCharge
-                }
+                    !organizationId ||
+                    paymentLoadState.status !== 'ready' ||
+                    Boolean(pendingChargeAttempt) ||
+                    isSubmittingCharge
+                  }
                   onClick={() => setIsModalOpen(true)}
                 >
                   {t('payments.newCharge', 'New Instant Charge')}
