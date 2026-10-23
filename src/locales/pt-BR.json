@@ -601,12 +601,12 @@
     "amountPlaceholder": "0,00"
   },
   "placeholder": {
-    "description1": "Geralmente não é uma boa ideia manter páginas em construção.",
-    "description2": "Esta página ajuda a demonstrar a navegação global.",
-    "loading": "Carregando página...",
+    "description1": "Esta rota está registrada, mas sua implementação funcional de página não está disponível nesta versão.",
+    "description2": "Esta rota não exibe registros de exemplo, demonstração ou placeholders.",
+    "loading": "Carregando página…",
     "maintainer": "Mantido pela Cestari Studio Inc.",
-    "routeInfo": "Você está na rota '{{pathname}}'.",
-    "title": "Esta página ainda não está pronta"
+    "routeInfo": "A rota registrada é '{{pathname}}'.",
+    "title": "Rota não implementada"
   },
   "productsCatalog": {
     "allEntitled": "5 Suítes Ativas",
@@ -883,7 +883,9 @@
     "orgNamePlaceholder": "Nome da organização",
     "projectLabel": "Projeto / CreativeWork (Nível 3)",
     "statusTitle": "Contexto do Tenant",
-    "workspaceLabel": "Workspace / Departamento (Nível 2)"
+    "workspaceLabel": "Workspace / Departamento (Nível 2)",
+    "orgNameInputPlaceholder": "Digite o nome da organização",
+    "orgIdentifierInputPlaceholder": "Identificador da organização (slug)"
   },
   "settings": {
     "profile": {
