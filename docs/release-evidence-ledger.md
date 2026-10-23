@@ -209,3 +209,26 @@ root).
 
 **Preview verification (f57f6f6):** all 4 auth paths present (passkey,
 forgot-password, magic-link, identity-email preserved); preview-smoke 34/34.
+
+## Auth config fixes (2026-10-23, cycle 6)
+
+**RP ID corrected:** `webauthn_rp_id` set to `cestari.studio` (parent domain)
+with origins `https://app.cestari.studio` + `https://cestari.studio`. Passkeys
+now work on the apex AND the app subdomain. **Note:** "The RP ID is invalid
+for this domain" will STILL appear on Vercel Preview URLs (`*.vercel.app`) and
+localhost — those are different effective domains that cannot share the RP ID
+`cestari.studio` (WebAuthn rule, expected). Test passkeys on
+`app.cestari.studio` only.
+
+**Email rate limit (magic-link + recovery):** the owner hit "email rate limit
+exceeded". Root cause: `rate_limit_email_sent = 2/hour` (Supabase built-in
+email service default), exhausted from testing. **The limit CANNOT be raised
+via config alone — Supabase requires custom SMTP** (`SMTP_ADMIN_EMAIL`,
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`) to change
+`rate_limit_email_sent`. Options: (a) configure custom SMTP
+(SendGrid/SES/Postmark — owner provides credentials, configured server-side,
+never printed), or (b) wait ~1 hour for the per-recipient window to reset.
+
+**signup_disabled note:** a magic-link POST for a non-existent email returns
+`signup_disabled` (correct anti-enumeration — magic links only work for
+registered users). Not an error for real registered emails.
