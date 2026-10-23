@@ -269,3 +269,38 @@ regeneration upgraded 257 transitive packages — reverted per §2.3; the fix
 belongs in a dedicated dependency-update PR with full lockfile validation.
 The production bundle does not include either package (verified:
 `npm audit --omit=dev` = 0 vulnerabilities).
+
+---
+
+## 16. Base-schema replayability finding (2026-10-23, cycle 5)
+
+**Finding:** the repo's migration history is **not replayable as-is** on a
+fresh PostgreSQL via raw `psql`. The initial migration
+`20261016144033_init_schema.sql` has systematically unterminated statements
+(missing `;` after `CREATE EXTENSION`, several `CREATE OR REPLACE FUNCTION
+... $$ language 'plpgsql' [stable|security definer]`, and the `CREATE TRIGGER
+... EXECUTE FUNCTION ...` statements), producing `syntax error at or near
+"CREATE"` on replay. The remote project **has** `20261016144033` applied —
+it was applied via a path that tolerated or predates the corruption
+(Supabase's migration runner / dashboard SQL editor), not via raw `psql`.
+
+**Impact on non-prod rehearsal:** a from-scratch `supabase start` / raw-psql
+replay of the full 17-migration chain FAILS on the first migration. The base
+schema cannot be rebuilt from the repo migrations alone via `psql`.
+
+**What IS validated:** the 4 NEW migrations (billing `20261022053203`,
+catalog `20261022060000`, workspace `20261023000000`, notifications
+`20261023010000`) are well-formed (0 unterminated-statement issues) and are
+tested in CI on disposable PostgreSQL 17.11 with RLS enforced (billing-sql,
+catalog integration, workspace-sql, notifications-sql suites). The deploy
+DELTA is sound; the BASE replay is the broken part.
+
+**Rule honored:** the applied migration was NOT edited (forward-only rule).
+The finding is documented, not patched in place. A proper fix is a NEW
+additive migration only if a schema correction is ever needed — but the
+remote schema is already correct, so no correction is required; the issue is
+purely local replayability of the historical file.
+
+**Non-prod deploy path forward:** use `supabase db push` against the isolated
+target (the same runner that applied the remote), not raw `psql`. Validate
+the 4 new migrations + 6 functions there, then read back.
