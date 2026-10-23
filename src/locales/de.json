@@ -544,12 +544,12 @@
     "amountPlaceholder": "0,00"
   },
   "placeholder": {
-    "description1": "Generell ist es keine gute Idee, Seiten im Aufbau zu haben.",
-    "description2": "Diese Seite hilft, die globale Navigation zu demonstrieren.",
-    "loading": "Platzhalterseite wird geladen...",
+    "description1": "Diese Route ist registriert, aber ihre funktionale Seitenimplementierung ist in diesem Build nicht verfügbar.",
+    "description2": "Auf dieser Route werden keine Beispiel-, Demo- oder Platzhalterdatensätze angezeigt.",
+    "loading": "Seite wird geladen…",
     "maintainer": "Betreut von Cestari Studio Inc.",
-    "routeInfo": "Sie befinden sich an der Route '{{pathname}}'.",
-    "title": "Diese Seite ist noch nicht fertig"
+    "routeInfo": "Die registrierte Route ist '{{pathname}}'.",
+    "title": "Route nicht implementiert"
   },
   "productsCatalog": {
     "allEntitled": "5 Suiten Aktiv",
@@ -825,7 +825,9 @@
     "orgNamePlaceholder": "Organisationsname",
     "projectLabel": "Projekt / CreativeWork (Ebene 3)",
     "statusTitle": "Mandanten-Kontext",
-    "workspaceLabel": "Arbeitsbereich / Abteilung (Ebene 2)"
+    "workspaceLabel": "Arbeitsbereich / Abteilung (Ebene 2)",
+    "orgNameInputPlaceholder": "Organisationsnamen eingeben",
+    "orgIdentifierInputPlaceholder": "Organisationskennung (Slug)"
   },
   "settings": {
     "profile": {
