@@ -60,7 +60,8 @@
     "back": "返回",
     "finish": "完成",
     "on": "开启",
-    "off": "关闭"
+    "off": "关闭",
+    "notReported": "未报告"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio 徽标"
@@ -90,7 +91,16 @@
       "corpusTitle": "Knowledge & Media Assets by Format",
       "itemsCount": "Count",
       "rulesTotal": "Effective rules",
-      "timelineAxis": "Timeline"
+      "timelineAxis": "Timeline",
+      "completedActions": "已完成的操作",
+      "pendingActions": "待处理 / 进行中",
+      "otherActions": "其他 / 未分类状态",
+      "noCascadeDataTitle": "没有记录有效的级联规则",
+      "noCascadeDataSubtitle": "所选范围没有包含可识别级联规则的已持久化设置。",
+      "noCorpusDataTitle": "没有记录知识或媒体资产",
+      "noCorpusDataSubtitle": "所选范围没有已持久化的知识文档或媒体对象。",
+      "documentFormatNotReported": "未指定文档格式",
+      "mediaFormatNotReported": "未指定媒体格式"
     },
     "chartsRegion": "Telemetry and Governance Analytics",
     "contextHierarchy": "Tenant hierarchy",

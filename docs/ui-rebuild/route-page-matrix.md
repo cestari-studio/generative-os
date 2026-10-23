@@ -106,3 +106,10 @@ Correções aplicadas após a auditoria independente das PRs #1–#7:
 
 - As 9 rotas físicas permanecem `IMPLEMENTED` (wiring real de PRs anteriores); **nenhuma `VALIDATED`** — Fase 7 (Preview E2E/screenshots/WCAG) continua `BLOCKED — owner action required`.
 - A cobertura normativa (60 páginas/100 operações/225 features) é backlog de vertical slices, não implementado no destino.
+
+## Remediation addendum — dashboard telemetry
+
+- `useDashboardData.js` now derives chart/table values only from returned tenant records. Empty knowledge/media corpora yield no synthetic bars; missing cascade rules are excluded from rule counts; failed or unknown audit statuses are not labelled pending/in-progress; absent audit fields render “Not reported”.
+- `DashboardCharts.jsx` presents explicit Carbon empty states when the cascade or corpus datasets are empty.
+- Regression coverage: `src/__tests__/dashboard-data.test.js` and `src/__tests__/Dashboard.test.jsx`.
+- Status: PR #15 branch; CI and Preview/E2E verification pending.

@@ -60,7 +60,8 @@
     "back": "戻る",
     "finish": "完了",
     "on": "オン",
-    "off": "オフ"
+    "off": "オフ",
+    "notReported": "未報告"
   },
   "commonHeader": {
     "logoAlt": "Cestari Studio ロゴ"
@@ -90,7 +91,16 @@
       "corpusTitle": "Knowledge & Media Assets by Format",
       "itemsCount": "Count",
       "rulesTotal": "Effective rules",
-      "timelineAxis": "Timeline"
+      "timelineAxis": "Timeline",
+      "completedActions": "完了した操作",
+      "pendingActions": "保留中 / 進行中",
+      "otherActions": "その他 / 未分類のステータス",
+      "noCascadeDataTitle": "有効なカスケードルールの記録がありません",
+      "noCascadeDataSubtitle": "選択した範囲に、認識可能なカスケードルールを持つ保存済み設定はありません。",
+      "noCorpusDataTitle": "ナレッジまたはメディア資産の記録がありません",
+      "noCorpusDataSubtitle": "選択した範囲に、保存済みのナレッジ文書やメディアオブジェクトはありません。",
+      "documentFormatNotReported": "未指定の文書形式",
+      "mediaFormatNotReported": "未指定のメディア形式"
     },
     "chartsRegion": "Telemetry and Governance Analytics",
     "contextHierarchy": "Tenant hierarchy",
