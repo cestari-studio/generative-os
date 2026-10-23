@@ -325,7 +325,7 @@
       "roleMember": "Membro do Workspace",
       "unnamed": "Pessoa Anônima",
       "inviteUnavailableTitle": "Convite de membros ainda não disponível — o fluxo de convite não está provisionado para esta organização.",
-      "inviteUnavailableNote": "O convite de membros ainda não está provisionado para esta organização. Gerencie membros diretamente no quadro da organização."
+      "inviteUnavailableNote": "Os convites permanecem desativados até que um fluxo autorizado de associação à organização seja provisionado e auditado."
     },
     "subscriptions": {
       "currentPlan": "Assinatura Ativa: {{tier}}",
