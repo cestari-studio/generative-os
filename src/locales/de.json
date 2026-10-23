@@ -324,7 +324,7 @@
       "roleMember": "Arbeitsbereichsmitglied",
       "unnamed": "Anonyme Person",
       "inviteUnavailableTitle": "Mitgliedereinladung noch nicht verfügbar — der Einladungsablauf ist für diese Organisation nicht bereitgestellt.",
-      "inviteUnavailableNote": "Die Mitgliedereinladung ist für diese Organisation noch nicht bereitgestellt. Verwalten Sie Mitglieder direkt im Organisationsregister."
+      "inviteUnavailableNote": "Einladungen bleiben deaktiviert, bis ein autorisierter Organisationsmitgliedschaftsablauf bereitgestellt und geprüft wurde."
     },
     "subscriptions": {
       "currentPlan": "Aktives Abonnement: {{tier}}",
