@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -19,18 +19,19 @@ i18next
   .use(
     resourcesToBackend((language) => {
       // Only load non-English translations from files
-      // English is provided as defaultValue in components
+      // English is provided as defaultValue in components and server preload
       if (language === 'en') {
         return Promise.resolve({});
       }
-      return import(`./locales/${language}.json`);
+      const canonicalLanguage = language === 'jp-JP' ? 'ja-JP' : language;
+      return import(`./locales/${canonicalLanguage}.json`);
     }),
   )
   // Init i18next
   .init({
     debug: false,
     fallbackLng: 'en',
-    supportedLngs: ['en', 'de'],
+    supportedLngs: ['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'],
 
     // useSuspense controls what happens when useTranslation() is called
     // but translations aren't loaded yet. When true (the default), React

@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -13,6 +13,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Router } from './routes';
 
 // App level imports
+import './config/carbon-flags.js';
 import { initializeTheme } from './utils/theme';
 import i18n from './i18n.client.js';
 
@@ -37,7 +38,8 @@ initializeTheme();
  * cause a brief flash of English (the fallback language) before the
  * correct translations appear.
  */
-const { initialI18nStore, initialLanguage } = window.__INITIAL_I18N_STATE__ || {};
+const { initialI18nStore, initialLanguage, initialThemeSetting, initialHeaderInverse, initialServerUser } =
+  window.__INITIAL_I18N_STATE__ || {};
 
 if (initialI18nStore && initialLanguage) {
   Object.keys(initialI18nStore).forEach((lng) => {
@@ -53,7 +55,11 @@ hydrateRoot(
   <StrictMode>
     <I18nextProvider i18n={i18n}>
       <BrowserRouter>
-        <Router />
+        <Router
+          initialThemeSetting={initialThemeSetting}
+          initialHeaderInverse={initialHeaderInverse}
+          serverUser={initialServerUser ?? null}
+        />
       </BrowserRouter>
     </I18nextProvider>
   </StrictMode>,

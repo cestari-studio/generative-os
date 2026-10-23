@@ -51,6 +51,8 @@ const EXCLUDE_PATTERNS = [
   'coverage',
   'public',
   '.husky',
+  '.agents',
+  'supabase',
   'scripts/check-copyright.js', // Exclude this script itself
 ];
 

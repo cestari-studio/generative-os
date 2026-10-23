@@ -1,0 +1,877 @@
+{
+  "auth": {
+    "protected": {
+      "allCategoriesSubtitle": "以下模块化配置域在经过验证的租户治理下进行管理：",
+      "allCategoriesTitle": "租户级别设置类别",
+      "cardCategoryPrompt": "您正在尝试访问 {{category}}。此区域仅限于组织工作区的已认证成员访问。",
+      "cardDefaultPrompt": "此区域仅限于组织工作区的已认证成员访问。",
+      "cardHeading": "需要经过身份验证的租户会话",
+      "privateCategory": "私有",
+      "returnHome": "返回公共欢迎页",
+      "signInButton": "登录租户工作区",
+      "subtitle": "所有应用程序工作区、智能服务和运营配置均属于租户级别设置类别，需要经过身份验证的会话。",
+      "targetCategory": "目标",
+      "title": "租户级别设置访问受限",
+      "validating": "正在验证租户会话...",
+      "warningSubtitle": "访客无法查看或修改多租户配置、pgvector向量嵌入或财务记录。",
+      "warningTitle": "访问门禁已启用"
+    }
+  },
+  "cascadeSettings": {
+    "allScopes": "所有范围",
+    "applyButton": "保存并应用层叠配置",
+    "auditHeading": "层叠审计账本 (Schema.org Action)",
+    "auditSubtitle": "由 RPC 和 Edge Functions 记录到 PostgreSQL public.audit_actions 的实时事件。",
+    "filterScopeLabel": "按范围筛选",
+    "hubDesc": "所有平台模块与运营服务均作为租户级别设置运行，并在您活跃的组织上下文中隔离。",
+    "hubTitle": "租户级别设置类别",
+    "inheritedFrom": "生效自: {{level}}",
+    "jsonLdDesc": "由活动的组织、工作区和CreativeWork项目层级动态构建的统一Schema.org多层级实体图谱。",
+    "jsonLdPreview": "Schema.org JSON-LD 快照",
+    "lockedBadge": "已由 {{level}} 锁定",
+    "openCategory": "打开设置",
+    "privateBadge": "私有",
+    "purgeChildrenLabel": "应用时清除子层级的覆盖设置",
+    "ruleLabel": "层叠规则",
+    "subtitle": "具备 Schema.org PropertyValue 分类法与继承规则的四层配置引擎（组织 → 工作空间 → 项目 → 个人）。",
+    "tabAudit": "审计账本",
+    "tabCategories": "租户设置中心",
+    "tabJsonLd": "Schema.org JSON-LD",
+    "tabMatrix": "策略矩阵",
+    "tabsAriaLabel": "级联治理板块",
+    "tierSelectorLabel": "编辑中的范围层级",
+    "title": "多租户层叠配置",
+    "valueLabel": "配置值"
+  },
+  "common": {
+    "actions": "操作",
+    "cancel": "取消",
+    "close": "关闭",
+    "error": "错误",
+    "loading": "加载中...",
+    "next": "Next processor",
+    "organization": "Organization",
+    "previous": "Previous processor",
+    "project": "Project",
+    "refresh": "Refresh",
+    "select": "选择",
+    "selected": "激活",
+    "workspace": "Workspace",
+    "back": "返回",
+    "finish": "完成",
+    "on": "开启",
+    "off": "关闭"
+  },
+  "commonHeader": {
+    "logoAlt": "Cestari Studio 徽标"
+  },
+  "dashboard": {
+    "actions": {
+      "cascade": "级联治理引擎",
+      "cascadeDesc": "检查并强制执行4个层级的LOCKED、INHERIT_OVERRIDABLE和MERGE规则。",
+      "identity": "多国个人/企业身份",
+      "identityDesc": "具备9个国家税务核验和FIDO2通行密钥的企业级入职引导。",
+      "ingest": "摄入知识语料库",
+      "ingestDesc": "将多层Schema.org DigitalDocument资产切片并索引至隔离的向量空间中。",
+      "search": "语义向量搜索",
+      "searchDesc": "基于实时余弦距离查询384维pgvector HNSW嵌入向量。"
+    },
+    "activity": {
+      "networkActivity": "网络活动",
+      "networkNotifications": "网络通知"
+    },
+    "charts": {
+      "actionsAxis": "Actions recorded",
+      "activityDesc": "Audited actions recorded in public.audit_actions across active horizons.",
+      "activityTitle": "Tenant Activity & Audit Timeline",
+      "cascadeDesc": "Breakdown of active settings by inheritance and locking directives.",
+      "cascadeTitle": "Cascade Governance Rule Distribution",
+      "corpusDesc": "Breakdown of indexed Schema.org DigitalDocument and MediaObject files.",
+      "corpusTitle": "Knowledge & Media Assets by Format",
+      "itemsCount": "Count",
+      "rulesTotal": "Effective rules",
+      "timelineAxis": "Timeline"
+    },
+    "chartsRegion": "Telemetry and Governance Analytics",
+    "contextHierarchy": "Tenant hierarchy",
+    "emptyStates": {
+      "clearSearch": "清除搜索",
+      "nodesSubtitle": "没有节点匹配所选集群范围或搜索查询。重置过滤器以查看所有在线系统。",
+      "nodesTitle": "无匹配的集群节点",
+      "resetFilters": "重置过滤器",
+      "searchSubtitle": "没有项目与\"{{query}}\"匹配。清除搜索以查看所有记录。",
+      "searchTitle": "未找到匹配结果"
+    },
+    "filtersRegion": "Dashboard filters",
+    "kpis": {
+      "assetsLabel": "Knowledge assets",
+      "assetsSub": "Vector embeddings & media objects",
+      "assetsTag": "pgvector & Storage",
+      "membersLabel": "Active members",
+      "membersSub": "Schema.org Persons registered in organization",
+      "membersTag": "Tier 4 Persons",
+      "projectsLabel": "CreativeWork projects",
+      "projectsSub": "Active initiatives across workspaces",
+      "projectsTag": "Tier 3 Projects",
+      "rulesLabel": "Locked cascade rules",
+      "rulesSub": "Enforced policies from higher tiers",
+      "rulesTag": "Strict Governance"
+    },
+    "kpisRegion": "Operational KPIs",
+    "loading": "正在加载仪表板...",
+    "nodes": {
+      "heading": "节点"
+    },
+    "numberTiles": {
+      "activeProjects": "CreativeWork项目",
+      "activeUsers": "活跃用户",
+      "assetsBadge": "pgvector HNSW (384-d)",
+      "certifiedDevelopers": "认证开发者",
+      "effectiveSettings": "生效级联规则",
+      "industryClients": "行业客户",
+      "innovationCenters": "量子创新中心",
+      "knowledgeAssets": "知识库",
+      "networkMembers": "网络成员",
+      "ninetyDayChange": "90天变化",
+      "projectsBadge": "第3层项目",
+      "qiskitAdvocates": "Qiskit 倡导者",
+      "qiskitCourses": "Qiskit 课程",
+      "qiskitLearners": "Qiskit 学员",
+      "quantumSafeClients": "量子安全客户",
+      "researchPapers": "研究论文总数",
+      "settingsBadge_one": "{{count}} 项已锁定",
+      "settingsBadge_other": "{{count}} 项已锁定",
+      "usersBadge": "人员 (Schema.org Person)"
+    },
+    "previewCards": {
+      "blueprintDesc": "连接pgvector检索、Granite推理与Schema.org Action执行的自主认知循环。",
+      "blueprintTitle": "神经智能体工作流蓝图",
+      "governanceDesc": "跨4个多租户组织层级强制执行LOCKED、INHERIT_OVERRIDABLE和MERGE策略。",
+      "governanceTitle": "级联治理",
+      "graniteDesc": "在企业多租户模式下配置的Granite 3.0 8B Instruct模型，具备硬件张量加速、int4量化和端到端Token审计。",
+      "graniteTitle": "IBM Granite 基础模型部署",
+      "knowledgeDesc": "在多层架构中基于实时余弦距离查询384维pgvector HNSW嵌入向量。",
+      "knowledgeTitle": "知识与向量RAG",
+      "monitoringDesc": "99.98% SLA合规性跟踪、自动化内存泄漏诊断以及实时Core Web Vitals分析。",
+      "monitoringTitle": "持续遥测",
+      "paymentsDesc": "具备实时审计账本记录和Webhook验证的PagBank多租户财务结算。",
+      "paymentsTitle": "金融网关",
+      "runtimeDesc": "运行node-v22无服务器工作程序的隔离容器节点，启动延迟低于14毫秒。",
+      "runtimeTitle": "虚拟机运行时",
+      "tagActive": "活跃流水线"
+    },
+    "processor": {
+      "available": "可用",
+      "label": "处理器"
+    },
+    "shortcuts": {
+      "heading": "Operational Accelerators",
+      "knowledgeDesc": "Query 384-dimensional pgvector HNSW embeddings with real-time cosine distance.",
+      "knowledgeTitle": "Semantic Vector Search",
+      "paymentsDesc": "Manage PagBank multi-tenant splits, seller payouts, and subscription plans.",
+      "paymentsTitle": "Financial & Billing Hub",
+      "productsDesc": "Configure multi-tenant modular product suites and corporate identity attributes.",
+      "productsTitle": "Products & Brand DNA",
+      "settingsDesc": "Inspect and enforce LOCKED, INHERIT_OVERRIDABLE, and MERGE rules across 4 tiers.",
+      "settingsTitle": "Cascade Governance Engine",
+      "subheading": "Direct pathways to core multi-tenant subsystems and governance tools."
+    },
+    "shortcutsRegion": "Quick Action Shortcuts",
+    "sla": "在线 · 14毫秒延迟 · 99.98% SLA",
+    "subtitle": "多租户工作区、pgvector语义智能、级联策略和审计日志的统一运营概览。",
+    "tables": {
+      "actionType": "Action @type",
+      "auditDesc": "Immutable multi-tenant operational ledger recorded in PostgreSQL public.audit_actions.",
+      "auditTitle": "Schema.org Audit Action Stream",
+      "cascadeRule": "Cascade rule",
+      "domain": "Domain",
+      "entity": "Entity",
+      "governanceDesc": "Resolved Schema.org PropertyValue parameters computed across 4 hierarchical tiers.",
+      "governanceTitle": "Effective Cascade Governance",
+      "instrument": "Instrument",
+      "propertyId": "Property ID",
+      "searchAudits": "Filter audit actions...",
+      "searchGovernance": "Filter policies...",
+      "sourceTier": "Source tier",
+      "status": "Status"
+    },
+    "tablesRegion": "Operational Ledgers and Governance Matrix",
+    "throughput": {
+      "liveStream": "实时流",
+      "online": "在线",
+      "pendingJobs": "待处理作业",
+      "timeSpentTitle": "Time spent in state (%)"
+    },
+    "title": "仪表板",
+    "toolbar": {
+      "allWorkspaces": "All workspaces",
+      "clusterAll": "所有集群",
+      "clusterScope": "集群范围",
+      "export": "导出报告",
+      "formAria": "仪表盘过滤工具栏",
+      "horizon24h": "最近24小时",
+      "horizon30d": "最近30天",
+      "horizon7d": "最近7天",
+      "horizon90d": "最近90天",
+      "refresh": "刷新指标",
+      "refreshing": "正在刷新...",
+      "searchLabel": "搜索节点和遥测",
+      "searchPlaceholder": "按集群、ID或审计操作过滤...",
+      "timeHorizon": "时间跨度",
+      "timeHorizonLabel": "Time horizon",
+      "workspaceScopeLabel": "Workspace scope"
+    },
+    "topology": {
+      "title": "系统拓扑"
+    },
+    "urlParameters": {
+      "description": "演示如何从 URL 中获取路径参数和查询参数。",
+      "greeting": "您好，{{name}}！ 👋",
+      "pathParameter": "检测到的路径参数 (id):",
+      "queryParameterName": "检测到的查询参数 (name):",
+      "queryParameterQ": "检测到的查询参数 (q):",
+      "title": "URL 参数示例",
+      "tryAccessing": "尝试访问:"
+    },
+    "visualizations": {
+      "auditSubtitle": "public.audit_actions 中的仅追加多租户事件流。",
+      "auditTitle": "Schema.org 审计动作流",
+      "emptyAudits": "尚未记录任何审计操作。运营事件将实时在此展示。",
+      "emptySettings": "此租户上下文中未解析出任何活动的级联策略。",
+      "settingsSubtitle": "通过 Supabase RPC resolve_effective_settings 实时解析 Schema.org PropertyValue。",
+      "settingsTitle": "有效级联治理"
+    },
+    "header": {
+      "title": "租户仪表板",
+      "subtitle": "企业多租户遥测、新手引导编排与治理运营概览",
+      "actionsButton": "操作",
+      "actionsOverflow": "更多操作"
+    },
+    "breadcrumbs": {
+      "home": "首页"
+    },
+    "tabs": {
+      "ariaLabel": "仪表板视图",
+      "dashboard": "仪表板",
+      "workspace": "工作区",
+      "users": "用户",
+      "subscriptions": "订阅",
+      "settings": "设置"
+    },
+    "onboarding": {
+      "title": "完成租户新手引导",
+      "subtitleWithProgress": "遵循以下 4 个关键步骤配置并配置您的多租户智能系统（已完成 {{completed}}/4）。",
+      "step1": {
+        "label": "第 1 步 / 共 4 步",
+        "title": "配置租户 DNA 与身份",
+        "desc": "设置法定组织信息、多国税务注册和品牌形象。"
+      },
+      "step2": {
+        "label": "第 2 步 / 共 4 步",
+        "title": "配置工作区与项目",
+        "desc": "组织团队架构并定义租户隔离边界。"
+      },
+      "step3": {
+        "label": "第 3 步 / 共 4 步",
+        "title": "索引向量知识与文档",
+        "desc": "生成 384 维 pgvector 向量嵌入以支持认知 RAG。"
+      },
+      "step4": {
+        "label": "第 4 步 / 共 4 步",
+        "title": "激活订阅与 FinOps",
+        "desc": "配置 PagBank 结算网关并设置套餐额度。"
+      }
+    },
+    "workspaces": {
+      "current": "当前工作区",
+      "organization": "组织",
+      "identifier": "ID",
+      "createButton": "创建新工作区",
+      "tableTitle": "已配置的工作区",
+      "tableDesc": "受 Schema.org 创作模型治理的隔离执行环境。",
+      "colName": "工作区名称",
+      "colIdentifier": "标识符 / ID",
+      "colProjects": "CreativeWork 项目",
+      "colStatus": "状态",
+      "unnamed": "默认工作区",
+      "nameLabel": "工作区名称",
+      "slugLabel": "标识符 Slug",
+      "envLabel": "环境类型"
+    },
+    "users": {
+      "title": "租户成员与权限",
+      "subtitle": "在 {{org}} 中注册的 Schema.org Person 实体。",
+      "inviteButton": "邀请团队成员",
+      "inviteAlert": "成员邀请弹窗已调度。",
+      "tableTitle": "组织成员列表",
+      "tableDesc": "符合企业多租户治理政策的授权人员。",
+      "colName": "成员姓名",
+      "colEmail": "电子邮件",
+      "colRole": "组织角色",
+      "colStatus": "状态",
+      "colId": "用户 ID",
+      "roleOwner": "租户所有者 / 管理员",
+      "roleMember": "工作区成员",
+      "unnamed": "匿名用户",
+      "inviteUnavailableTitle": "成员邀请尚不可用 — 该组织尚未配置邀请流程。",
+      "inviteUnavailableNote": "该组织尚未配置成员邀请。请直接在组织名册中管理成员。"
+    },
+    "subscriptions": {
+      "currentPlan": "当前订阅：{{tier}}",
+      "subtitle": "该组织的计费、用量和订阅管理。",
+      "manageButton": "管理账单与 PagBank",
+      "membersQuota": "团队成员配额",
+      "workspacesQuota": "工作区配额",
+      "ragQuota": "向量知识文档配额",
+      "quotaProgress": "使用率",
+      "upgrade": "升级套餐",
+      "planSelect": "选择订阅层级",
+      "billingCycle": "账单周期",
+      "noPlan": "没有有效订阅",
+      "pricingNotConfigured": "该组织的定价尚未配置。套餐、价格和限额由平台管理员通过版本化计费目录发布。"
+    },
+    "settings": {
+      "personalTitle": "个人用户偏好",
+      "personalSubtitle": "保存在数据库 Person 实体中的个性化参数。",
+      "governanceTitle": "租户级联治理",
+      "governanceSubtitle": "平台 -> 组织 -> 工作区 -> 个人四层策略继承。",
+      "activePolicies": "活跃级联规则",
+      "lockedPolicies": "锁定策略",
+      "openMatrixButton": "打开级联矩阵与 JSON-LD 图谱",
+      "savedTitle": "设置已保存",
+      "persistedDesc": "配置已持久化至数据库。",
+      "saveError": "保存设置失败。"
+    }
+  },
+  "footer": {
+    "copyright": "Copyright © {{currentYear}} Cestari Studio Inc. 保留所有权利。",
+    "disclaimer": "genOS 是 Cestari Studio Inc. 的生成式操作系统。访问生产工作空间需要有效订阅。",
+    "evaluation": "了解有关如何在以下位置评估 genOS 应用程序的更多信息："
+  },
+  "knowledgeVector": {
+    "docContentLabel": "文档正文 (Markdown / 文本)",
+    "docScopeLabel": "发布范围层级",
+    "docsTableDesc": "在 public.knowledge_documents 中由 384 维 HNSW 嵌入索引的文档。",
+    "docsTableTitle": "已索引知识库 (Schema.org DigitalDocument)",
+    "docTitleLabel": "文档标题 (Schema.org name)",
+    "dropzoneLabel": "拖放文件到此处，或点击上传到 Supabase Storage",
+    "emptyChunks": "未找到相似文本块。",
+    "emptyDocs": "此租户知识库中尚未索引任何文档。请使用表单对文档进行切片与索引。",
+    "emptyMedia": "尚未向此存储桶上传任何媒体资产。",
+    "emptySearch": "在此相似度阈值下未找到匹配的语义片段。请调整滑块或更改搜索词。",
+    "formatLabel": "MIME 格式",
+    "ingestAction": "向量化并索引",
+    "ingestButton": "切片并索引",
+    "ingestHeading": "摄入知识资产",
+    "ingestSubtitle": "将非结构化文档分块并使用 Schema.org DigitalDocument 语义生成向量嵌入。",
+    "ingestTitle": "摄取新知识",
+    "matchCount": "匹配文本块: {{count}}",
+    "matchCountLabel": "最大结果数",
+    "mediaTableDesc": "记录在 public.media_objects 中的多租户资产。",
+    "mediaTableTitle": "多租户媒体资产 (Schema.org MediaObject)",
+    "searchAction": "语义匹配",
+    "searchButton": "执行语义检索",
+    "searchDescription": "基于PostgreSQL pgvector表中预先计算的384维嵌入执行实时余弦距离匹配。",
+    "searchHeading": "pgvector 语义匹配",
+    "searchPlaceholder": "输入自然语言查询...",
+    "searchSubtitle": "跨组织、工作空间和项目范围执行余弦相似度匹配。",
+    "searchTitle": "pgvector 语义检索",
+    "similarityScore": "相似度: {{score}}",
+    "similarityThresholdLabel": "最小相似度阈值",
+    "sizeLabel": "大小 (字节)",
+    "storagePathLabel": "隔离存储路径:",
+    "subtitle": "基于 Schema.org DigitalDocument 和 MediaObject 分类法构建的 pgvector HNSW 语义检索平台。",
+    "suggestionsLabel": "快捷查询:",
+    "tabIngest": "语料库与摄入",
+    "tabsAriaLabel": "知识与向量RAG板块",
+    "tabSearch": "语义搜索",
+    "tabStorage": "存储桶",
+    "title": "知识向量与存储资产",
+    "uploadAction": "上传媒体",
+    "uploadDescription": "向隔离的租户存储桶上传 PDF、Markdown 或多媒体资源",
+    "uploadHeading": "对象存储上传",
+    "searching": "正在搜索知识库..."
+  },
+  "nav": {
+    "actions": {
+      "appSwitcher": "工作区切换器",
+      "search": "搜索",
+      "userProfile": "用户个人资料"
+    },
+    "categories": {
+      "governance": "租户管理",
+      "operations": "运营与目录",
+      "overview": "概览"
+    },
+    "collapse": "收起侧边栏",
+    "expand": "展开侧边栏",
+    "header": {
+      "name": "Generative OS",
+      "navigationAria": "主导航",
+      "prefix": "Cestari",
+      "shellLabel": "Generative OS"
+    },
+    "home": "Home",
+    "links": {
+      "cascadeSettings": "级联治理设置",
+      "dashboard": "控制台仪表盘",
+      "knowledgeVector": "知识库与向量RAG",
+      "payments": "Billing & FinOps",
+      "placeholder": "占位页",
+      "subMenu": "子菜单",
+      "welcome": "欢迎页面"
+    },
+    "menu": {
+      "close": "关闭菜单",
+      "open": "打开菜单"
+    },
+    "navigation": "导航",
+    "openMenu": "打开主菜单",
+    "sideNav": {
+      "ariaLabel": "侧边导航"
+    }
+  },
+  "notFound": {
+    "description": "您请求的资源未找到或已被移除。",
+    "homeLink": "返回主页",
+    "loading": "Loading not found page...",
+    "maintainer": "由 Cestari Studio Inc. 维护。",
+    "routeNotRecognized": "无法识别请求的路由地址。",
+    "title": "页面未找到"
+  },
+  "onboarding": {
+    "accountTypeHeading": "1. 法人实体与主体分类",
+    "backButton": "返回",
+    "birthDate": "出生日期 (YYYY-MM-DD)",
+    "cameraAria": "面部识别 / Windows Hello",
+    "cameraAuth": "面部识别",
+    "cancelButton": "取消",
+    "cancelModalDesc": "您的进度已逐步保存。您可以随时从个人资料页面恢复配置引导。",
+    "cancelModalTitle": "确定要退出设置向导吗？",
+    "cardPFDesc": "您的账户将配置个人工作区权限及个人税务信息。",
+    "cardPFTitle": "个人账户配置流程",
+    "cardPJDesc": "将配置具备法人治理架构、多工作区和部门级访问权限的企业级租户层级。",
+    "cardPJTitle": "企业级租户初始配置",
+    "completeButton": "完成配置并进入系统",
+    "completing": "正在完成配置...",
+    "continueSetup": "继续配置",
+    "enrollPasskeyBtn": "登记 WebAuthn 通行密钥",
+    "exitSetup": "退出设置",
+    "newTenantDesc": "将配置一个拥有隔离PostgreSQL架构、初始工作区及默认项目的专属租户组织。",
+    "newTenantTitle": "配置目标:",
+    "nextButton": "下一步",
+    "orgSelectLabel": "组织 (第1层)",
+    "passkeyDesc": "注册您的硬件设备身份验证器（Touch ID、Face ID、Windows Hello 或 YubiKey），以实现无密码多重身份验证。",
+    "passkeyHeading": "FIDO2 / WebAuthn 生物识别安全",
+    "passkeySuccessDesc": "您的硬件生物识别凭据已成功登记，可用于企业级无密码登录。",
+    "prjSelectLabel": "项目 / CreativeWork (第3层)",
+    "securityKeyAria": "FIDO2 安全密钥 / YubiKey",
+    "securityKeyAuth": "FIDO2 硬件密钥",
+    "securityKeyLabel": "安全密钥",
+    "steps": {
+      "addressSubtitle": "法定总部注册地或税务住所地地址",
+      "addressTitle": "注册地址",
+      "classificationSubtitle": "选择账户法律类别、司法管辖区及界面语言",
+      "classificationTitle": "账户与管辖区",
+      "corporateSubtitle": "企业规模等级、法定代表人与签约人职责",
+      "corporateTitle": "公司治理与规模",
+      "identitySubtitle": "官方政府注册登记编号及法定身份信息",
+      "identityTitle": "身份与税务登记",
+      "workspaceSubtitle": "多租户层级配置及FIDO2/WebAuthn注册",
+      "workspaceTitle": "工作区与安全"
+    },
+    "title": "完成组织与账户配置",
+    "touchAria": "指纹传感器 / Touch ID",
+    "touchAuth": "Touch ID / 指纹识别",
+    "workspaceHeading": "实例与工作区层级",
+    "wsSelectLabel": "工作区 / 部门 (第2层)",
+    "validation": {
+      "required": "组织名称为必填项"
+    },
+    "passkeyUnavailableTitle": "此版本暂不支持 Passkey",
+    "passkeyUnavailableDesc": "在服务器验证的 WebAuthn 注册可用后，将启用硬件验证器（Touch ID、Face ID、Windows Hello、安全密钥）注册。您现在可以完成入职流程，并使用邮箱和密码登录。"
+  },
+  "payments": {
+    "amountLabel": "收费金额 (BRL)",
+    "auditHeading": "实时审计账本事件 (public.audit_actions)",
+    "authorizeSeller": "授权 PagBank 商户",
+    "boletoHeading": "已生成巴西银行结算单 (Boleto Bancário)",
+    "boletoInstructions": "用于结算的条形码数字代码:",
+    "chargeError": "处理 PagBank 收费时失败。",
+    "chargeFailed": "生成收费记录失败。",
+    "chargesSectionHeading": "租户交易账本",
+    "chargesTableDesc": "受租户行级安全 (RLS) 策略控制的交易记录",
+    "chargesTableTitle": "收费与订单",
+    "chargeSuccess": "收费凭证已成功生成！",
+    "colAmount": "金额",
+    "colChargeId": "收费ID",
+    "colDate": "日期/时间",
+    "colMethod": "支付方式",
+    "colSellerAccount": "PagBank 账户",
+    "colSellerEmail": "电子邮件",
+    "colSellerName": "商户法定名称",
+    "colSellerStatus": "商户状态",
+    "colSellerTaxId": "税号 / CNPJ",
+    "colStatus": "状态",
+    "commissionLabel": "平台佣金提成 (%)",
+    "connectError": "获取 PagBank Connect 授权链接出错。",
+    "connectHeading": "关联账户与资金分账引擎",
+    "connectInitError": "Connect 初始化异常。",
+    "connectWindowOpened": "已打开 PagBank Connect 授权窗口。",
+    "copied": "已复制！",
+    "copyEmv": "复制 PIX 支付码",
+    "customerEmail": "客户邮箱",
+    "customerName": "客户姓名",
+    "emptyAudits": "尚未记录任何支付审计事件。",
+    "emptyCharges": "未找到交易记录。点击“新建即时收费”以创建。",
+    "emptySellers": "尚未关联任何PagBank商户。点击“授权PagBank商户”以关联账户。",
+    "fdwDesc": "wasm_wrapper 外部数据包装器 (wrappers v0.6.3) 将 PagBank REST 端点直接映射到独立 pagbank_fdw 架构中的关系型 PostgreSQL 表。",
+    "fdwHeading": "Supabase Wrappers 与外部数据包装器 (FDW) 架构",
+    "invalidAmount": "请输入大于零的有效金额。",
+    "kpiPaid": "已结算账单",
+    "kpiPending": "待处理账单",
+    "kpiSellers": "已关联商户 (分账)",
+    "kpiTotal": "总交易流水",
+    "methodBoleto": "Boleto Bancário (巴西银行汇款单)",
+    "methodCard": "信用卡",
+    "methodLegend": "付款途径",
+    "methodPix": "即时 PIX 支付 (EMV 二维码)",
+    "modalCancel": "取消",
+    "modalHeading": "发起新的 PagBank 收费",
+    "modalSubmit": "生成账单",
+    "newCharge": "新建即时收费",
+    "noAuditEvents": "尚未记录任何支付审计事件。",
+    "noSplit": "无 (100% 平台租户收入)",
+    "pixQrHeading": "已生成动态 PIX 二维码",
+    "pixQrInstructions": "请使用银行应用扫码或复制 EMV 数字代码:",
+    "printBoleto": "打印 / 下载 Boleto PDF",
+    "refresh": "刷新",
+    "sellerSplitLabel": "分账指定商户 (可选)",
+    "sellersTableDesc": "符合自动分账划拨条件的已关联子商户",
+    "sellersTableTitle": "已授权商户",
+    "status": "状态",
+    "subtitle": "统一金融模块: 巴西即时PIX支付、信用卡、Boleto、多方分账市场连接以及Supabase Wrappers。",
+    "tabAudit": "Schema.org 审计账本",
+    "tabCharges": "收费与订单",
+    "tabConnect": "PagBank Connect与分账",
+    "tabFdw": "Supabase外部数据包装器 (FDW)",
+    "taxonomyHeading": "已落地的 Schema.org 分类标准:",
+    "title": "PagBank 多租户与 FDW 外部数据引擎",
+    "invalidCustomer": "客户姓名和邮箱为必填项。",
+    "amountPlaceholder": "0.00"
+  },
+  "placeholder": {
+    "description1": "Generally not a good idea to have pages under construction.",
+    "description2": "This page is here to help demonstrate the global navigation.",
+    "loading": "加载中...",
+    "maintainer": "由 Cestari Studio Inc. 维护。",
+    "routeInfo": "You are at the location served from route '{{pathname}}'.",
+    "title": "占位页面"
+  },
+  "productsCatalog": {
+    "allEntitled": "5套系统已启用",
+    "brandDnaDesc": "在Cestari Studio Agency体系下跨租户解析的语言、视觉与行为身份模型。",
+    "brandDnaTitle": "品牌DNA多租户目录",
+    "brandName": "品牌档案",
+    "brandTableDesc": "选择档案以检查品牌DNA语义标记、语气规范与市场定位。",
+    "brandTableTitle": "活跃租户品牌档案",
+    "brandTokensHeading": "品牌DNA语义标记",
+    "capabilitiesHeading": "所需平台能力",
+    "capabilitiesHeadingTitle": "共享平台业务能力",
+    "capabilitiesSub": "在所有5个genOS产品套件中统一消费的可复用能力契约。",
+    "emptyBrands": "没有与您的搜索条件匹配的品牌档案。",
+    "entitledBadge": "已授权并激活",
+    "inspectTokens": "检查详情",
+    "jsonLdSnippet": "实时Schema.org JSON-LD上下文",
+    "locale": "默认语言",
+    "marketSegment": "市场领域",
+    "maturity": "成熟度状态",
+    "openModule": "打开模块",
+    "parentTenant": "上级租户权限",
+    "searchBrands": "搜索品牌档案",
+    "searchPlaceholder": "按名称、市场领域或分类过滤...",
+    "segment": "市场分类",
+    "servicesHeading": "底层平台基础服务",
+    "servicesSub": "支撑身份验证、UI界面框架、级联规则与发布门禁的横向服务。",
+    "subproductsHeading": "子产品与组件",
+    "subtitle": "根据Schema.org分类体系治理的自主多租户产品套件、品牌DNA档案与平台服务。",
+    "suitesDesc": "运行在共享Helian智能体运行时、pgvector向量RAG与不可篡改审计账本上的五大行业系统。",
+    "suitesTitle": "多租户genOS产品套件",
+    "supportedLocales": "支持语言",
+    "tabBrandDna": "品牌 DNA 档案",
+    "tabPlatform": "平台服务与能力",
+    "tabProducts": "产品套件（5）",
+    "tabsAriaLabel": "产品与品牌DNA分类",
+    "tabTaxonomy": "Schema.org分类图谱",
+    "taxonomyDesc": "平台所有页面、实体及动作与标准Schema.org语义词汇的正式对齐。",
+    "taxonomyTitle": "Schema.org多租户分类图谱",
+    "title": "产品与品牌DNA目录",
+    "verifiableOutcomes": "可验证业务成果",
+    "notProvisionedTitle": "产品目录尚未配置",
+    "notProvisionedDesc": "此环境中尚未配置规范性产品目录。应用目录源（迁移 + 种子）后，产品套件、子产品、能力和成果将显示在此处。",
+    "loading": "正在加载规范性产品目录…",
+    "suitesCount": "{{count}} 个套件",
+    "brandDnaNotProvisionedTitle": "品牌 DNA 注册表尚未配置",
+    "brandDnaNotProvisionedDesc": "此环境中尚未配置品牌 DNA 注册表。当注册表服务和模式就绪后，租户品牌档案将显示在此处——绝不会来自静态演示列表。"
+  },
+  "profile": {
+    "auth": {
+      "emailLabel": "工作邮箱",
+      "guestMode": "正在查看默认演示组织",
+      "heading": "远程身份与通行密钥",
+      "languageLabel": "界面语言 (Schema.org inLanguage)",
+      "loginPrompt": "登录到企业实例",
+      "magicLink": "发送快捷登录链接",
+      "noPasskeys": "该人员尚未注册任何通行密钥。",
+      "orGuest": "以访客模式浏览",
+      "passkeysHeading": "已注册通行密钥 (Schema.org SecurityCredential)",
+      "passwordLabel": "密码",
+      "registerPasskey": "注册 WebAuthn 通行密钥",
+      "signedInAs": "已登录身份",
+      "signIn": "登录",
+      "signOut": "退出登录"
+    },
+    "guest": {
+      "signInPrompt": "登录以访问您的租户工作空间和资源。",
+      "welcome": "访客会话"
+    },
+    "language": {
+      "label": "首选界面语言"
+    },
+    "links": {
+      "accessKeys": "访问密钥 (Passkeys)",
+      "authSection": "身份验证",
+      "dashboard": "概览与分析",
+      "documentation": "文档中心",
+      "label": "用户个人资料",
+      "payments": "支付网关与PagBank",
+      "planAndBilling": "套餐与账单",
+      "planFormat": "套餐 {{plan}}",
+      "products": "产品与品牌DNA",
+      "profileSettings": "个人设置",
+      "userManagement": "用户管理",
+      "userProfile": "个人资料与入职配置",
+      "workspaceSwitcher": "工作区与上下文设置"
+    },
+    "passkeys": {
+      "description": "通行密钥基于W3C WebAuthn标准，使用Touch ID、Face ID或物理安全密钥提供抗钓鱼的高强度加密身份验证。",
+      "deviceNameLabel": "设备或安全密钥名称",
+      "empty": "尚未注册任何通行密钥凭据。",
+      "modalTitle": "通行密钥与生物识别安全",
+      "registerButton": "注册通行密钥",
+      "registeredList_one": "已注册凭据 ({{count}}):",
+      "registeredList_other": "已注册凭据 ({{count}}):"
+    },
+    "readOnly": {
+      "brand": "品牌",
+      "instance": "实例标识",
+      "organization": "组织 (Tenant)",
+      "owner": "实例所有者",
+      "workspace": "工作空间 / 项目",
+      "workspaceId": "工作区 ID"
+    },
+    "settings": {
+      "complementMenuTheme": "菜单反色主题",
+      "themeLegend": "主题模式"
+    }
+  },
+  "routes": {
+    "products": "产品与品牌DNA"
+  },
+  "signInModal": {
+    "accountTypeLabel": "账户类型 (Account Type)",
+    "accountTypePF": "自然人 / 个人 (Individual / PF)",
+    "accountTypePJ": "企业 / 法人 (Enterprise / PJ)",
+    "addressTitle": "法定通讯地址 / 注册地址",
+    "authenticating": "正在验证...",
+    "changeEmail": "修改",
+    "companySizeLabel": "企业规模 (Company Size)",
+    "companySizes": {
+      "ENTERPRISE": "大型企业 (250+人 / Enterprise)",
+      "MEDIUM": "中型企业 (50-249人 / Medium)",
+      "MICRO": "微型企业 (1-9人 / Micro)",
+      "SMALL": "小型企业 (10-49人 / Small)"
+    },
+    "completeSetup": "完成设置并进入",
+    "continue": "继续",
+    "countries": {
+      "BR": "巴西 (Brasil - BR)",
+      "CN": "中国 (China - CN)",
+      "DE": "德国 (Deutschland - DE)",
+      "ES": "西班牙 (España - ES)",
+      "FR": "法国 (France - FR)",
+      "GB": "英国 (United Kingdom - GB)",
+      "JP": "日本 (Japan - JP)",
+      "PT": "葡萄牙 (Portugal - PT)",
+      "US": "美国 (United States - US)"
+    },
+    "countryLabel": "注册归属国家/地区 (Jurisdiction)",
+    "emailLabel": "工作邮箱",
+    "error": {
+      "emptyPassword": "密码不能为空。",
+      "invalidCredentials": "邮箱或密码错误，请重试。",
+      "invalidEmail": "请输入有效的邮箱地址。",
+      "title": "身份验证错误"
+    },
+    "fullName": "姓名 / Full Name",
+    "headerLabel": "Cestari Studio 身份验证",
+    "legalName": "企业法定名称 (营业执照名称)",
+    "locality": "城市 / 市 / 区 / Locality",
+    "logIn": "登录",
+    "magicLinkBtn": "使用邮件魔法链接登录",
+    "onboardingIntro": "在进入工作空间之前，请完成您的法律身份及多租户环境设置：",
+    "otpSentDesc": "请检查您的电子邮箱以获取直接登录链接。",
+    "otpSentTitle": "魔法链接已发送",
+    "passkeyRegistered": "通行密钥 (Passkey) 已注册",
+    "passwordLabel": "密码",
+    "pfDetailsTitle": "个人身份与法定证件",
+    "pjDetailsTitle": "企业工商注册信息",
+    "postalCode": "邮政编码 / Postal Code",
+    "primaryDoc": "法定纳税/身份识别号",
+    "region": "省 / 州 / 大区 / Region",
+    "registerPasskey": "注册 WebAuthn 通行密钥",
+    "rememberId": "记住用户 ID",
+    "repDetailsTitle": "法定代表人 / 授权签字人信息",
+    "repDoc": "法定代表人证件号码",
+    "repName": "法定代表人姓名",
+    "repPosition": "担任职务 (如: 法定代表人, CEO, 董事)",
+    "secondaryDoc": "居民身份证件号 / 护照号",
+    "settingUp": "正在配置...",
+    "steps": {
+      "credentials": "2. 凭证验证",
+      "credentialsDesc": "密码与多重验证",
+      "identity": "1. 身份识别",
+      "identityDesc": "邮箱 / 用户 ID",
+      "mfa": "3. 多因素认证 (MFA)",
+      "mfaDesc": "触控或摄像头",
+      "onboarding": "3. 入职设置",
+      "onboardingDesc": "身份及工作空间"
+    },
+    "streetAddress": "街道详细地址 (门牌号 / 楼栋)",
+    "title": "登录 genOS",
+    "tradeName": "企业品牌名称 / 简称",
+    "verifiedBadge": "身份已验证",
+    "emailPlaceholder": "you@company.com",
+    "passkeyUnavailableTitle": "此版本暂不支持 Passkey",
+    "passkeyUnavailableDesc": "在服务器验证的 WebAuthn 注册可用后，将启用免密登录。"
+  },
+  "taxonomy": {
+    "billing": {
+      "description": "金融网关、PagBank集成、多商户分账、账单发票与财务账本。",
+      "label": "账单与FinOps"
+    },
+    "files": {
+      "description": "数字文档、媒体资产、向量RAG嵌入模型及租户存储存储桶。",
+      "label": "文件与知识语料库"
+    },
+    "products": {
+      "description": "多租户产品套件（Content Factory、ClientOps、ScheduleOps、ReputationOps、AcademyOps）及品牌DNA档案。",
+      "label": "产品与品牌DNA"
+    },
+    "profile": {
+      "description": "跨国企业身份验证（自然人/法人）、FIDO2通行密钥与租户配置。",
+      "label": "个人资料与身份"
+    },
+    "reports": {
+      "description": "运营指标、遥测数据、资源使用报告及多租户KPI看板。",
+      "label": "报告与遥测"
+    },
+    "settings": {
+      "description": "四层级联层级、Schema.org PropertyValue分类体系及系统治理规则。",
+      "label": "设置与治理"
+    }
+  },
+  "tenantSettings": {
+    "categories": {
+      "billing": {
+        "description": "PagBank凭据、多商户分账、定期订阅计划与转账结算。",
+        "label": "金融网关与账单"
+      },
+      "governance": {
+        "description": "四层级联层级（组织 → 工作区 → 项目 → 个人）、Schema.org规则及审计账本。",
+        "label": "治理与级联策略"
+      },
+      "identity": {
+        "description": "多国自然人/法人身份验证、Passkeys生物识别认证、法定代表人档案及组织配置。",
+        "label": "企业身份与入驻"
+      },
+      "knowledge": {
+        "description": "语料库文档、pgvector语义搜索配置、嵌入模型与存储对象。",
+        "label": "知识库与向量RAG"
+      },
+      "overview": {
+        "description": "租户工作区运行状况、遥测数据、资源使用指标及多租户性能KPI。",
+        "label": "概览与分析"
+      }
+    }
+  },
+  "welcome": {
+    "about": {
+      "body": "Generative OS 是基于 IBM Carbon Design System 和 Schema.org 构建的企业级多租户生成式操作系统。",
+      "consistency": {
+        "description": "Use this as a reference to ensure your project aligns with IBM's design standards. It is flexible enough to adapt to your needs while promoting a consistent user experience.",
+        "title": "Stay consistent"
+      },
+      "customize": {
+        "description": "This is meant to be a starting point and a living guide, not a fixed framework. You can modify the repository to fit your project requirements or use it as inspiration for your own approach.",
+        "title": "Customize as needed"
+      },
+      "heading": "关于 Generative OS",
+      "purpose": {
+        "description": "This repository provides a simple example to help you get started with the Carbon Design System and React. It is designed to save time by offering a pre-configured foundation for your projects.",
+        "title": "Purpose"
+      }
+    },
+    "callout": {
+      "body": "探索多租户架构与 Schema.org 分类法的无缝结合。",
+      "heading": "企业就绪"
+    },
+    "features": {
+      "designSystemDesc": "符合无障碍标准的v11组件与设计令牌",
+      "designSystemTitle": "Carbon设计系统",
+      "heading": "核心特性",
+      "multiTenancyDesc": "Schema.org 4层治理层级",
+      "multiTenancyTitle": "多租户架构",
+      "vectorRagDesc": "pgvector 384维 HNSW嵌入向量",
+      "vectorRagTitle": "认知检索增强 (RAG)"
+    }
+  },
+  "welcomeHeader": {
+    "button": {
+      "enterApp": "进入租户控制台",
+      "signIn": "登录工作区",
+      "useTemplate": "使用此模板"
+    },
+    "description1": "genOS 是 Cestari Studio Inc. 的生成式操作系统：具备级联治理、知识检索和集成计费的多租户工作空间。",
+    "heading": "Generative OS",
+    "subheading": "企业级多模型协作与智能体操作平台",
+    "title": "genOS by Cestari Studio",
+    "description2": "登录以访问您的组织、工作空间和项目。"
+  },
+  "workspaceSwitcher": {
+    "activeRole": "当前生效角色",
+    "createOrganization": "创建新组织",
+    "heading": "工作区与组织切换器",
+    "modalHeading": "切换活动工作区上下文",
+    "organizationLabel": "组织 (Tier 1: Organization)",
+    "orgIdentifierPlaceholder": "例如：acme-corp",
+    "orgNamePlaceholder": "例如：Acme 集团",
+    "projectLabel": "项目 (Tier 3: Project)",
+    "statusTitle": "当前活动组织与工作区上下文",
+    "workspaceLabel": "工作空间 (Tier 2: Workspace)"
+  },
+  "settings": {
+    "profile": {
+      "orgName": "组织名称",
+      "legalName": "法定注册名称",
+      "country": "司法管辖区 / 国家",
+      "postalCode": "邮政编码"
+    }
+  },
+  "knowledge": {
+    "modelLabel": "嵌入模型",
+    "chunkSizeLabel": "文档分块大小",
+    "metricLabel": "pgvector 距离度量",
+    "autoIndexLabel": "上传时自动分块并向量化"
+  }
+}
