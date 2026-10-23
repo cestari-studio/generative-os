@@ -563,7 +563,10 @@
     "chargeOutcomeUnknown": "付款结果尚未确定。请勿创建新的收款。请使用相同报价和幂等性引用重试此次付款，以便与 PagBank 对账。",
     "reconcilingCharge": "正在对账同一笔付款…",
     "retrySameCharge": "重试同一笔付款",
-    "pendingChargeReference": "待处理报价 {{quoteId}} · 引用 {{referenceId}}。解决此结果之前，系统会禁用创建另一笔收款。"
+    "pendingChargeReference": "待处理报价 {{quoteId}} · 引用 {{referenceId}}。解决此结果之前，系统会禁用创建另一笔收款。",
+    "fdwNotProvisionedTitle": "FDW 运行状态尚未验证",
+    "fdwNotProvisionedDesc": "此应用没有用于验证实时 Supabase Wrappers、PagBank FDW 连接或 Vault 状态的已验证只读模型。示例端点、提供方身份和运行状态值不会作为实时数据展示。",
+    "fdwOwnerGate": "运行状态验证需要经过授权的环境、已验证的服务端配置以及只读健康状态契约。"
   },
   "placeholder": {
     "description1": "Generally not a good idea to have pages under construction.",
