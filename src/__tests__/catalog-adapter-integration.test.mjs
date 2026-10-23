@@ -41,6 +41,10 @@ const POST_AVAILABLE = await (async () => {
   }
 })();
 
+if (!POST_AVAILABLE && process.env.CATALOG_REQUIRE_POSTGRES === '1') {
+  throw new Error('CATALOG_REQUIRE_POSTGRES=1 but the disposable PostgreSQL service is unavailable');
+}
+
 let client;
 
 async function applySql(file) {
