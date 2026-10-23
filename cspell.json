@@ -230,6 +230,7 @@
     "pricebook",
     "subproduct",
     "subproducts",
-    "PGRST"
+    "PGRST",
+    "Idempotenzreferenz"
   ]
 }
