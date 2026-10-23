@@ -10,14 +10,42 @@ import { classifyCatalogQueryError } from '../data/useNormativeCatalog.js';
 
 describe('classifyCatalogQueryError', () => {
   it.each([
-    [{ code: '42P01', message: 'missing table' }, 'unprovisioned'],
-    [{ code: 'PGRST205', message: 'table not in schema cache' }, 'unprovisioned'],
-    [{ code: '42501', message: 'permission denied' }, 'forbidden'],
-    [{ status: 401, message: 'unauthorized' }, 'forbidden'],
-    [{ status: 403, message: 'forbidden' }, 'forbidden'],
-    [{ code: 'ECONNRESET', message: 'connection reset' }, 'error'],
-    [{ message: 'unknown backend error' }, 'error'],
-  ])('classifies backend failure %j as %s', (error, expected) => {
+    {
+      label: 'missing SQL relation',
+      error: { code: '42P01', message: 'missing table' },
+      expected: 'unprovisioned',
+    },
+    {
+      label: 'missing PostgREST table',
+      error: { code: 'PGRST205', message: 'table not in schema cache' },
+      expected: 'unprovisioned',
+    },
+    {
+      label: 'SQL permission denial',
+      error: { code: '42501', message: 'permission denied' },
+      expected: 'forbidden',
+    },
+    {
+      label: 'unauthenticated request',
+      error: { status: 401, message: 'unauthorized' },
+      expected: 'forbidden',
+    },
+    {
+      label: 'forbidden request',
+      error: { status: 403, message: 'forbidden' },
+      expected: 'forbidden',
+    },
+    {
+      label: 'connection failure',
+      error: { code: 'ECONNRESET', message: 'connection reset' },
+      expected: 'error',
+    },
+    {
+      label: 'unknown backend error',
+      error: { message: 'unknown backend error' },
+      expected: 'error',
+    },
+  ])('classifies $label as $expected', ({ error, expected }) => {
     expect(classifyCatalogQueryError(error)).toBe(expected);
   });
 });
