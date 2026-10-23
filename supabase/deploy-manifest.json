@@ -356,6 +356,17 @@
       "webauthn_rp_display_name": "genOS by Cestari Studio",
       "webauthn_rp_origins": "https://app.cestari.studio, https://cestari.studio",
       "note": "Passkeys work on app.cestari.studio (+ subdomains). Vercel Preview URLs (*.vercel.app) and localhost cannot share RP ID cestari.studio (WebAuthn domain constraint) \u2014 passkey testing on those origins requires their own RP ID. Fixed the \"Passkeys are disabled\" error reported by the owner."
+    },
+    "vercel_production_promotion": {
+      "promoted_at": "2026-10-23 (owner-authorized)",
+      "sha": "973d88468049fd354178d12ab8749ab45fd62949",
+      "ref": "feat/complete-carbon-page-rebuild",
+      "deployment": "generative-kw5ic1i78-cestari-studio.vercel.app (target=production, READY)",
+      "previous_production": "generative-3ifcp8qi3 (b580fc8, 2026-10-16, was 146+ commits stale)",
+      "ci_evidence": "run 39968257764 \u2014 5/5 jobs SUCCESS on 973d884 (quality, ssr-smoke, billing-sql, browser-smoke, release-dry-run)",
+      "preview_evidence": "preview-smoke 34/34 on generative-ate1wsans (973d884)",
+      "verification": "app.cestari.studio now serves 973d884 \u2014 passkey button present, no fictional Brand DNA, no Supabase config error. Note: an earlier candidate (3939c62) had a flaky ssr-smoke broken-pipe failure and was NOT promoted (transient, same check passes on 973d884).",
+      "stale_production_resolved": "app.cestari.studio no longer serves b580fc8 (146+ commit gap closed)"
     }
   }
 }
