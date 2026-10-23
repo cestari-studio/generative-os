@@ -84,13 +84,13 @@ describe('Carbon v12 Dashboard Architecture & Components', () => {
     );
 
     fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
-    fireEvent.change(screen.getByLabelText('Interface language'), { target: { value: 'de' } });
+    fireEvent.click(screen.getByLabelText('Light (White / Gray 10)'));
 
     expect(await screen.findByText('Applied for this session only')).toBeInTheDocument();
+    expect(screen.getByText('Sign in to persist this preference to your tenant profile.')).toBeInTheDocument();
     expect(
-      screen.getByText('Sign in to persist this preference to your tenant profile.'),
-    ).toBeInTheDocument();
-    expect(screen.queryByText('Configuration persisted to your personal tenant profile in database.')).not.toBeInTheDocument();
+      screen.queryByText('Configuration persisted to your personal tenant profile in database.'),
+    ).not.toBeInTheDocument();
   });
 
   test('renders onboarding GetStartedCards journey in dashboard tab', () => {
