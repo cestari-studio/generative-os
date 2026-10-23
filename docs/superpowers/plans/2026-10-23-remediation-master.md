@@ -160,8 +160,12 @@ Before the fix the same smoke reported 3 hydration failures.
 4. ~~**Runtime reconciliation packet refresh**~~ **DONE this cycle**
    (re-confirmed 2026-10-23: 17 migrations, 18/18 expected tables absent).
 5. ~~**SECURITY DEFINER consumer map**~~ **DONE this cycle** (phase6 §12).
-6. **Benchmark baseline** (Phase 10): capture LCP/INP/CLS lab metrics +
-   bundle sizes per route with the browser infrastructure now in place.
+6. **Benchmark baseline** (Phase 10): **PARTIAL** — bundle baseline captured
+   at SHA `ee38b01`: 37 client JS files totaling 1973.9 KiB, 1 CSS bundle
+   1747.1 KiB; largest chunks: `index` 548.1 KiB (vendor), `Dashboard`
+   510.3 KiB (Carbon Charts), `page-layout` 162.9 KiB, `ActionSet` 141.4 KiB.
+   LCP/INP/CLS lab metrics per route remain queued (browser infra exists;
+   needs the metrics harness, not just presence checks).
 7. **Manual WCAG 2.2 AA checklist prep**: keyboard/screen-reader test script
    for the human reviewer (automated axe layer already green).
 8. **Normative slice materialization** (next slices after the 3 implemented):
