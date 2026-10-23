@@ -96,6 +96,7 @@ const TenantCascadeSettings = () => {
     auditActions,
     applySettingCascade,
     statusMessage,
+    statusMessageKind,
   } = useTenant();
 
   const [selectedTier, setSelectedTier] = useState('organization');
@@ -255,7 +256,7 @@ const TenantCascadeSettings = () => {
                     <InlineNotification
                       lowContrast
                       hideCloseButton
-                      kind="success"
+                      kind={statusMessageKind || 'info'}
                       title={t('cascadeSettings.title', 'Multi-Tenant Cascade Settings')}
                       subtitle={statusMessage}
                     />

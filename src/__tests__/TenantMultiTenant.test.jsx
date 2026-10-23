@@ -13,6 +13,7 @@ import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 import { renderWithoutProviders } from '../test/test-utils';
 import { TenantProvider } from '../context/TenantContext';
+import { DEFAULT_CONTEXT_VALUE, TenantContext } from '../context/useTenant';
 import { WorkspaceSwitcherPanel } from '../components/workspaceSwitcher/WorkspaceSwitcherPanel';
 import { ProfilePanel } from '../components/profilePanel/ProfilePanel';
 import TenantCascadeSettings from '../pages/settings/TenantCascadeSettings';
@@ -57,6 +58,27 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
     expect(screen.queryByText('Carbon Theme Mode')).not.toBeInTheDocument();
     expect(screen.getByText('Schema.org JSON-LD Snapshot')).toBeInTheDocument();
     expect(screen.getByText('Cascade Audit Ledger (Schema.org Action)')).toBeInTheDocument();
+  });
+
+  test('renders backend failures with error tone rather than success', () => {
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider
+          value={{
+            ...DEFAULT_CONTEXT_VALUE,
+            statusMessage: 'Permission denied by backend.',
+            statusMessageKind: 'error',
+          }}
+        >
+          <TenantCascadeSettings />
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    const message = screen.getByText('Permission denied by backend.');
+    const notification = message.closest('.cds--inline-notification');
+    expect(notification).toHaveClass('cds--inline-notification--error');
+    expect(notification).not.toHaveClass('cds--inline-notification--success');
   });
 
   test('renders KnowledgeVectorPage with semantic search, document ingestion, and tenant storage buckets', () => {
