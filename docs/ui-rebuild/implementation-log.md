@@ -152,3 +152,45 @@
 - Migração + seed aditivas, **NÃO aplicadas a nenhum remoto**; página mostra empty state honesto até deploy do catálogo (gate Fase 6).
 - CI esperado verde no SHA deste log; 0 reviews humanas; runtime Supabase divergente (documentado); Vercel BLOCKED; identidade `...0010` congelada.
 - Próximo: Fase 5 continuação (demais slices normativas: settings/overrides, onboarding read-back, knowledge pipeline description, demais páginas), Fase 6 rehearsal do catálogo+billing, Fase 7 Preview quando o vínculo Vercel existir.
+
+---
+
+## 8. Log de Execução — Ciclo master directive (23 de outubro de 2026)
+
+**SHA de referência:** `fda6367` (e antecessores do ciclo).
+
+### P0-1 — Segurança do teste de catálogo + execução real na CI
+
+- Guard `src/test/catalog-test-guard.mjs` + 11 testes unitários: opt-in explícito (`CATALOG_TEST_ENABLE=1`), host loopback-only, flag destrutiva separada (`CATALOG_TEST_ALLOW_RECREATE=1`), DB de sistema recusado, versão major 17 exigida, sem secrets em logs. Sem opt-in → skip intencional sem tocar a rede; host remoto → erro fechado.
+- `quality` job ganhou service `postgres:17` + step de asserção JSON: **7 passed / 0 skipped** exigidos — skip não conta como sucesso. Evidência: run 39901369262 (`total=7 passed=7 skipped=0`).
+
+### P0-2 — Brand DNA: lista de tenants fictícios removida do runtime
+
+- Aba Brand DNA em `/products` renderizava 12 tenants fictícios (`BRAND_DNA_PROFILES`). Sem brand registry no backend → aba mostra estado honesto "not provisioned". Teste garante que PUTTINATO/All Life Institute/Clareira de Avalon **nunca** renderizam.
+
+### P0-3 — Hydration mismatch eliminado + gate browser-smoke
+
+- Causa raiz: subtrees lazy hidratam DEPOIS do effect de mount disparar `refreshTenantData` → `setLoading(true)`; a subtree hidratada renderizava spinner enquanto o SSR tinha o gate — mismatch em /dashboard, /products, /knowledge. Segundo: `useState(Date.now())` no dashboard.
+- Correções: `refreshTenantData({silent})` para o refresh de mount; clock via `useSyncExternalStore` (snapshot servidor null, cliente cacheado).
+- `scripts/browser-smoke.mjs`: 24 asserções Chromium locais (SSR não-vazio, conteúdo anônimo esperado, zero conteúdo fictício, zero erros fatais de página). Novo job CI `browser-smoke` (não-required; recomendação ao owner).
+
+### P1 — Gates de consistência
+
+- `scripts/validate-matrices.mjs` (`npm run check:matrices`) no quality job: contadores internos consistentes, canonical counts MATCH, nenhum `E2E_VERIFIED`/`ACCEPTED` alcançado sem artefato por SHA, ledger de bindings coerente.
+- `docs/ui-rebuild/feature-binding-ledger.json`: 3 slices implementadas (products-catalog, billing-pricebook-quotes, auth-onboarding-persistence) com status honesto `INTEGRATION_VERIFIED` + evidência + SHA.
+- axe-core gate: `scripts/axe-a11y.mjs` — 0 violações critical/serious em 7 rotas; artefatos gitignored + upload CI. Revisão manual WCAG 2.2 AA segue gate humano.
+
+### Segurança (docs, sem mutação remota)
+
+- Mapa de consumidores das 4 funções SECURITY DEFINER sinalizadas: todas validam `auth.uid()` + `is_org_member`, `search_path=""`, sem grant para `anon`. `create_pagbank_order` sem consumidores no código versionado → candidata a deprecação (BLOCKED_OWNER).
+- Plano de política + testes para leaked-password protection (BLOCKED_OWNER).
+
+### Auditoria runtime mock/demo/fake (Fase 2)
+
+- Sem achados proibidos restantes no runtime `src/` e `supabase/functions/` (evidência por camada de dados: TenantContext, dashboard, knowledge, funções pagbank versionadas).
+
+### Estado / próximos
+
+- Runtime Supabase divergente (re-confirmado 23/10: 17 migrações, 18/18 tabelas esperadas ausentes).
+- 0 reviews humanas; Vercel BLOCKED; identidade `...0010` congelada; PagBank sandbox BLOCKED.
+- Próximo: revisão contextual manual restante da Fase 2, materialização de slices normativas adicionais, benchmark baseline.
