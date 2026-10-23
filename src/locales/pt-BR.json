@@ -392,7 +392,8 @@
     "uploadingMedia": "Enviando MediaObject “{{name}}” para {{bucket}}…",
     "uploadCompleted": "MediaObject “{{name}}” enviado para {{bucket}}.",
     "storageScopeUnavailable": "Selecione uma organização e um workspace para exibir o prefixo do escopo de armazenamento.",
-    "copiedStorageScope": "Prefixo do escopo de armazenamento copiado"
+    "copiedStorageScope": "Prefixo do escopo de armazenamento copiado",
+    "uploadRefreshFailed": "O arquivo e o registro MediaObject foram criados, mas a visualização do tenant não pôde ser atualizada. Verifique a tabela de mídia antes de tentar novamente."
   },
   "nav": {
     "actions": {
