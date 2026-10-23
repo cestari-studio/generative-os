@@ -210,6 +210,16 @@ jobs:
           fi
           psql --version
 
+      - name: Use Node.js from .nvmrc
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies (lockfile is authoritative)
+        run: npm ci
+
       - name: Run billing SQL tests (authenticated role, RLS enforced)
         env:
           PGHOST: 127.0.0.1
@@ -217,6 +227,14 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
         run: npm run test:billing-sql
+
+      - name: Run catalog adapter integration against disposable PostgreSQL
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm exec -- vitest run src/__tests__/catalog-adapter-integration.test.mjs
 
   release-dry-run:
     name: release-dry-run
