@@ -83,3 +83,34 @@ was verified functionally in Safari Technology Preview:
 **Full chain verified end-to-end:** GitHub push → Git integration → Preview
 with exact SHA + publishable env vars → app loads → Supabase client
 initializes → auth flow accessible. **Production unchanged** (`b580fc8`).
+
+## Preview E2E — automated browser suite (2026-10-23, ~08:20 UTC)
+
+First real Preview E2E against the live deployment (`generative-e3xsqpj8c`,
+SHA `3405000`, source=git), accessed via the Deployment Protection automation
+bypass secret (`x-vercel-protection-bypass`, secret collected from the
+project's Deployment Protection settings and never printed/committed):
+
+| Suite         | Result                                                                                                                                                                                                                                | Evidence                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| preview-smoke | **34/34 assertions passed** — HTTP 200/404, protection bypassed, SSR #root not empty (~30k chars), access gate on private routes, **no Supabase config error**, no fictional demo tenants, no fatal page errors (no hydration issues) | `scripts/preview-smoke.mjs` output                                            |
+| preview-axe   | **0 critical/serious violations on 6 routes** (/, /dashboard, /settings, /knowledge, /payments, /products); 1-2 minor/moderate per route                                                                                              | `scripts/preview-axe.mjs`, `docs/ui-rebuild/axe/preview-3405000/results.json` |
+
+**This is PREVIEW E2E (not local, not production):** the deployed artifact at
+the exact SHA, over the network, with the publishable Supabase env vars active.
+
+## Database / project separation — VERIFIED (2026-10-23)
+
+Owner directive: the `genOS` database belongs to the `genOS` Vercel project;
+the `generative-os` database belongs to the `generative-os` Vercel project.
+
+| Check                                                                          | Result                                                                          |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| App's `VITE_SUPABASE_URL` (set for Preview + Production)                       | points to `ldjfjmihdvdmltrptngf` = **generative-os** Supabase project (correct) |
+| App's Supabase client (`src/lib/supabase.client.js`)                           | uses only `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`                 |
+| Runtime references to `POSTGRES_*` / `NEXT_PUBLIC_*` / non-VITE `SUPABASE_URL` | **none** in client or SSR (the SPA only uses the VITE vars)                     |
+| `genOS` project (`jkespoegdpkdcrxsxwry`)                                       | untouched; never a target                                                       |
+
+The pre-existing production-only `POSTGRES_*` / `SUPABASE_*` server-side vars
+in the Vercel project are for other consumers (Edge Functions / other
+frameworks) — this SPA does not read them. Separation is correct.
