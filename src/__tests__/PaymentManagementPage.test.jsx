@@ -71,7 +71,11 @@ vi.mock('../lib/supabase.client', () => ({
 const testTenantContext = {
   ...DEFAULT_CONTEXT_VALUE,
   user: { id: '00000000-0000-4000-8000-000000000001', email: 'billing-test@example.invalid' },
-  activeOrganization: { id: '00000000-0000-4000-8000-000000000002', identifier: 'billing-test-org', name: 'Billing Test Organization' },
+  activeOrganization: {
+    id: '00000000-0000-4000-8000-000000000002',
+    identifier: 'billing-test-org',
+    name: 'Billing Test Organization',
+  },
 };
 
 const renderPaymentPage = (context = testTenantContext) =>
