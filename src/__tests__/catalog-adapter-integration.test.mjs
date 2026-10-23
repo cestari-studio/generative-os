@@ -24,6 +24,7 @@ import { readFileSync } from 'node:fs';
 
 const PG = {
   user: process.env.PGUSER || 'postgres',
+  password: process.env.PGPASSWORD || undefined,
   host: process.env.PGHOST || '127.0.0.1',
   port: Number(process.env.PGPORT || 55450),
   database: 'catalog_adapter_it',
