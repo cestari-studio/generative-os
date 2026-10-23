@@ -136,6 +136,7 @@ describe('OnboardingFullPage (Carbon Multistep Fullscreen Onboarding)', () => {
       expect(screen.getByLabelText('Legal Business Name')).toBeInTheDocument();
       expect(screen.getByLabelText('Brand / Trade Name')).toBeInTheDocument();
       expect(screen.getByLabelText('CNPJ (Cadastro Nacional da Pessoa Jurídica)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Legal Representative Full Name')).not.toHaveAttribute('placeholder');
     });
   });
 

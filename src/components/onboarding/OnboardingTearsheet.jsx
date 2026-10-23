@@ -238,7 +238,6 @@ export const OnboardingTearsheet = ({ className }) => {
                     <TextInput
                       id="onboarding-org-name"
                       labelText={t('settings.profile.orgName', 'Organization Name')}
-                      placeholder="e.g. Acme Studio"
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
                       required
@@ -246,7 +245,6 @@ export const OnboardingTearsheet = ({ className }) => {
                     <TextInput
                       id="onboarding-legal-name"
                       labelText={t('settings.profile.legalName', 'Legal Registered Name')}
-                      placeholder="e.g. Acme Studio Inc."
                       value={legalName}
                       onChange={(e) => setLegalName(e.target.value)}
                     />
@@ -293,7 +291,6 @@ export const OnboardingTearsheet = ({ className }) => {
                     <TextInput
                       id="onboarding-ws-name"
                       labelText={t('dashboard.workspaces.nameLabel', 'Workspace Name')}
-                      placeholder="e.g. Creative Lab"
                       value={workspaceName}
                       onChange={(e) => setWorkspaceName(e.target.value)}
                       required
@@ -301,7 +298,6 @@ export const OnboardingTearsheet = ({ className }) => {
                     <TextInput
                       id="onboarding-ws-slug"
                       labelText={t('dashboard.workspaces.slugLabel', 'Identifier Slug')}
-                      placeholder="e.g. creative-lab"
                       value={workspaceSlug}
                       onChange={(e) => setWorkspaceSlug(e.target.value)}
                     />
