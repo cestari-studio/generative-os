@@ -297,6 +297,17 @@ jobs:
       - name: Run local browser functional smoke (hydration, gates, no demo content)
         run: npm run test:browser-smoke
 
+      - name: Run axe accessibility audit (critical/serious violations fail)
+        run: npm run test:axe
+
+      - name: Upload axe results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: axe-results
+          path: docs/ui-rebuild/axe/
+          retention-days: 7
+
   release-dry-run:
     name: release-dry-run
     runs-on: ubuntu-latest
