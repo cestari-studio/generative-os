@@ -99,7 +99,7 @@
     ]
   },
   "expected_vs_observed": {
-    "observed_at": "2026-10-23 cycle-3 (read-only remote inventory, re-confirmed: drift unchanged)",
+    "observed_at": "2026-10-23 cycle-4 (read-only remote inventory, drift expanded to cycle-3 objects)",
     "project_ref": "ldjfjmihdvdmltrptngf (generative-os, sa-east-1, Postgres 17.11)",
     "note": "expected = versioned artifacts in repo (branches); observed = live remote state read via MCP. Hash caveat preserved: local sha256 source-tree vs remote ezbr_sha256 bundle are NOT comparable inputs/algorithms \u2014 reconcile by deploy + read-back of versions, not prefix equality.",
     "edge_functions": {
@@ -250,6 +250,56 @@
       "expected": "Git integration to cestari-studio/generative-os with reproducible Preview",
       "observed": "project listed (prj_cgIw3xCnho9TNi37gH5e3VmiwtXC, team cestari-studio); detail/domains/env reads return 404; deployments list returns 403; linkedProjects: []",
       "state": "BLOCKED \u2014 owner action required (Git binding unproven; do NOT create duplicate project)"
+    },
+    "cycle3_objects": {
+      "expected_new_migrations": ["20261023000000_workspace_create_rpc", "20261023010000_notifications_foundation"],
+      "observed": {
+        "workspaces_table": "present (from 20261017231414, applied)",
+        "payment_orders_table": "present (applied)",
+        "notifications_table": "ABSENT (migration 20261023010000 not applied)",
+        "quotes_table": "ABSENT (migration 20261022053203 not applied)",
+        "create_workspace_rpc": "ABSENT (migration 20261023000000 not applied)",
+        "mark_notification_read_rpc": "ABSENT (migration 20261023010000 not applied)",
+        "issue_manual_quote_rpc": "ABSENT (migration 20261022053203 not applied)",
+        "consume_quote_rpc": "ABSENT (migration 20261022053203 not applied)",
+        "claim_pagbank_order_rpc": "ABSENT (migration 20261022053203 not applied)"
+      },
+      "note": "Drift now spans 4 unapplied migrations: billing 20261022053203, catalog 20261022060000, workspace 20261023000000, notifications 20261023010000. workspaces + payment_orders tables exist because their migrations are in the applied 17."
+    },
+    "unapplied_migrations": [
+      "20261022053203_billing_pricebook_usage_metering",
+      "20261022060000_catalog_normative_source",
+      "20261023000000_workspace_create_rpc",
+      "20261023010000_notifications_foundation"
+    ],
+    "remediation_sequence": {
+      "order": [
+        {
+          "version": "20261022053203",
+          "name": "billing_pricebook_usage_metering",
+          "depends_on": "applied schema (20261017231414 + 20261017231645)",
+          "status": "can apply first (self-contained prereq)"
+        },
+        {
+          "version": "20261022060000",
+          "name": "catalog_normative_source",
+          "depends_on": "billing has_platform_role (20261022053203)",
+          "status": "MUST apply after billing"
+        },
+        {
+          "version": "20261023000000",
+          "name": "workspace_create_rpc",
+          "depends_on": "applied schema only",
+          "status": "independent \u2014 can apply any time"
+        },
+        {
+          "version": "20261023010000",
+          "name": "notifications_foundation",
+          "depends_on": "applied schema only",
+          "status": "independent \u2014 can apply any time"
+        }
+      ],
+      "note": "All 4 are additive (CREATE TABLE/CREATE OR REPLACE FUNCTION/CREATE POLICY/GRANT \u2014 no drops). Idempotent guards: CREATE TABLE IF NOT EXISTS, CREATE OR REPLACE FUNCTION, CREATE POLICY (idempotent in PG15+ via IF NOT EXISTS? \u2014 verify each policy has no conflict), GRANT is idempotent. Forward-recovery: additive means no rollback of drops needed; failure mid-sequence leaves earlier migrations applied (re-runnable)."
     }
   }
 }
