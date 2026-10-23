@@ -39,6 +39,8 @@ describe('Multi-Tenant Schema.org & Cascade Engine UI', () => {
     expect(screen.getByLabelText('Organization (Tier 1)')).toBeInTheDocument();
     expect(screen.getByLabelText('Workspace / Department (Tier 2)')).toBeInTheDocument();
     expect(screen.getByLabelText('Project / CreativeWork (Tier 3)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Organization name')).not.toHaveAttribute('placeholder');
+    expect(screen.getByLabelText('organization-slug')).not.toHaveAttribute('placeholder');
   });
 
   test('renders TenantCascadeSettings with an honest empty state when no settings are provisioned', () => {
