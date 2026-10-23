@@ -99,7 +99,7 @@
     ]
   },
   "expected_vs_observed": {
-    "observed_at": "2026-10-22 (read-only remote inventory)",
+    "observed_at": "2026-10-23 cycle-3 (read-only remote inventory, re-confirmed: drift unchanged)",
     "project_ref": "ldjfjmihdvdmltrptngf (generative-os, sa-east-1, Postgres 17.11)",
     "note": "expected = versioned artifacts in repo (branches); observed = live remote state read via MCP. Hash caveat preserved: local sha256 source-tree vs remote ezbr_sha256 bundle are NOT comparable inputs/algorithms \u2014 reconcile by deploy + read-back of versions, not prefix equality.",
     "edge_functions": {
