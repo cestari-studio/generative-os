@@ -449,8 +449,7 @@ export default function PaymentManagementPage() {
           <Tile className="cs--payment-management__kpi-tile">
             <span className="cs--payment-management__kpi-label">{t('payments.kpiPaid', 'Paid Charges')}</span>
             <span className="cs--payment-management__kpi-value">
-              {paymentLoadState.status === 'ready' && kpis?.paid_charges_count != null
-                ? kpis.paid_charges_count : '—'}
+              {paymentLoadState.status === 'ready' && kpis?.paid_charges_count != null ? kpis.paid_charges_count : '—'}
             </span>
           </Tile>
         </Column>
