@@ -536,12 +536,12 @@
     "amountPlaceholder": "0.00"
   },
   "placeholder": {
-    "description1": "Generally it is not a good idea to have pages under construction.",
-    "description2": "This page helps demonstrate the global navigation.",
-    "loading": "Loading placeholder page...",
+    "description1": "This route is registered, but its functional page implementation is not available in this build.",
+    "description2": "No sample, demo, or placeholder records are displayed on this route.",
+    "loading": "Loading page…",
     "maintainer": "Maintained by Cestari Studio Inc.",
-    "routeInfo": "You are at the route '{{pathname}}'.",
-    "title": "This page is not ready yet"
+    "routeInfo": "The registered route is '{{pathname}}'.",
+    "title": "Route not implemented"
   },
   "productsCatalog": {
     "allEntitled": "5 Suites Active",
@@ -817,7 +817,9 @@
     "orgNamePlaceholder": "Organization name",
     "projectLabel": "Project / CreativeWork (Tier 3)",
     "statusTitle": "Tenant Context",
-    "workspaceLabel": "Workspace / Department (Tier 2)"
+    "workspaceLabel": "Workspace / Department (Tier 2)",
+    "orgNameInputPlaceholder": "Enter organization name",
+    "orgIdentifierInputPlaceholder": "Organization slug"
   },
   "settings": {
     "profile": {
