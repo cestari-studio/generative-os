@@ -363,7 +363,6 @@ const KnowledgeVectorPage = () => {
                           <TextInput
                             id="ingest-doc-title"
                             labelText={t('knowledgeVector.docTitleLabel', 'Document Title (Schema.org name)')}
-                            placeholder="Carbon v11 Multi-Tenant Architecture Guide"
                             value={docTitle}
                             onChange={(e) => setDocTitle(e.target.value)}
                           />
