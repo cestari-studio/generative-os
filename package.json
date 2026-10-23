@@ -38,7 +38,8 @@
     "check:matrices": "node scripts/validate-matrices.mjs",
     "test:browser-smoke": "node scripts/browser-smoke.mjs",
     "test:axe": "node scripts/axe-a11y.mjs",
-    "test:benchmark": "node scripts/benchmark.mjs"
+    "test:benchmark": "node scripts/benchmark.mjs",
+    "test:workspace-sql": "./scripts/test-workspace-sql.sh"
   },
   "dependencies": {
     "@carbon-labs/react-theme-settings": "^0.30.0",

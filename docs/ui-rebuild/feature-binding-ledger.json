@@ -112,14 +112,38 @@
       "status": "INTEGRATION_VERIFIED",
       "status_note": "Cross-tenant denial proven via shared helper unit tests; auth/membership flow preserved from existing function (no behavior change, logic extracted for testability). NOT E2E_VERIFIED (Preview BLOCKED_OWNER). Deterministic embedding, not a semantic model \u2014 description preserved per directive.",
       "last_verified_sha": "e9f6f5d"
+    },
+    {
+      "slice": "workspace-management",
+      "normative_keys": [
+        "product.client_ops.workspaces_access.client_workspace_create",
+        "product.client_ops.workspaces_access.workspace_member_access",
+        "product.client_ops.workspaces_access.workspace_configure"
+      ],
+      "page": "(workspace switcher UI; no dedicated management page yet)",
+      "destination_files": [
+        "supabase/migrations/20261023000000_workspace_create_rpc.sql",
+        "supabase/tests/workspace_management_rls.sql",
+        "supabase/tests/_prereq_workspace.sql",
+        "scripts/test-workspace-sql.sh"
+      ],
+      "data": "workspaces table (existing schema); organization_members",
+      "policy": "create_workspace SECURITY INVOKER: auth.uid() + app_private.has_org_admin_role; RLS insert policy also applies",
+      "tests": [
+        "supabase/tests/workspace_management_rls.sql (5 assertions: org admin creates, cross-tenant denied, non-admin denied, anonymous denied, duplicate identifier rejected)"
+      ],
+      "evidence": "workspace-sql CI step added to billing-sql job; TDD RED\u2192GREEN (RPC didn't exist -> 5/5 pass on disposable PG 17.11)",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Standalone create_workspace RPC closes the gap (workspaces previously only created inside hierarchy/corporate RPCs). UI management page not built \u2014 workspace switcher already consumes workspaces. NOT E2E_VERIFIED (Preview BLOCKED_OWNER).",
+      "last_verified_sha": "PENDING_COMMIT"
     }
   ],
   "summary": {
     "features_total": 225,
     "features_with_page_keys_normative": 19,
     "features_with_operation_ids_normative": 76,
-    "slices_implemented_destination": 5,
-    "slices_integration_verified": 5,
+    "slices_implemented_destination": 6,
+    "slices_integration_verified": 6,
     "slices_e2e_verified": 0,
     "note": "206/225 features lack normative page bindings and 149/225 lack operation bindings at the registry level; the 3 slices above are the destination-implemented surfaces with test evidence. No status here authorizes claiming E2E or ACCEPTED \u2014 those need the blocked Preview environment and human review."
   }
