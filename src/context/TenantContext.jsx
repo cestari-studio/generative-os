@@ -568,23 +568,31 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       const currentOrgId = activeOrgIdRef.current;
       const currentWsId = activeWsIdRef.current;
       const currentPrjId = activePrjIdRef.current;
+      if (!currentOrgId || !currentWsId) {
+        const error = new Error('Select an organization and workspace before uploading a file.');
+        setStatusMessage(error.message);
+        throw error;
+      }
+
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
       const storagePath = `${currentOrgId}/${currentWsId}/${Date.now()}-${safeName}`;
-      let contentUrl = `storage://${bucketId}/${storagePath}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(bucketId)
+        .upload(storagePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
 
-      try {
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from(bucketId)
-          .upload(storagePath, file, {
-            cacheControl: '3600',
-            upsert: true,
-          });
-        if (!uploadError && uploadData?.path) {
-          contentUrl = `storage://${bucketId}/${uploadData.path}`;
-        }
-      } catch {
-        // Storage bucket write requires authenticated org membership; still record Schema.org MediaObject metadata
+      if (uploadError) {
+        setStatusMessage(uploadError.message);
+        throw uploadError;
       }
+      if (!uploadData?.path) {
+        const error = new Error('Storage upload did not return a persisted object path.');
+        setStatusMessage(error.message);
+        throw error;
+      }
+      const contentUrl = `storage://${bucketId}/${uploadData.path}`;
 
       const { data, error } = await supabase.rpc('record_media_object', {
         p_organization_id: currentOrgId,
@@ -598,8 +606,18 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       });
 
       if (error) {
-        setStatusMessage(error.message);
-        throw error;
+        let cleanupError = null;
+        try {
+          const cleanup = await supabase.storage.from(bucketId).remove([uploadData.path]);
+          cleanupError = cleanup.error;
+        } catch (cleanupException) {
+          cleanupError = cleanupException;
+        }
+        const message = cleanupError
+          ? `${error.message} (The uploaded object could not be removed: ${cleanupError.message || 'unknown cleanup error'}.)`
+          : error.message;
+        setStatusMessage(message);
+        throw new Error(message);
       }
 
       await refreshTenantData();
