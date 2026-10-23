@@ -218,6 +218,46 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:billing-sql
 
+  catalog-integration:
+    name: catalog-integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    services:
+      postgres:
+        image: postgres:17.11
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout repository
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Use Node.js from .nvmrc
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies (lockfile is authoritative)
+        run: npm ci
+
+      - name: Run normative catalog integration tests against PostgreSQL 17.11
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npx vitest run src/__tests__/catalog-adapter-integration.test.mjs
+
   release-dry-run:
     name: release-dry-run
     runs-on: ubuntu-latest
