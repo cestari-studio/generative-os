@@ -37,7 +37,8 @@
     "screenshots": "node scripts/capture-screenshots.mjs",
     "check:matrices": "node scripts/validate-matrices.mjs",
     "test:browser-smoke": "node scripts/browser-smoke.mjs",
-    "test:axe": "node scripts/axe-a11y.mjs"
+    "test:axe": "node scripts/axe-a11y.mjs",
+    "test:benchmark": "node scripts/benchmark.mjs"
   },
   "dependencies": {
     "@carbon-labs/react-theme-settings": "^0.30.0",
