@@ -513,41 +513,13 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       const currentPrjId = activePrjIdRef.current;
       const currentUser = userRef.current;
 
-      // Optimistically apply side effects immediately for seamless UI responsiveness
-      if (propertyId === 'i18n.in_language' && typeof value === 'string') {
-        if (['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'].includes(value)) {
-          const canonical = value === 'jp-JP' ? 'ja-JP' : value;
-          i18nRef.current?.changeLanguage(canonical);
-        }
-      } else if (propertyId === 'theme.mode' && typeof value === 'string') {
-        if (value === 'g90' || value === 'g100' || value === 'dark') {
-          updateThemeSetting('dark');
-        } else if (value === 'white' || value === 'g10' || value === 'light') {
-          updateThemeSetting('light');
-        } else if (value === 'system') {
-          updateThemeSetting('system');
-        }
-      } else if (propertyId === 'theme.header_inverse') {
-        updateHeaderInverse(Boolean(value));
-      }
-
-      // Optimistically update effective settings in local React state
-      setEffectiveSettings((prev) =>
-        prev.map((s) => {
-          if (s.property_id === propertyId) {
-            return {
-              ...s,
-              effective_value: value,
-              source_level: level,
-              effective_cascade_rule: cascadeRule,
-            };
-          }
-          return s;
-        }),
-      );
-
       const targetPersonId = level === 'person' ? (currentUser ? currentUser.id : personRef.current?.id || null) : null;
 
+      // Backend first: the override is only visible after the RPC confirms it.
+      // No optimistic write to effectiveSettings and no optimistic side effects
+      // (theme/language) — a rejected apply must leave the UI exactly as it
+      // was (settings-cascade contract: the interface never shows an override
+      // the backend did not confirm).
       const { data, error } = await supabase.rpc('apply_setting_cascade', {
         p_organization_id: currentOrgId,
         p_level: level,
@@ -563,6 +535,24 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       if (error) {
         console.warn('apply_setting_cascade RPC error:', error.message);
         throw error;
+      }
+
+      // Side effects only AFTER backend confirmation.
+      if (propertyId === 'i18n.in_language' && typeof value === 'string') {
+        if (['en', 'de', 'pt-BR', 'ja-JP', 'jp-JP', 'zh-CN'].includes(value)) {
+          const canonical = value === 'jp-JP' ? 'ja-JP' : value;
+          i18nRef.current?.changeLanguage(canonical);
+        }
+      } else if (propertyId === 'theme.mode' && typeof value === 'string') {
+        if (value === 'g90' || value === 'g100' || value === 'dark') {
+          updateThemeSetting('dark');
+        } else if (value === 'white' || value === 'g10' || value === 'light') {
+          updateThemeSetting('light');
+        } else if (value === 'system') {
+          updateThemeSetting('system');
+        }
+      } else if (propertyId === 'theme.header_inverse') {
+        updateHeaderInverse(Boolean(value));
       }
 
       await refreshTenantData();
