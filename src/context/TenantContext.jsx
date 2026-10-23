@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
 import { getThemeSettings, setHeaderInverse, setThemeSetting } from '../utils/theme.js';
+import { requireUploadedObjectPath } from '../data/knowledgePresentation.js';
 import { TenantContext } from './useTenant.js';
 
 export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInverse, initialServerUser = null }) => {
@@ -576,23 +577,23 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
 
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
       const storagePath = `${currentOrgId}/${currentWsId}/${Date.now()}-${safeName}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const uploadResult = await supabase.storage
         .from(bucketId)
         .upload(storagePath, file, {
           cacheControl: '3600',
           upsert: true,
         });
 
-      if (uploadError) {
-        setStatusMessage(uploadError.message);
-        throw uploadError;
+      let uploadedObjectPath;
+      try {
+        uploadedObjectPath = requireUploadedObjectPath(uploadResult);
+      } catch (uploadException) {
+        const message =
+          uploadException instanceof Error ? uploadException.message : 'Storage upload failed.';
+        setStatusMessage(message);
+        throw uploadException;
       }
-      if (!uploadData?.path) {
-        const error = new Error('Storage upload did not return a persisted object path.');
-        setStatusMessage(error.message);
-        throw error;
-      }
-      const contentUrl = `storage://${bucketId}/${uploadData.path}`;
+      const contentUrl = `storage://${bucketId}/${uploadedObjectPath}`;
 
       const { data, error } = await supabase.rpc('record_media_object', {
         p_organization_id: currentOrgId,
@@ -608,7 +609,7 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       if (error) {
         let cleanupError = null;
         try {
-          const cleanup = await supabase.storage.from(bucketId).remove([uploadData.path]);
+          const cleanup = await supabase.storage.from(bucketId).remove([uploadedObjectPath]);
           cleanupError = cleanup.error;
         } catch (cleanupException) {
           cleanupError = cleanupException;
@@ -620,8 +621,25 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
         throw new Error(message);
       }
 
-      await refreshTenantData();
-      setStatusMessage(`Uploaded MediaObject "${file.name}" to ${bucketId}`);
+      try {
+        await refreshTenantData();
+      } catch {
+        const message = i18nRef.current.t('knowledgeVector.uploadRefreshFailed', {
+          defaultValue:
+            'The file and its MediaObject record were created, but the tenant view could not refresh. Check the media table before retrying.',
+        });
+        setStatusMessage(message);
+        const refreshError = new Error(message);
+        refreshError.name = 'UploadRefreshError';
+        throw refreshError;
+      }
+      setStatusMessage(
+        i18nRef.current.t('knowledgeVector.uploadCompleted', {
+          defaultValue: 'Uploaded MediaObject "{{name}}" to {{bucket}}.',
+          name: file.name,
+          bucket: bucketId,
+        }),
+      );
       return data;
     },
     [refreshTenantData],
