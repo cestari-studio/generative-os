@@ -25,7 +25,7 @@
 
 ## Verification workflow (per change)
 
-- `npm run lint` (read-only) · `npm run test` · `npm run build` · `npm run check:branding`
+- `npm run lint` (read-only) · `npm run test` · `npm run build` · `npm run check:branding` · `npm run check:matrices` · `npm run check:carbon-patterns`
 - SSR smoke: server-rendered content on all routes, no empty `#root`, no streaming-error markers.
 - SQL changes: apply on disposable Postgres (matching remote major), then test happy + negative paths as `authenticated` with RLS enforced — cross-tenant read/write, replay, expiry, single-use, recursion, direct-write denial.
 - Record `PASS`/`FAIL`/`BLOCKED` with SHA. CI green ≠ runtime verified ≠ deployed ≠ accepted.
