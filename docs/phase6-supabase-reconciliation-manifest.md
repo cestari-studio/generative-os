@@ -306,3 +306,72 @@ purely local replayability of the historical file.
 **Non-prod deploy path forward:** use `supabase db push` against the isolated
 target (the same runner that applied the remote), not raw `psql`. Validate
 the 4 new migrations + 6 functions there, then read back.
+
+---
+
+## 17. Security advisor triage (read-only, 2026-10-24)
+
+Independent owner audit flagged security/performance advisor findings. Read-only
+triage below — **no policy, grant, function, or config was changed.**
+
+### SECURITY DEFINER functions (advisor: 12 executable by authenticated)
+
+Full DEFINER set in the DB: **20 functions** (7 `app_private` internal helpers +
+13 `public`). Read-back confirms **0 with a default PUBLIC grant** (none are
+wide-open by default); all have restricted grants.
+
+- `app_private` (7, internal): `custom_access_token_hook`, `handle_new_auth_user`,
+  `has_org_admin_role`, `has_platform_role`, `has_workspace_write_access`,
+  `is_org_member`, `is_super_admin`, `sync_person_context_to_auth` — internal
+  helpers; grants scoped, not part of the public API surface.
+- `public` (13): `apply_setting_cascade`, `attach_psp_idempotency`,
+  `claim_pagbank_order`, `consume_quote`, `create_pagbank_order`,
+  `get_tenant_payment_kpis`, `has_platform_role`, `issue_manual_quote`,
+  `issue_quote`, `record_media_object`, `record_usage_event`,
+  `release_consumed_quote`.
+
+The 13 public DEFINER functions each carry a documented justification
+(billing quote-first flow needs atomic claim/consume/idempotency that RLS alone
+cannot express; settings cascade; media/KPI reads with tenant checks). Each is
+in the consumer map (§12). The advisor flag is the generic
+"DEFINER executable by authenticated" pattern — review per function, **no batch
+revocation** (per Supabase guidance and the documented justifications).
+`create_pagbank_order` remains the deprecation candidate (no versioned-code
+consumers) — BLOCKED_OWNER.
+
+### Leaked-password protection
+
+Advisor reports it disabled. Enabling it is an Auth config change — BLOCKED_OWNER
+(policy confirmation + non-prod test first; test plan in §13).
+
+### Duplicate indexes (advisor: 1; triage found 3)
+
+Three redundant indexes where a manual `CREATE INDEX` duplicates a UNIQUE
+constraint's implicit index (write overhead, not a security issue):
+
+| Table                              | Redundant pair                                                   |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| `passkeys.credential_id`           | `idx_passkeys_credential_id` + `passkeys_credential_id_key`      |
+| `tenant_users(user_id, tenant_id)` | `idx_tenant_users_unique` + `tenant_users_user_id_tenant_id_key` |
+| `tenants.slug`                     | `idx_tenants_slug` + `tenants_slug_key`                          |
+
+Cleanup = an ADDITIVE migration dropping the redundant manual index (keep the
+UNIQUE constraint). Forward-only, tested on disposable PG. Candidate for a
+future migration; not executed (no remote change).
+
+### Performance advisors (triage noted, no action)
+
+12 overlapping permissive policies, 13 unindexed foreign keys, 92 unused
+indexes — performance hygiene for a future additive migration. Not executed.
+
+## 18. Phase 2 candidate table count — corrected to 14
+
+The two Phase 2 candidate migrations create **14 physical tables** (7
+`catalog_*` via M1 `EXECUTE format` loop; 7 surface tables via M2 ALTERs:
+`message_registry`, `operation_bindings`, `registry_allowlist`,
+`setting_normative_map`, `setting_normative_map_terms`, `surface_definitions`,
+`surface_revisions`). The review package previously said 13 (omitting
+`registry_allowlist` from the conceptual count); corrected to 14 with RLS on
+all 14. Rollback = `DROP TABLE` of the 14 + `DROP TYPE` of the new enums.
+The candidate SQL suite (`test:phase2-sql`) is now wired into the billing-sql
+CI job — 43 assertions verified locally (ALL PHASE 2 SQL TESTS PASSED).
