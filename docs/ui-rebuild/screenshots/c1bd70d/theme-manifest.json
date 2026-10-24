@@ -1,0 +1,296 @@
+{
+  "sha": "c1bd70d",
+  "url": "https://generative-1shuatfct-cestari-studio.vercel.app",
+  "captured_at": "2026-10-24T03:25:42.538Z",
+  "themes": ["white", "dark"],
+  "routes": [
+    {
+      "route": "/",
+      "viewport": "desktop",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/home.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/",
+      "viewport": "tablet",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/home.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/",
+      "viewport": "mobile",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/home.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "desktop",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/dashboard.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "tablet",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/dashboard.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "mobile",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/dashboard.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "desktop",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/settings.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "tablet",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/settings.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "mobile",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/settings.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "desktop",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/knowledge.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "tablet",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/knowledge.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "mobile",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/knowledge.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "desktop",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/payments.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "tablet",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/payments.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "mobile",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/payments.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "desktop",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/products.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "tablet",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/products.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "mobile",
+      "theme": "white",
+      "theme_setting": "light",
+      "file": "theme-white/products.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/",
+      "viewport": "desktop",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/home.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/",
+      "viewport": "tablet",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/home.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/",
+      "viewport": "mobile",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/home.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "desktop",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/dashboard.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "tablet",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/dashboard.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/dashboard",
+      "viewport": "mobile",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/dashboard.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "desktop",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/settings.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "tablet",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/settings.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/settings",
+      "viewport": "mobile",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/settings.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "desktop",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/knowledge.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "tablet",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/knowledge.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/knowledge",
+      "viewport": "mobile",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/knowledge.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "desktop",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/payments.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "tablet",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/payments.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/payments",
+      "viewport": "mobile",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/payments.mobile.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "desktop",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/products.desktop.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "tablet",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/products.tablet.png",
+      "result": "captured"
+    },
+    {
+      "route": "/products",
+      "viewport": "mobile",
+      "theme": "dark",
+      "theme_setting": "dark",
+      "file": "theme-dark/products.mobile.png",
+      "result": "captured"
+    }
+  ]
+}

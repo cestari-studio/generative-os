@@ -236,6 +236,8 @@
     "subproducts",
     "datname",
     "PGPASSWORD",
-    "creds"
+    "creds",
+    "Camada",
+    "camada"
   ]
 }
