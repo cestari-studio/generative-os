@@ -1,0 +1,214 @@
+{
+  "$schema": "./carbon-component-patterns.schema.json",
+  "registryVersion": 1,
+  "generatedAt": "2026-10-24",
+  "source": "Carbon Design System storybook index via Carbon MCP code_search (authoritative)",
+  "carbonVersion": "v11",
+  "storybookHosts": {
+    "core": "https://react.carbondesignsystem.com",
+    "ibmProducts": "https://ibm-products.carbondesignsystem.com"
+  },
+  "comment": "Authoritative per-component storybook pattern limits. Each entry is the component's story catalog — the canonical 'template start layout' boundaries the UI must respect. Conformance = using a known variant/kind and never exceeding the storybook's own prop limits. Regenerate with: npm run carbon:patterns. Do NOT hand-edit variant lists.",
+  "components": {
+    "Button": {
+      "package": "@carbon/react",
+      "scope": "core",
+      "storybookPath": "/?path=/story/components-button--default",
+      "defaultVariant": "default",
+      "variants": [
+        "default",
+        "secondary",
+        "tertiary",
+        "ghost",
+        "danger",
+        "danger-tertiary",
+        "danger-ghost",
+        "icon-button",
+        "icon-button-with-badge",
+        "skeleton"
+      ],
+      "kinds": ["primary", "secondary", "tertiary", "ghost", "danger", "danger--tertiary", "danger--ghost"],
+      "sizes": ["xs", "sm", "md", "lg", "xl", "2xl"],
+      "rules": {
+        "iconOnlyRequiresIconDescription": true,
+        "noCustomColorProps": true
+      }
+    },
+    "Modal": {
+      "package": "@carbon/react",
+      "scope": "core",
+      "storybookPath": "/?path=/story/components-modal--default",
+      "defaultVariant": "default",
+      "variants": [
+        "default",
+        "full-width",
+        "danger-modal",
+        "passive-modal",
+        "with-scrolling-content",
+        "with-state-manager",
+        "with-inline-loading",
+        "with-ailabel",
+        "enable-dialog-element",
+        "enable-focus-wrap-without-sentinels",
+        "enable-presence"
+      ],
+      "rules": {
+        "keepOutsideGridFlow": true,
+        "noTabIndexAboveZero": true
+      }
+    },
+    "DataTable": {
+      "package": "@carbon/react",
+      "scope": "core",
+      "storybookPath": "/?path=/story/components-datatable--default",
+      "defaultVariant": "default",
+      "variants": [
+        "default",
+        "with-radio-selection",
+        "with-selection-and-sorting",
+        "with-selection-and-expansion",
+        "with-expansion",
+        "persistent-toolbar",
+        "small-persistent-toolbar",
+        "with-overflow-menu",
+        "batch-expansion",
+        "batch-expansion-multiple-tables",
+        "xlwith-two-lines"
+      ],
+      "rules": {
+        "composeFromDataTableParts": true,
+        "noInlineColumnStyles": true
+      }
+    },
+    "TextInput": {
+      "package": "@carbon/react",
+      "scope": "core",
+      "storybookPath": "/?path=/story/components-textinput--default",
+      "defaultVariant": "default",
+      "variants": ["default", "inline", "read-only", "with-layer", "with-ailabel", "skeleton"],
+      "rules": {
+        "requiresLabelText": true
+      }
+    },
+    "Tag": {
+      "package": "@carbon/react",
+      "scope": "core",
+      "storybookPath": "/?path=/story/components-tag--selectable",
+      "defaultVariant": "operational",
+      "variants": ["selectable", "operational", "dismissible", "read-only", "skeleton", "with-ailabel"],
+      "sizes": ["sm", "md", "lg"],
+      "rules": {
+        "notAStatusIndicator": true
+      }
+    },
+    "Tile": {
+      "package": "@carbon/react",
+      "scope": "core",
+      "storybookPath": "/?path=/story/components-tile--default",
+      "defaultVariant": "default",
+      "variants": [
+        "default",
+        "default-with-layer",
+        "clickable",
+        "clickable-with-layer",
+        "clickable-with-custom-icon",
+        "selectable",
+        "multi-select",
+        "radio",
+        "radio-with-layer",
+        "expandable",
+        "expandable-with-interactive",
+        "expandable-with-layer",
+        "with-ai-label"
+      ],
+      "rules": {
+        "clickableNeedsHrefOrHandler": true
+      }
+    },
+    "InlineNotification": {
+      "package": "@carbon/react",
+      "scope": "core",
+      "storybookPath": "/?path=/story/components-notifications-inline--default",
+      "defaultVariant": "default",
+      "variants": ["default", "with-interactive-elements", "focus-wrap-without-sentinels"],
+      "kinds": ["error", "info", "info-square", "success", "warning", "warning-alt"],
+      "rules": {
+        "requiresTitle": true,
+        "lowContrastByDefault": true
+      }
+    },
+    "PageHeader": {
+      "package": "@carbon/ibm-products",
+      "scope": "ibmProducts",
+      "storybookPath": "/?path=/story/components-pageheader--default",
+      "defaultVariant": "default",
+      "variants": [
+        "default",
+        "content-with-icon",
+        "content-with-contextual-actions",
+        "content-with-hero-image",
+        "content-with-contextual-actions-and-page-actions",
+        "tab-bar-with-tabs-and-tags",
+        "compact",
+        "custom-render-with-callbacks",
+        "with-disabled-sticky-tab-bar"
+      ],
+      "rules": {
+        "titleRequired": true,
+        "breadcrumbCurrentIsCurrentPage": true
+      }
+    },
+    "Tearsheet": {
+      "package": "@carbon/ibm-products",
+      "scope": "ibmProducts",
+      "storybookPath": "/?path=/story/components-tearsheet--default",
+      "defaultVariant": "default",
+      "variants": [
+        "default",
+        "with-influencer",
+        "with-tabs",
+        "with-steps",
+        "with-steps-and-horizontal-progress-indicator",
+        "narrow-tearsheet",
+        "stacking-tearsheet",
+        "stacking-with-different-sizes",
+        "stacking-narrow-tearsheets",
+        "with-custom-footer-actions"
+      ],
+      "rules": {
+        "keepOutsideGridFlow": true,
+        "actionsViaActionSet": true
+      }
+    },
+    "EmptyStates": {
+      "package": "@carbon/ibm-products",
+      "scope": "ibmProducts",
+      "storybookPath": "/?path=/story/components-emptystates--default",
+      "defaultVariant": "default",
+      "variants": [
+        "default",
+        "with-action",
+        "with-action-icon-button",
+        "with-link",
+        "with-action-and-link",
+        "with-tooltip-in-subtitle",
+        "with-custom-illustration",
+        "with-dark-mode-illustration"
+      ],
+      "rules": {
+        "titleAndBodyRequired": true,
+        "honestEmptyStateOnly": true
+      }
+    }
+  },
+  "tokenFallback": {
+    "comment": "Token parameterization coverage: product CSS consumes --genos-* aliases (src/styles/_genos-brand-tokens.scss); every alias falls back to the official --cds-* Carbon token in both white and g100 when no authorized override exists. Overrides flow only through src/brand/brand-manifest.json (validated, no injection) and the tenant cascade — never inline.",
+    "layers": [
+      "Layer 0: official --cds-* Carbon tokens (white + g100)",
+      "Layer 1: --genos-* semantic aliases -> Carbon tokens (default, this registry's fallback guarantee)",
+      "Layer 2: authorized brand overrides (brand-manifest.json, validated)",
+      "Layer 3: tenant/person cascade preferences (locked by org policy, server-confirmed)"
+    ],
+    "fallbackGuarantee": "An absent/invalid override at any layer resolves to the official Carbon token, so the UI never loses color/contrast in either theme."
+  }
+}

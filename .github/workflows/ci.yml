@@ -84,6 +84,9 @@ jobs:
       - name: Ontology/route matrix consistency gate
         run: npm run check:matrices
 
+      - name: Carbon component-pattern conformance gate
+        run: npm run check:carbon-patterns
+
       - name: Build client and SSR bundles
         run: npm run build
 

@@ -43,6 +43,8 @@
     "test:notifications-sql": "./scripts/test-notifications-sql.sh",
     "test:phase2-sql": "./scripts/test-phase2-sql-ci.sh",
     "test:org-hierarchy-sql": "./scripts/test-org-hierarchy-sql.sh",
+    "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
+    "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",
     "registry:sync": "node scripts/generate-registry-allowlist-sql.mjs",
     "registry:check": "node scripts/generate-registry-allowlist-sql.mjs --check"
   },
