@@ -7,6 +7,7 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { isOrgMemberViaDataApi } from '../_shared/org-membership.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,12 +59,11 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      // 2. Validate tenant membership
-      const { data: isMember, error: memberErr } = await supabaseUser.rpc('is_org_member', {
-        p_org_id: organizationId,
-      });
+      // 2. Validate tenant membership via the Data API (app_private RPCs are
+      // NOT exposed via PostgREST and would 404 — see _shared/org-membership).
+      const isMember = await isOrgMemberViaDataApi(supabaseUser, organizationId);
 
-      if (memberErr || !isMember) {
+      if (!isMember) {
         return new Response(JSON.stringify({ error: 'Forbidden: not an organization member' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

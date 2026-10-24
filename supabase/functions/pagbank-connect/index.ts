@@ -8,6 +8,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { isAllowedRedirectUri } from '../_shared/pagbank-security.ts';
+import { isOrgMemberViaDataApi } from '../_shared/org-membership.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,11 +57,11 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 2. Verify user belongs to the requested organization
-    const { data: isMember, error: membershipError } = await supabaseUser.rpc('is_org_member', {
-      p_org_id: organizationId,
-    });
-    if (membershipError || !isMember) {
+    // 2. Verify user belongs to the requested organization. The membership
+    // check queries organization_members via the Data API — app_private RPCs
+    // are NOT exposed via PostgREST and would 404 (see _shared/org-membership).
+    const isMember = await isOrgMemberViaDataApi(supabaseUser, organizationId);
+    if (!isMember) {
       return new Response(JSON.stringify({ error: 'Access denied: not a member of organization' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

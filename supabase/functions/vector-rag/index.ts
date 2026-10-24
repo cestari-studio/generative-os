@@ -8,6 +8,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { evaluateTenantAccess } from '../_shared/tenant-access.ts';
+import { isOrgMemberViaDataApi } from '../_shared/org-membership.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -80,15 +81,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // 2. Authorize caller against tenant membership (shared helper — the
-    // browser-supplied organizationId is untrusted until proven).
+    // browser-supplied organizationId is untrusted until proven). The check
+    // queries organization_members via the Data API (app_private RPCs are NOT
+    // exposed via PostgREST and would 404 — see _shared/org-membership).
     const access = await evaluateTenantAccess(organizationId, {
       getUserId: async () => user.id,
-      isOrgMember: async (_userId, orgId) => {
-        const { data: isMember, error: membershipError } = await supabaseUser.rpc('is_org_member', {
-          p_org_id: orgId,
-        });
-        return !membershipError && Boolean(isMember);
-      },
+      isOrgMember: async (_userId, orgId) => isOrgMemberViaDataApi(supabaseUser, orgId),
     });
 
     if (access.status !== 200) {
