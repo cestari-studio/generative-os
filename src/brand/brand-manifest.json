@@ -1,0 +1,29 @@
+{
+  "$schema": "./brand-manifest.schema.json",
+  "manifestVersion": 1,
+  "company": {
+    "legalName": "Cestari Studio Inc.",
+    "siteUrl": "https://cestari.studio",
+    "productUrl": "https://cestari.studio/genos"
+  },
+  "product": {
+    "name": "genOS",
+    "tagline": "generative operational system",
+    "description": "Multi-tenant workspaces with cascade governance, knowledge retrieval and integrated billing.",
+    "repository": "cestari-studio/generative-os"
+  },
+  "themes": {
+    "light": { "carbonTheme": "white", "fallbackCarbonTheme": "white" },
+    "dark": { "carbonTheme": "g100", "fallbackCarbonTheme": "g100" }
+  },
+  "tokenOverrides": {
+    "comment": "Authorized brand overrides mapped to --genos-* aliases only. Each value must be a valid CSS color/length token reference or literal; never a url(), expression() or arbitrary rule.",
+    "light": {},
+    "dark": {}
+  },
+  "links": {
+    "support": "https://cestari.studio/genos",
+    "privacy": null,
+    "terms": null
+  }
+}

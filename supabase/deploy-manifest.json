@@ -1,0 +1,405 @@
+{
+  "manifest_version": "3.0",
+  "generated_at": "2026-10-22T00:00:00Z",
+  "source": "local-git",
+  "commit": "51a93719aa3a4a912169533a40832f93e5869c13",
+  "target_project_ref": "ldjfjmihdvdmltrptngf",
+  "target_project_url": "https://ldjfjmihdvdmltrptngf.supabase.co",
+  "warning": "Reconcile against live list_edge_functions versions/hashes ONLY after owner approval and against the correct project. The sibling project jkespoegdpkdcrxsxwry (genOS) is NOT the target. Hashes are sha256 over each function's source tree (local git), NOT comparable to ezbr_sha256 bundle hashes \u2014 different inputs and algorithms; reconcile by deploy + read-back, not by hash equality.",
+  "supabase_config_toml": {
+    "path": "supabase/config.toml",
+    "state": "versioned in repo; NOT yet deployed \u2014 remote verify_jwt is still false on all six functions",
+    "expected": {
+      "pagbank-connect": true,
+      "pagbank-order": true,
+      "pagbank-webhook": false,
+      "passkey-auth": true,
+      "settings-cascade": true,
+      "vector-rag": true
+    }
+  },
+  "shared_hash": "dd98355f71fee85e919e535cefb97639d8a5e5e00745596d445160f965436faf",
+  "functions_local": {
+    "pagbank-connect": "8809f6a5c5c70d26a82682d5ab64303e308b621e27ebb2f5850cf7f549672922",
+    "pagbank-order": "45e54cf18b7a58697d43357b247c209017c0cd9cd57a1c73afe237d6fe6ba2b9",
+    "pagbank-webhook": "7639dc42eacc63fcf0d084c26ff970bdf9ddf2b9d0b576c881b53077155a324d",
+    "passkey-auth": "177c68bfc428e8fe5681e3b80c84b6bb481675914c047d79dfd749776635f48a",
+    "settings-cascade": "d2d24fd302a055adb592fc5c36abf2c213658ca25baa5ce4eba227978f11e9b8",
+    "vector-rag": "9e96cc1807f193f4c4c64404a0fcd6ee3f61d93af25c35cd379363ccd4cbb5ac"
+  },
+  "remote_observed": {
+    "read_at": "2026-10-22",
+    "state": "PRE-74c3b87 \u2014 not reconciled; all six with verify_jwt=false",
+    "functions": {
+      "passkey-auth": {
+        "version": 6,
+        "verify_jwt": false,
+        "hash_prefix": "bb2692f7e92e0dc03af1"
+      },
+      "settings-cascade": {
+        "version": 4,
+        "verify_jwt": false,
+        "hash_prefix": "8fadba6a53908d248cf4"
+      },
+      "vector-rag": {
+        "version": 6,
+        "verify_jwt": false,
+        "hash_prefix": "194a42f8389efc9412f5"
+      },
+      "pagbank-connect": {
+        "version": 5,
+        "verify_jwt": false,
+        "hash_prefix": "5c6e5f71fabf5a1e0eda"
+      },
+      "pagbank-order": {
+        "version": 5,
+        "verify_jwt": false,
+        "hash_prefix": "e854d0216938cd3c23eb"
+      },
+      "pagbank-webhook": {
+        "version": 6,
+        "verify_jwt": false,
+        "hash_prefix": "9daef433267cd6bc3647"
+      }
+    }
+  },
+  "pending_migrations": [
+    {
+      "version": "20261022053203",
+      "name": "billing_pricebook_usage_metering",
+      "applied_remote": false,
+      "note": "additive; validated on disposable PostgreSQL 17.11 (44/44 assertions) but never applied to any remote environment"
+    }
+  ],
+  "gate": "BLOCKED \u2014 explicit owner authorization required before any non-prod deploy, migration apply, or config change. No deploy/db push/remote write performed by the agent.",
+  "rehearsal": {
+    "executed_at": "2026-10-22",
+    "environment": "disposable PostgreSQL 17.11 (localhost socket), rehearsal_test database \u2014 NOT the shared remote project",
+    "migration_ledger_reconciliation": {
+      "remote_applied": 17,
+      "local_files": 18,
+      "in_sync": 17,
+      "pending_not_applied": ["20261022053203_billing_pricebook_usage_metering"],
+      "remote_only_drift": [],
+      "result": "17/17 applied migrations match local files exactly; only the billing migration is pending. Zero drift in the applied set."
+    },
+    "billing_replay": {
+      "prereq": "schema mirroring remote (organizations, persons, workspaces, projects, organization_members, payment_orders with gateway_reference_id UNIQUE + status CHECK)",
+      "result": "44/44 billing SQL assertions PASS as authenticated/service_role with RLS enforced"
+    },
+    "rollback_validation": {
+      "result": "CLEAN \u2014 all additive billing objects dropped; payment_orders back to original columns (0 quote/psp columns); 0 billing tables remain",
+      "note": "the role helper has_platform_role requires DROP ... CASCADE because RLS policies depend on it; rollback plan documents this"
+    },
+    "post_deploy_checks_pending": [
+      "list_edge_functions read-back: versions > pre-74c3b87, verify_jwt per config.toml",
+      "migration ledger read-back: 20261022053203 present",
+      "npm run test:billing-sql green against homologation DB",
+      "PagBank Sandbox E2E (PIX, timeout, webhook replay, out-of-order, cancel, decline, split)"
+    ]
+  },
+  "expected_vs_observed": {
+    "observed_at": "2026-10-23 cycle-4 (read-only remote inventory, drift expanded to cycle-3 objects)",
+    "project_ref": "ldjfjmihdvdmltrptngf (generative-os, sa-east-1, Postgres 17.11)",
+    "note": "expected = versioned artifacts in repo (branches); observed = live remote state read via MCP. Hash caveat preserved: local sha256 source-tree vs remote ezbr_sha256 bundle are NOT comparable inputs/algorithms \u2014 reconcile by deploy + read-back of versions, not prefix equality.",
+    "edge_functions": {
+      "passkey-auth": {
+        "expected": {
+          "verify_jwt": true,
+          "code": "challenge fail-closed (401 anonymous, 500 unpersisted, 401 list-anonymous)"
+        },
+        "observed": {
+          "version": 6,
+          "verify_jwt": false,
+          "code": "emits challenge to anonymous WITHOUT persisting, list anonymous returns 200 empty list"
+        },
+        "state": "RUNTIME_DRIFT (config + code)"
+      },
+      "settings-cascade": {
+        "expected": {
+          "verify_jwt": true,
+          "code": "membership-gated"
+        },
+        "observed": {
+          "version": 4,
+          "verify_jwt": false
+        },
+        "state": "RUNTIME_DRIFT (config)"
+      },
+      "vector-rag": {
+        "expected": {
+          "verify_jwt": true,
+          "code": "deterministic lexical-hash pipeline"
+        },
+        "observed": {
+          "version": 6,
+          "verify_jwt": false
+        },
+        "state": "RUNTIME_DRIFT (config)"
+      },
+      "pagbank-connect": {
+        "expected": {
+          "verify_jwt": true,
+          "code": "OAuth allowlist"
+        },
+        "observed": {
+          "version": 5,
+          "verify_jwt": false
+        },
+        "state": "RUNTIME_DRIFT (config)"
+      },
+      "pagbank-order": {
+        "expected": {
+          "verify_jwt": true,
+          "code": "quote-driven, claim_pagbank_order atomic, amount from consumed quote, x-idempotency-key persisted+reused, ambiguous != failure"
+        },
+        "observed": {
+          "version": 5,
+          "verify_jwt": false,
+          "code": "uses create_pagbank_order, accepts amountCents from request, Date.now() reference, synthetic item/tax_id fallback, NO x-idempotency-key"
+        },
+        "state": "RUNTIME_DRIFT (config + code)"
+      },
+      "pagbank-webhook": {
+        "expected": {
+          "verify_jwt": false,
+          "code": "ECDSA DER/P1363 fail-closed (design)"
+        },
+        "observed": {
+          "version": 6,
+          "verify_jwt": false
+        },
+        "state": "drift only if code differs (verify_jwt matches design)"
+      }
+    },
+    "migration_ledger": {
+      "expected_pending": ["20261022053203_billing_pricebook_usage_metering"],
+      "observed_latest": "20261022002300",
+      "observed_applied_count": 17,
+      "in_sync_applied": 17,
+      "billing_migration_applied": false,
+      "state": "17/17 applied match local files; billing migration NOT applied"
+    },
+    "billing_schema_objects": {
+      "expected_tables": [
+        "products",
+        "product_versions",
+        "price_books",
+        "price_components",
+        "bundles",
+        "bundle_items",
+        "usage_events",
+        "usage_aggregates",
+        "credit_ledger",
+        "quotes",
+        "quote_items",
+        "platform_role_assignments",
+        "billing_audit"
+      ],
+      "observed_present": [],
+      "observed_absent": [
+        "products",
+        "product_versions",
+        "price_books",
+        "price_components",
+        "bundles",
+        "bundle_items",
+        "usage_events",
+        "usage_aggregates",
+        "credit_ledger",
+        "quotes",
+        "quote_items",
+        "platform_role_assignments",
+        "billing_audit"
+      ],
+      "state": "ALL 13 billing tables ABSENT remotely (migration not applied)"
+    },
+    "rpcs": {
+      "observed_public_count": 20,
+      "observed_public_definer": [
+        "apply_setting_cascade/9",
+        "create_pagbank_order/7",
+        "get_tenant_payment_kpis/1",
+        "record_media_object/8"
+      ],
+      "observed_app_private_count": 7,
+      "observed_app_private": [
+        "custom_access_token_hook/1",
+        "handle_new_auth_user/0",
+        "has_org_admin_role/1",
+        "has_workspace_write_access/2",
+        "is_org_member/1",
+        "is_super_admin/0",
+        "sync_person_context_to_auth/0"
+      ],
+      "expected_new_rpcs": [
+        "issue_quote",
+        "issue_manual_quote",
+        "consume_quote",
+        "release_consumed_quote",
+        "record_usage_event",
+        "claim_pagbank_order",
+        "attach_psp_idempotency",
+        "has_platform_role(caller-only)"
+      ],
+      "expected_app_private_new": ["has_platform_role(text,uuid)"],
+      "observed_new_present": false,
+      "state": "expected billing RPCs + caller-only role helper ABSENT remotely (migration not applied). The 4 advisor DEFINER flags (apply_setting_cascade, create_pagbank_order, get_tenant_payment_kpis, record_media_object) match the observed public DEFINER functions."
+    },
+    "vercel": {
+      "expected": "Git integration to cestari-studio/generative-os with reproducible Preview",
+      "observed": "project listed (prj_cgIw3xCnho9TNi37gH5e3VmiwtXC, team cestari-studio); detail/domains/env reads return 404; deployments list returns 403; linkedProjects: []",
+      "state": "BLOCKED \u2014 owner action required (Git binding unproven; do NOT create duplicate project)"
+    },
+    "cycle3_objects": {
+      "expected_new_migrations": ["20261023000000_workspace_create_rpc", "20261023010000_notifications_foundation"],
+      "observed": {
+        "workspaces_table": "present (from 20261017231414, applied)",
+        "payment_orders_table": "present (applied)",
+        "notifications_table": "ABSENT (migration 20261023010000 not applied)",
+        "quotes_table": "ABSENT (migration 20261022053203 not applied)",
+        "create_workspace_rpc": "ABSENT (migration 20261023000000 not applied)",
+        "mark_notification_read_rpc": "ABSENT (migration 20261023010000 not applied)",
+        "issue_manual_quote_rpc": "ABSENT (migration 20261022053203 not applied)",
+        "consume_quote_rpc": "ABSENT (migration 20261022053203 not applied)",
+        "claim_pagbank_order_rpc": "ABSENT (migration 20261022053203 not applied)"
+      },
+      "note": "Drift now spans 4 unapplied migrations: billing 20261022053203, catalog 20261022060000, workspace 20261023000000, notifications 20261023010000. workspaces + payment_orders tables exist because their migrations are in the applied 17."
+    },
+    "unapplied_migrations": [
+      "20261022053203_billing_pricebook_usage_metering",
+      "20261022060000_catalog_normative_source",
+      "20261023000000_workspace_create_rpc",
+      "20261023010000_notifications_foundation"
+    ],
+    "remediation_sequence": {
+      "order": [
+        {
+          "version": "20261022053203",
+          "name": "billing_pricebook_usage_metering",
+          "depends_on": "applied schema (20261017231414 + 20261017231645)",
+          "status": "can apply first (self-contained prereq)"
+        },
+        {
+          "version": "20261022060000",
+          "name": "catalog_normative_source",
+          "depends_on": "billing has_platform_role (20261022053203)",
+          "status": "MUST apply after billing"
+        },
+        {
+          "version": "20261023000000",
+          "name": "workspace_create_rpc",
+          "depends_on": "applied schema only",
+          "status": "independent \u2014 can apply any time"
+        },
+        {
+          "version": "20261023010000",
+          "name": "notifications_foundation",
+          "depends_on": "applied schema only",
+          "status": "independent \u2014 can apply any time"
+        }
+      ],
+      "note": "All 4 are additive (CREATE TABLE/CREATE OR REPLACE FUNCTION/CREATE POLICY/GRANT \u2014 no drops). Idempotent guards: CREATE TABLE IF NOT EXISTS, CREATE OR REPLACE FUNCTION, CREATE POLICY (idempotent in PG15+ via IF NOT EXISTS? \u2014 verify each policy has no conflict), GRANT is idempotent. Forward-recovery: additive means no rollback of drops needed; failure mid-sequence leaves earlier migrations applied (re-runnable)."
+    }
+  },
+  "production_deploy": {
+    "deployed_at": "2026-10-23 (owner-authorized, full scope: migrations + functions + verify_jwt)",
+    "authorized_scope": "full \u2014 migrations (dependency order) + 6 Edge Functions + verify_jwt per config.toml",
+    "migrations_applied": {
+      "20261022053203": "billing_pricebook_usage_metering",
+      "20261022060000": "catalog_normative_source",
+      "20261023000000": "workspace_create_rpc",
+      "20261023010000": "notifications_foundation"
+    },
+    "migration_ledger_now": "21 migrations (was 17)",
+    "catalog_seed": "applied via supabase db query --linked \u2014 5 products, 30 subproducts, 9 capabilities, 6 services, 1 version (normative registries)",
+    "functions_deployed": {
+      "passkey-auth": {
+        "version": 7,
+        "verify_jwt": true
+      },
+      "settings-cascade": {
+        "version": 5,
+        "verify_jwt": true
+      },
+      "vector-rag": {
+        "version": 7,
+        "verify_jwt": true
+      },
+      "pagbank-connect": {
+        "version": 6,
+        "verify_jwt": true
+      },
+      "pagbank-order": {
+        "version": 6,
+        "verify_jwt": true
+      },
+      "pagbank-webhook": {
+        "version": 7,
+        "verify_jwt": false
+      }
+    },
+    "readback_verification": {
+      "tables": "products, quotes, catalog_products, notifications, platform_role_assignments, price_books, usage_events, credit_ledger \u2014 all present",
+      "rpcs": "issue_manual_quote, consume_quote, claim_pagbank_order, create_workspace, mark_notification_read, has_platform_role \u2014 all present",
+      "passkey_anonymous_challenge": "HTTP 401 (hardening live)",
+      "passkey_anonymous_list": "HTTP 401 (hardening live)",
+      "pagbank_order_anonymous": "HTTP 401 Missing authorization header (verify_jwt gateway live)",
+      "catalog_anon_read": "RLS denies anonymous read ([] \u2014 correct; authenticated-only)"
+    },
+    "runtime_drift": "RESOLVED \u2014 code verified in CI is now the code deployed in production",
+    "auth_config": {
+      "site_url": "https://app.cestari.studio",
+      "uri_allow_list": "app.cestari.studio(+/**), generative-*-cestari-studio.vercel.app(+/**), localhost:3000(+/**), localhost:5173(+/**)",
+      "passkey_enabled": true,
+      "webauthn_rp_id": "cestari.studio",
+      "webauthn_rp_display_name": "genOS by Cestari Studio",
+      "webauthn_rp_origins": "https://app.cestari.studio, https://cestari.studio",
+      "note": "Passkeys work on app.cestari.studio (+ subdomains). Vercel Preview URLs (*.vercel.app) and localhost cannot share RP ID cestari.studio (WebAuthn domain constraint) \u2014 passkey testing on those origins requires their own RP ID. Fixed the \"Passkeys are disabled\" error reported by the owner."
+    },
+    "vercel_production_promotion": {
+      "promoted_at": "2026-10-23 (owner-authorized)",
+      "sha": "973d88468049fd354178d12ab8749ab45fd62949",
+      "ref": "feat/complete-carbon-page-rebuild",
+      "deployment": "generative-kw5ic1i78-cestari-studio.vercel.app (target=production, READY)",
+      "previous_production": "generative-3ifcp8qi3 (b580fc8, 2026-10-16, was 146+ commits stale)",
+      "ci_evidence": "run 39968257764 \u2014 5/5 jobs SUCCESS on 973d884 (quality, ssr-smoke, billing-sql, browser-smoke, release-dry-run)",
+      "preview_evidence": "preview-smoke 34/34 on generative-ate1wsans (973d884)",
+      "verification": "app.cestari.studio now serves 973d884 \u2014 passkey button present, no fictional Brand DNA, no Supabase config error. Note: an earlier candidate (3939c62) had a flaky ssr-smoke broken-pipe failure and was NOT promoted (transient, same check passes on 973d884).",
+      "stale_production_resolved": "app.cestari.studio no longer serves b580fc8 (146+ commit gap closed)"
+    },
+    "org_hierarchy_security_definer_fix": {
+      "applied_at": "2026-10-24 (owner-authorized)",
+      "migration_file": "supabase/migrations/20261024000000_org_hierarchy_security_definer_fix.sql",
+      "ledger_version": "20261024064601_org_hierarchy_security_definer_fix",
+      "remote_migrations_total": 22,
+      "bug_fixed": "Onboarding org creation blocked: authenticated user got ERROR 42501 'new row violates row-level security policy for table organizations'. Root cause: organizations_insert_policy bare auth.uid() InitPlan returns NULL (GUC request.jwt.claims not visible in InitPlan context) — reproduced + proven as authenticated with RLS enforced.",
+      "fix": "create_organization_hierarchy converted SECURITY INVOKER -> SECURITY DEFINER (justified: 6-table atomic org bootstrap that per-row RLS cannot express). search_path='' + qualified objects; auth.uid() re-checked in body (42501 when NULL); caller's own id for every owner FK; slug/name validation; EXECUTE revoked from PUBLIC/anon, granted only to authenticated.",
+      "live_verification": "is_definer=true; grants authenticated+service_role EXECUTE, anon denied; happy path as dev user created real org/workspace/project (cleaned up after); anonymous denied 42501.",
+      "disposable_pg_validation": "11/11 assertions on PostgreSQL 17.11 as authenticated with RLS enforced (scripts/test-org-hierarchy-sql.sh; wired into CI billing-sql job)",
+      "commit": "af88c0e"
+    }
+  },
+  "phase2_candidates": {
+    "recorded_at": "2026-10-23",
+    "state": "LOCAL ONLY — candidate migrations generated and verified on disposable PostgreSQL 17.11; NOT applied to any remote; NOT committed/pushed",
+    "owner_audit_2026-10-23": {
+      "github": "phase2 files return 404 on remote branch (expected: uncommitted local)",
+      "supabase": "21 remote migrations; all 13 candidate tables absent (expected: not applied)",
+      "vercel": "Preview c1bd70d READY; production 973d884 READY (distinct artifacts)"
+    },
+    "candidate_migrations": [
+      "supabase/migrations/20261023120000_normative_catalog_registries.sql",
+      "supabase/migrations/20261023120100_web_surface_configuration.sql"
+    ],
+    "candidate_seeds": ["supabase/seed/registry-allowlist.sql", "supabase/seed/normative-catalog-seed.sql"],
+    "application_order": [
+      "20261023120000_normative_catalog_registries",
+      "20261023120100_web_surface_configuration",
+      "registry-allowlist.sql",
+      "normative-catalog-seed.sql"
+    ],
+    "verification": "docs/phase2-implementation-evidence.md + docs/phase2-review-package.md",
+    "gate": "BLOCKED — explicit owner authorization required before any remote application"
+  }
+}

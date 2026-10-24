@@ -1,0 +1,92 @@
+{
+  "mode": "apply",
+  "generated_at": "2026-10-24T00:19:32.821Z",
+  "source": {
+    "repo": "cestari-studio/genOS",
+    "sha": "ffd97fa93ab425fff6bac5015d34944ef924090c",
+    "blob_shas": {
+      "functionalCatalog": "0000c22eda100397cf9b9300326c8c370612feca",
+      "featureRegistry": "d4f32dea850083c96cd4e09d9402f471473f1628",
+      "productRegistry": "c8dfbd414074ed6ed3df740edc4f4b1b19d7a237",
+      "subproductRegistry": "c3b60dc168c6d0612b9d72ab9e381805bff06a70",
+      "capabilityRegistry": "6990d23599fa8ed376bd085975d79fbe133828e8",
+      "serviceRegistry": "ec0abfc6c78bbf3bec5cb8ad59bcc4436f1cd3b0",
+      "journeyRegistry": "43d69e939e6921770d18e2f7240938efff633885",
+      "entitlementRegistry": "57fad7de1133e51fa821bf76e6a5dde8a890f18e",
+      "traceabilityMatrix": "6ab81cd669004460796387de28e4d654a626e161",
+      "operationDisposition": "64eae4aeed72164c9ebc2ec7620f548a801cfab9"
+    },
+    "files": {
+      "functionalCatalog": "docs/specs/v0.9.0/genos-functional-catalog.v0.9.0.json",
+      "featureRegistry": "docs/specs/v0.9.0/registries/feature-registry.json",
+      "productRegistry": "docs/specs/v0.9.0/registries/product-registry.json",
+      "subproductRegistry": "docs/specs/v0.9.0/registries/subproduct-registry.json",
+      "capabilityRegistry": "docs/specs/v0.9.0/registries/capability-registry.json",
+      "serviceRegistry": "docs/specs/v0.9.0/registries/platform-service-registry.json",
+      "journeyRegistry": "docs/specs/v0.9.0/registries/journey-registry.json",
+      "entitlementRegistry": "docs/specs/v0.9.0/registries/entitlement-registry.json",
+      "traceabilityMatrix": "docs/specs/v0.9.0/registries/traceability-matrix.json",
+      "operationDisposition": "docs/specs/v0.9.1/V010_OPERATION_DISPOSITION.v0.9.1.json"
+    }
+  },
+  "validation": {
+    "counts": {
+      "catalog_features": 225,
+      "catalog_operations": 100,
+      "catalog_configurations": 200,
+      "catalog_pages": 60,
+      "catalog_journeys": 30,
+      "catalog_entitlement_profiles": 4,
+      "catalog_traceability": 225
+    },
+    "expected": {
+      "catalog_features": 225,
+      "catalog_operations": 100,
+      "catalog_configurations": 200,
+      "catalog_pages": 60,
+      "catalog_journeys": 30,
+      "catalog_entitlement_profiles": 4,
+      "catalog_traceability": 225
+    },
+    "key_uniqueness": "PASS",
+    "cross_references": "PASS"
+  },
+  "seed_file": "supabase/seed/normative-catalog-seed.sql",
+  "seed_sha256": "6475b692a5b952316070f466836b6b110bc20485b1fa843330dd1e2ac103ee9b",
+  "diff": {
+    "inserted": {},
+    "changed": {},
+    "unchanged": {
+      "catalog_features": 225,
+      "catalog_operations": 100,
+      "catalog_configurations": 200,
+      "catalog_pages": 60,
+      "catalog_journeys": 30,
+      "catalog_entitlement_profiles": 4,
+      "catalog_traceability": 225
+    },
+    "source_removed": {},
+    "conflicts": [
+      {
+        "table": "catalog_products",
+        "note": "read-only reconciliation",
+        "existing_keys": 0
+      },
+      {
+        "table": "catalog_subproducts",
+        "note": "read-only reconciliation",
+        "existing_keys": 0
+      },
+      {
+        "table": "catalog_capabilities",
+        "note": "read-only reconciliation",
+        "existing_keys": 0
+      },
+      {
+        "table": "catalog_platform_services",
+        "note": "read-only reconciliation",
+        "existing_keys": 0
+      }
+    ]
+  }
+}

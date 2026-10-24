@@ -1,0 +1,932 @@
+{
+  "auth": {
+    "protected": {
+      "allCategoriesSubtitle": "Os seguintes domínios modulares de configuração são gerenciados sob governança autenticada de tenant:",
+      "allCategoriesTitle": "Categorias de Configurações em Nível de Tenant",
+      "cardCategoryPrompt": "Você está tentando acessar {{category}}. Esta área é restrita a membros autenticados de workspaces corporativos.",
+      "cardDefaultPrompt": "Esta área é restrita a membros autenticados de workspaces corporativos.",
+      "cardHeading": "Sessão Autenticada de Tenant Necessária",
+      "privateCategory": "Privado",
+      "returnHome": "Voltar à Página Inicial Pública",
+      "signInButton": "Entrar no Workspace de Tenant",
+      "subtitle": "Todos os workspaces da aplicação, serviços de inteligência e configurações operacionais pertencem às categorias de Settings em nível de Tenant e exigem uma sessão autenticada.",
+      "targetCategory": "Alvo",
+      "title": "Acesso Restrito a Configurações em Nível de Tenant",
+      "validating": "Validando sessão de tenant...",
+      "warningSubtitle": "Visitantes convidados não podem consultar ou alterar configurações multi-tenant, embeddings pgvector ou registros financeiros.",
+      "warningTitle": "Portão de Acesso Ativo"
+    }
+  },
+  "cascadeSettings": {
+    "allScopes": "Todos os Domínios",
+    "applyButton": "Salvar e Aplicar Cascata",
+    "auditHeading": "Livro de Auditoria de Cascata (Schema.org Action)",
+    "auditSubtitle": "Eventos em tempo real de public.audit_actions registrados por RPC e Edge Functions.",
+    "filterScopeLabel": "Filtrar por Domínio",
+    "hubDesc": "Todos os módulos da plataforma e serviços operacionais funcionam como Configurações em Nível de Tenant, isolados no contexto da organização ativa.",
+    "hubTitle": "Categorias de Configurações em Nível de Tenant",
+    "inheritedFrom": "Efetivo de: {{level}}",
+    "jsonLdDesc": "Grafo de entidades unificado multi-nível Schema.org composto dinamicamente a partir da hierarquia ativa de Organização, Workspace e Projeto CreativeWork.",
+    "jsonLdPreview": "Snapshot JSON-LD Schema.org",
+    "lockedBadge": "BLOQUEADO por {{level}}",
+    "openCategory": "Abrir Configuração",
+    "privateBadge": "Privado",
+    "purgeChildrenLabel": "Limpar sobrescritas de níveis inferiores ao aplicar",
+    "ruleLabel": "Regra de Cascata",
+    "subtitle": "Motor granular de configurações em 4 níveis (Organização → Workspace → Projeto → Pessoa) com taxonomia Schema.org PropertyValue e regras de herança.",
+    "tabAudit": "Livro-Razão de Auditoria",
+    "tabCategories": "Hub de Configurações de Tenant",
+    "tabJsonLd": "Schema.org JSON-LD",
+    "tabMatrix": "Matriz de Políticas",
+    "tabsAriaLabel": "Seções de Governança de Cascata",
+    "tierSelectorLabel": "Nível de Escopo em Edição",
+    "title": "Configurações Multi-Tenant em Cascata",
+    "valueLabel": "Valor da Configuração"
+  },
+  "common": {
+    "actions": "Ações",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "error": "Erro",
+    "loading": "Carregando...",
+    "next": "Next processor",
+    "organization": "Organization",
+    "previous": "Previous processor",
+    "project": "Project",
+    "refresh": "Refresh",
+    "select": "Selecionar",
+    "selected": "Ativo",
+    "workspace": "Workspace",
+    "back": "Voltar",
+    "finish": "Concluir",
+    "on": "Ativado",
+    "off": "Desativado"
+  },
+  "commonHeader": {
+    "logoAlt": "Logo Cestari Studio"
+  },
+  "dashboard": {
+    "actions": {
+      "cascade": "Motor de Governança em Cascata",
+      "cascadeDesc": "Inspecione e aplique regras LOCKED, INHERIT_OVERRIDABLE e MERGE em 4 níveis.",
+      "identity": "Identidade & PF/PJ Multi-País",
+      "identityDesc": "Onboarding corporativo com validação fiscal em 9 países e passkeys FIDO2.",
+      "ingest": "Ingerir Corpus de Conhecimento",
+      "ingestDesc": "Segmente e indexe ativos DigitalDocument Schema.org multi-nível em espaços vetoriais isolados.",
+      "search": "Busca Vetorial Semântica",
+      "searchDesc": "Consulte embeddings pgvector HNSW de 384 dimensões com cálculo de distância de cosseno em tempo real."
+    },
+    "activity": {
+      "networkActivity": "Atividade de rede",
+      "networkNotifications": "Notificações de rede"
+    },
+    "charts": {
+      "actionsAxis": "Ações registradas",
+      "activityDesc": "Ações auditadas registradas em public.audit_actions nos horizontes ativos.",
+      "activityTitle": "Linha do Tempo de Atividades e Auditoria",
+      "cascadeDesc": "Detalhamento de configurações ativas por herança e diretivas de bloqueio.",
+      "cascadeTitle": "Distribuição de Regras de Governança em Cascata",
+      "corpusDesc": "Detalhamento de arquivos DigitalDocument e MediaObject indexados sob Schema.org.",
+      "corpusTitle": "Ativos de Conhecimento e Mídia por Formato",
+      "itemsCount": "Quantidade",
+      "rulesTotal": "Regras ativas",
+      "timelineAxis": "Linha do tempo"
+    },
+    "chartsRegion": "Telemetria e Análise de Governança",
+    "contextHierarchy": "Hierarquia do inquilino",
+    "emptyStates": {
+      "clearSearch": "Limpar busca",
+      "nodesSubtitle": "Nenhum nó corresponde ao escopo do cluster ou à consulta de busca. Redefina os filtros para visualizar todos os sistemas online.",
+      "nodesTitle": "Nenhum nó de cluster correspondente",
+      "resetFilters": "Redefinir filtros",
+      "searchSubtitle": "Nenhum registro corresponde a \"{{query}}\". Limpe a busca para visualizar todos os itens.",
+      "searchTitle": "Nenhum resultado correspondente"
+    },
+    "filtersRegion": "Filtros do painel",
+    "kpis": {
+      "assetsLabel": "Ativos de conhecimento",
+      "assetsSub": "Embeddings vetoriais e objetos de mídia",
+      "assetsTag": "pgvector & Storage",
+      "membersLabel": "Membros ativos",
+      "membersSub": "Entidades Schema.org Person cadastradas na organização",
+      "membersTag": "Nível 4 Pessoas",
+      "projectsLabel": "Projetos CreativeWork",
+      "projectsSub": "Iniciativas ativas entre workspaces",
+      "projectsTag": "Nível 3 Projetos",
+      "rulesLabel": "Regras bloqueadas em cascata",
+      "rulesSub": "Políticas mandatórias aplicadas de níveis superiores",
+      "rulesTag": "Governança Estrita"
+    },
+    "kpisRegion": "KPIs Operacionais",
+    "loading": "Carregando painel...",
+    "nodes": {
+      "heading": "Nós do cluster"
+    },
+    "numberTiles": {
+      "activeProjects": "Projetos CreativeWork",
+      "activeUsers": "Usuários ativos",
+      "assetsBadge": "pgvector HNSW (384-d)",
+      "certifiedDevelopers": "Desenvolvedores certificados",
+      "effectiveSettings": "Regras de cascata ativas",
+      "industryClients": "Clientes industriais",
+      "innovationCenters": "Centros de inovação quântica",
+      "knowledgeAssets": "Corpora de conhecimento",
+      "networkMembers": "Membros da rede",
+      "ninetyDayChange": "Variação de 90 dias",
+      "projectsBadge": "Projetos de Nível 3",
+      "qiskitAdvocates": "Defensores do Qiskit",
+      "qiskitCourses": "Cursos Qiskit",
+      "qiskitLearners": "Alunos Qiskit",
+      "quantumSafeClients": "Clientes quantum-safe",
+      "researchPapers": "Total de artigos científicos",
+      "settingsBadge_one": "{{count}} BLOQUEADO",
+      "settingsBadge_many": "{{count}} LOCKED",
+      "settingsBadge_other": "{{count}} BLOQUEADOS",
+      "usersBadge": "Pessoas (Schema.org Person)"
+    },
+    "previewCards": {
+      "blueprintDesc": "Loop cognitivo autônomo conectando recuperação pgvector, raciocínio Granite e execução de Action Schema.org.",
+      "blueprintTitle": "Blueprint de Workflow de Agentes Neurais",
+      "governanceDesc": "Aplique políticas LOCKED, INHERIT_OVERRIDABLE e MERGE em 4 níveis organizacionais multi-tenant.",
+      "governanceTitle": "Governança em Cascata",
+      "graniteDesc": "Modelo Granite 3.0 8B Instruct provisionado em modo corporativo multi-tenant com aceleração de tensor em hardware, quantização int4 e auditoria de tokens ponta a ponta.",
+      "graniteTitle": "Implantação do Modelo de Fundação IBM Granite",
+      "knowledgeDesc": "Consulte embeddings pgvector HNSW de 384 dimensões com cálculo de distância de cosseno em tempo real em schemas multi-nível.",
+      "knowledgeTitle": "Conhecimento & RAG Vetorial",
+      "monitoringDesc": "Rastreamento de conformidade com SLA de 99,98%, diagnóstico automatizado de vazamento de memória e perfilamento de Core Web Vitals em tempo real.",
+      "monitoringTitle": "Telemetria Contínua",
+      "paymentsDesc": "Processamento fiscal multi-tenant PagBank com registro em livro-razão de auditoria em tempo real e verificação de webhooks.",
+      "paymentsTitle": "Gateway Financeiro",
+      "runtimeDesc": "Nós de contêiner isolados executando workers serverless node-v22 com latências de inicialização inferiores a 14ms.",
+      "runtimeTitle": "Runtime de Máquinas Virtuais",
+      "tagActive": "Pipeline ativo"
+    },
+    "processor": {
+      "available": "Disponível",
+      "label": "Processador"
+    },
+    "shortcuts": {
+      "heading": "Aceleradores Operacionais",
+      "knowledgeDesc": "Consulte embeddings pgvector HNSW de 384 dimensões com cálculo de distância por cosseno em tempo real.",
+      "knowledgeTitle": "Busca Vetorial Semântica",
+      "paymentsDesc": "Gerencie splits multi-tenant PagBank, saques de parceiros e planos de assinatura.",
+      "paymentsTitle": "Hub Financeiro e Faturamento",
+      "productsDesc": "Configure suítes modulares de produtos multi-tenant e atributos de identidade corporativa.",
+      "productsTitle": "Produtos e DNA da Marca",
+      "settingsDesc": "Inspecione e aplique regras LOCKED, INHERIT_OVERRIDABLE e MERGE em 4 níveis.",
+      "settingsTitle": "Motor de Governança em Cascata",
+      "subheading": "Acessos diretos aos principais subsistemas multi-tenant e ferramentas de governança."
+    },
+    "shortcutsRegion": "Atalhos de Ação Rápida",
+    "sla": "Online · Latência de 14ms · SLA de 99,98%",
+    "subtitle": "Visão operacional unificada de workspaces multi-tenant, inteligência semântica pgvector, governança em cascata e logs de auditoria.",
+    "tables": {
+      "actionType": "Ação @type",
+      "auditDesc": "Livro-razão operacional multi-tenant imutável registrado em PostgreSQL public.audit_actions.",
+      "auditTitle": "Fluxo de Auditoria Schema.org Action",
+      "cascadeRule": "Regra de cascata",
+      "domain": "Domínio",
+      "entity": "Entidade",
+      "governanceDesc": "Parâmetros Schema.org PropertyValue resolvidos e computados nos 4 níveis hierárquicos.",
+      "governanceTitle": "Governança em Cascata Efetiva",
+      "instrument": "Instrumento / Comando",
+      "propertyId": "ID da Propriedade",
+      "searchAudits": "Filtrar ações de auditoria...",
+      "searchGovernance": "Filtrar políticas...",
+      "sourceTier": "Nível de origem",
+      "status": "Status"
+    },
+    "tablesRegion": "Livros Operacionais e Matriz de Governança",
+    "throughput": {
+      "liveStream": "Transmissão ao vivo",
+      "online": "Online",
+      "pendingJobs": "Tarefas pendentes",
+      "timeSpentTitle": "Time spent in state (%)"
+    },
+    "title": "Painel do Inquilino",
+    "toolbar": {
+      "allWorkspaces": "Todos os workspaces",
+      "clusterAll": "Todos os clusters",
+      "clusterScope": "Escopo do cluster",
+      "export": "Exportar relatório",
+      "formAria": "Barra de ferramentas de filtragem do dashboard",
+      "horizon24h": "Últimas 24 horas",
+      "horizon30d": "Últimos 30 dias",
+      "horizon7d": "Últimos 7 dias",
+      "horizon90d": "Trimestral (90 dias)",
+      "refresh": "Atualizar métricas",
+      "refreshing": "Atualizando...",
+      "searchLabel": "Buscar nós e telemetria",
+      "searchPlaceholder": "Filtrar por cluster, ID ou ação de auditoria...",
+      "timeHorizon": "Horizonte temporal",
+      "timeHorizonLabel": "Horizonte temporal",
+      "workspaceScopeLabel": "Escopo do workspace"
+    },
+    "topology": {
+      "title": "Topologia do sistema"
+    },
+    "urlParameters": {
+      "description": "Demonstra como recuperar parâmetros de rota e query da URL.",
+      "greeting": "Olá {{name}}! 👋",
+      "pathParameter": "Parâmetro de rota detectado (id):",
+      "queryParameterName": "Parâmetro de busca detectado (name):",
+      "queryParameterQ": "Parâmetro de busca detectado (q):",
+      "title": "Exemplo de Parâmetros de URL",
+      "tryAccessing": "Experimente acessar:"
+    },
+    "visualizations": {
+      "auditSubtitle": "Fluxo de eventos multi-tenant somente anexação em public.audit_actions.",
+      "auditTitle": "Fluxo de Ações de Auditoria Schema.org",
+      "emptyAudits": "Nenhuma ação de auditoria registrada ainda. Eventos operacionais serão transmitidos aqui em tempo real.",
+      "emptySettings": "Nenhuma política de cascata ativa resolvida para este contexto de tenant.",
+      "settingsSubtitle": "Resolução em tempo real de Schema.org PropertyValue via RPC resolve_effective_settings.",
+      "settingsTitle": "Governança Efetiva em Cascata"
+    },
+    "header": {
+      "title": "Painel do Inquilino",
+      "subtitle": "Telemetria multi-inquilino corporativa, orquestração de onboarding e operações de governança",
+      "actionsButton": "Ações",
+      "actionsOverflow": "Mais ações"
+    },
+    "breadcrumbs": {
+      "home": "Início"
+    },
+    "tabs": {
+      "ariaLabel": "Visualizações do painel",
+      "dashboard": "Painel",
+      "workspace": "Workspace",
+      "users": "Usuários",
+      "subscriptions": "Assinaturas",
+      "settings": "Configurações"
+    },
+    "onboarding": {
+      "title": "Conclua seu Onboarding do Inquilino",
+      "subtitleWithProgress": "Siga estas 4 etapas essenciais para configurar e provisionar seu sistema operacional ({{completed}} de 4 concluídas).",
+      "step1": {
+        "label": "Etapa 1 de 4",
+        "title": "Configurar DNA e Identidade do Inquilino",
+        "desc": "Defina dados da organização legal, validação multi-país, registro fiscal e identidade da marca."
+      },
+      "step2": {
+        "label": "Etapa 2 de 4",
+        "title": "Provisionar Workspaces e Projetos",
+        "desc": "Organize equipes criativas, defina limites de projetos e configure escopos de isolamento."
+      },
+      "step3": {
+        "label": "Etapa 3 de 4",
+        "title": "Indexar Conhecimento Vetorial e Documentos",
+        "desc": "Envie documentos para particionar e gerar embeddings pgvector 384-d para RAG cognitivo."
+      },
+      "step4": {
+        "label": "Etapa 4 de 4",
+        "title": "Ativar Assinatura e FinOps",
+        "desc": "Configure pagamentos PagBank, selecione limites de plano e automatize faturamento fiscal."
+      }
+    },
+    "workspaces": {
+      "current": "Workspace Ativo",
+      "organization": "Organização",
+      "identifier": "ID",
+      "createButton": "Criar Novo Workspace",
+      "tableTitle": "Workspaces Provisionados",
+      "tableDesc": "Contextos de execução multi-inquilino isolados e governados por modelos Schema.org.",
+      "colName": "Nome do Workspace",
+      "colIdentifier": "Identificador / ID",
+      "colProjects": "Projetos CreativeWork",
+      "colStatus": "Status",
+      "unnamed": "Workspace Padrão",
+      "nameLabel": "Nome do Espaço de Trabalho",
+      "slugLabel": "Identificador Slug",
+      "envLabel": "Tipo de Ambiente"
+    },
+    "users": {
+      "title": "Membros e Permissões do Inquilino",
+      "subtitle": "Entidades Schema.org Person registradas em {{org}} com escopos RBAC isolados.",
+      "inviteButton": "Convidar Membro de Equipe",
+      "inviteAlert": "Diálogo de convite enviado.",
+      "tableTitle": "Membros da Organização",
+      "tableDesc": "Pessoal auditado e autorizado sob políticas de governança multi-inquilino.",
+      "colName": "Nome do Membro",
+      "colEmail": "Endereço de E-mail",
+      "colRole": "Função na Organização",
+      "colStatus": "Status",
+      "colId": "ID da Pessoa",
+      "roleOwner": "Proprietário / Administrador",
+      "roleMember": "Membro do Workspace",
+      "unnamed": "Pessoa Anônima",
+      "inviteUnavailableTitle": "Convite de membros ainda não disponível — o fluxo de convite não está provisionado para esta organização.",
+      "inviteUnavailableNote": "O convite de membros ainda não está provisionado para esta organização. Gerencie membros diretamente no quadro da organização."
+    },
+    "subscriptions": {
+      "currentPlan": "Assinatura Ativa: {{tier}}",
+      "subtitle": "Gestão de billing, uso e assinaturas desta organização.",
+      "manageButton": "Gerenciar Cobrança e PagBank",
+      "membersQuota": "Cota de Membros",
+      "workspacesQuota": "Cota de Workspaces",
+      "ragQuota": "Documentos Vetoriais RAG",
+      "quotaProgress": "Utilização",
+      "upgrade": "Fazer Upgrade",
+      "planSelect": "Selecionar Nível de Assinatura",
+      "billingCycle": "Frequência de Cobrança",
+      "noPlan": "Nenhuma assinatura ativa",
+      "pricingNotConfigured": "Os preços ainda não estão configurados para esta organização. Planos, preços e limites são publicados pelo administrador da plataforma por meio do catálogo de billing versionado."
+    },
+    "settings": {
+      "personalTitle": "Preferências Pessoais do Usuário",
+      "personalSubtitle": "Configurações parametrizadas persistidas por usuário em sua entidade Schema.org Person no banco de dados.",
+      "governanceTitle": "Governança em Cascata do Inquilino",
+      "governanceSubtitle": "Herança de políticas em 4 níveis: Plataforma -> Organização -> Workspace -> Pessoa.",
+      "activePolicies": "Regras de Cascata Ativas",
+      "lockedPolicies": "Políticas Bloqueadas",
+      "openMatrixButton": "Abrir Matriz de Cascata e Grafo JSON-LD",
+      "savedTitle": "Configurações Salvas",
+      "persistedDesc": "Configurações persistidas no seu perfil pessoal no banco de dados.",
+      "saveError": "Falha ao persistir configuração."
+    }
+  },
+  "footer": {
+    "copyright": "Copyright © {{currentYear}} Cestari Studio Inc.",
+    "disclaimer": "genOS é o sistema operacional generativo da Cestari Studio Inc. O acesso a workspaces de produção requer uma assinatura ativa.",
+    "evaluation": "Saiba mais sobre como as aplicações genOS são avaliadas em"
+  },
+  "knowledgeVector": {
+    "docContentLabel": "Conteúdo do Documento (Markdown / Texto)",
+    "docScopeLabel": "Escopo de Visibilidade",
+    "docsTableDesc": "Documentos indexados com embeddings HNSW 384-d em public.knowledge_documents.",
+    "docsTableTitle": "Corpus de Conhecimento Indexado (Schema.org DigitalDocument)",
+    "docTitleLabel": "Título do Documento (Schema.org name)",
+    "dropzoneLabel": "Arraste e solte arquivos aqui ou clique para enviar ao Supabase Storage",
+    "emptyDocs": "Nenhum documento indexado neste corpus de conhecimento ainda. Use o formulário para segmentar e indexar um documento.",
+    "emptyMedia": "Nenhum objeto de mídia enviado para este bucket ainda.",
+    "emptySearch": "Nenhum fragmento semântico encontrado para este limiar de similaridade. Ajuste o controle deslizante ou altere os termos de busca.",
+    "ingestButton": "Segmentar e Indexar Documento",
+    "ingestHeading": "Ingerir Documento de Conhecimento",
+    "matchCountLabel": "Resultados Máximos",
+    "mediaTableDesc": "Objetos ativos armazenados em buckets isolados por tenant em public.media_objects.",
+    "mediaTableTitle": "MediaObjects de Storage por Tenant (Schema.org MediaObject)",
+    "searchButton": "Buscar Vetores",
+    "searchDescription": "Executa cálculo de distância por cosseno em tempo real contra embeddings de 384 dimensões pré-computados em tabelas pgvector no PostgreSQL.",
+    "searchHeading": "Correspondência Semântica pgvector",
+    "searchPlaceholder": "Faça uma pergunta ou pesquise nos trechos de conhecimento do tenant...",
+    "similarityThresholdLabel": "Limiar Mínimo de Similaridade",
+    "storagePathLabel": "Caminho de Armazenamento Isolado:",
+    "subtitle": "Armazenamento multi-tenant Schema.org DigitalDocument e busca semântica vetorial HNSW de 384 dimensões.",
+    "suggestionsLabel": "Consultas rápidas:",
+    "tabIngest": "Corpus & Ingestão",
+    "tabsAriaLabel": "Seções de Conhecimento e RAG Vetorial",
+    "tabSearch": "Busca Semântica",
+    "tabStorage": "Armazenamento & Buckets",
+    "title": "Corpus de Conhecimento & RAG Vetorial pgvector",
+    "uploadDescription": "Envie arquivos PDF, Markdown ou ativos multimídia para o bucket isolado do inquilino.",
+    "uploadHeading": "Upload em Armazenamento de Objetos",
+    "taxonomyHeading": "Taxonomia Schema.org Implementada:",
+    "uploadFileLabel": "Arquivo DigitalDocument para Ingestão",
+    "searching": "Buscando no corpus de conhecimento..."
+  },
+  "nav": {
+    "actions": {
+      "appSwitcher": "Alternador de Workspaces",
+      "search": "Buscar",
+      "userProfile": "Perfil do Usuário"
+    },
+    "categories": {
+      "governance": "Governança",
+      "operations": "Operações & Catálogo",
+      "overview": "Visão Geral"
+    },
+    "header": {
+      "name": "Generative OS",
+      "navigationAria": "Navegação Principal",
+      "prefix": "Cestari",
+      "shellLabel": "Generative OS"
+    },
+    "home": "Início",
+    "links": {
+      "cascadeSettings": "Governança em Cascata",
+      "dashboard": "Painel do Inquilino",
+      "knowledgeVector": "Conhecimento & RAG Vetorial",
+      "payments": "Faturamento & FinOps",
+      "placeholder": "Página Modelo",
+      "subMenu": "Submenu",
+      "welcome": "Início"
+    },
+    "menu": {
+      "close": "Fechar menu",
+      "open": "Abrir menu"
+    },
+    "sideNav": {
+      "ariaLabel": "Navegação Lateral"
+    }
+  },
+  "notFound": {
+    "description": "Esta não é a página que você estava procurando.",
+    "loading": "Carregando página de erro...",
+    "maintainer": "Mantido pela Cestari Studio Inc.",
+    "routeNotRecognized": "A rota '{{pathname}}' não foi reconhecida.",
+    "title": "Página não encontrada"
+  },
+  "onboarding": {
+    "accountTypeHeading": "1. Classificação da Entidade Legal",
+    "backButton": "Voltar",
+    "birthDate": "Data de Nascimento (AAAA-MM-DD)",
+    "cameraAria": "Reconhecimento Facial / Windows Hello",
+    "cameraAuth": "Reconhecimento Facial",
+    "cancelButton": "Cancelar",
+    "cancelModalDesc": "Seu progresso é salvo etapa por etapa. Você pode retomar a configuração a qualquer momento na página de perfil.",
+    "cancelModalTitle": "Tem certeza de que deseja sair do assistente de configuração?",
+    "cardPFDesc": "Sua conta será configurada com permissões de workspace pessoal e informações fiscais individuais.",
+    "cardPFTitle": "Fluxo de Configuração de Pessoa Física",
+    "cardPJDesc": "Será configurada uma hierarquia corporativa completa com governança legal, múltiplos workspaces e controle de acesso por departamento.",
+    "cardPJTitle": "Configuração Inicial de Inquilino Corporativo",
+    "completeButton": "Concluir Configuração e Entrar",
+    "completing": "Concluindo configuração...",
+    "continueSetup": "Continuar Configuração",
+    "enrollPasskeyBtn": "Registrar Chave WebAuthn",
+    "exitSetup": "Sair da Configuração",
+    "newTenantDesc": "Será configurada uma organização exclusiva com schema PostgreSQL isolado, workspace inicial e projeto padrão.",
+    "newTenantTitle": "Destino da Configuração:",
+    "nextButton": "Próximo",
+    "orgSelectLabel": "Organização (Nível 1)",
+    "passkeyDesc": "Registre um autenticador de hardware (Touch ID, Face ID, Windows Hello ou uma chave de segurança) para entrar sem senha da próxima vez.",
+    "passkeyHeading": "Segurança Biométrica FIDO2 / WebAuthn",
+    "passkeySuccessDesc": "Sua credencial biométrica física foi cadastrada com sucesso e está pronta para login corporativo sem senhas.",
+    "prjSelectLabel": "Projeto / CreativeWork (Nível 3)",
+    "securityKeyAria": "Chave de Segurança FIDO2 / YubiKey",
+    "securityKeyAuth": "Chave Física FIDO2",
+    "securityKeyLabel": "Chave de Segurança",
+    "steps": {
+      "addressSubtitle": "Endereço da sede legal ou domicílio fiscal registrado",
+      "addressTitle": "Endereço Registrado",
+      "classificationSubtitle": "Selecione a classificação jurídica da conta, jurisdição e idioma da interface",
+      "classificationTitle": "Conta e Jurisdição",
+      "corporateSubtitle": "Porte corporativo, representantes legais e responsabilidades de signatários",
+      "corporateTitle": "Governança Corporativa e Porte",
+      "identitySubtitle": "Números de registro oficial do governo e dados de identidade legal",
+      "identityTitle": "Identidade e Registro Fiscal",
+      "workspaceSubtitle": "Configuração de hierarquia multi-tenant e registro FIDO2/WebAuthn",
+      "workspaceTitle": "Workspace e Segurança"
+    },
+    "title": "Onboarding do Inquilino Corporativo",
+    "touchAria": "Toque Biométrico / Touch ID",
+    "touchAuth": "Touch ID / Impressão Digital",
+    "workspaceHeading": "Hierarquia de Instância e Workspace",
+    "wsSelectLabel": "Workspace / Departamento (Nível 2)",
+    "companyLegalName": "Razão Social / Denominação Comercial",
+    "countryLabel": "Jurisdição Fiscal / País",
+    "customValidationLabel": "Verificação Fiscal Local",
+    "dba": "Nome Fantasia / Marca Comercial",
+    "dob": "Data de Nascimento",
+    "errorCompleteRequired": "Por favor, preencha todos os campos obrigatórios antes de prosseguir.",
+    "errorSaving": "Falha ao persistir dados de onboarding.",
+    "escrowSplitLabel": "Retenção de Escrow da Plataforma (%):",
+    "escrowSplitPlaceholder": "ex: 15",
+    "escrowSplitWarn": "Por favor, insira uma porcentagem válida de split entre 0% e 100%.",
+    "individual": "Pessoa Física (Schema.org Person)",
+    "legalName": "Nome Completo Legal",
+    "lockCascadeLabel": "Travar políticas organizacionais como regras mandatórias LOCKED em cascata",
+    "mfaHeading": "3. Credenciais Criptográficas & MFA",
+    "mfaSubtitle": "Chaves de segurança FIDO2 WebAuthn resistentes a phishing e autenticação biométrica.",
+    "orgCreatedToast": "Organização criada e provisionada com sucesso.",
+    "orgCreatedToastSubtitle": "Ambiente multi-tenant inicializado no Supabase.",
+    "orgId": "Identificador do Tenant (Slug Único)",
+    "orgName": "Nome da Organização (Legal)",
+    "orgSubtitle": "Configure a entidade corporativa e políticas do Schema.org Organization.",
+    "orgTitle": "Identidade Corporativa e Tenant DNA",
+    "organization": "Pessoa Jurídica (Schema.org Organization)",
+    "passkeyPrompt": "Toque no sensor do seu dispositivo ou insira a chave de segurança física...",
+    "passkeyRegistered": "Chave de Acesso WebAuthn Registrada com Sucesso",
+    "passkeyRegistering": "Siga o prompt do seu dispositivo...",
+    "passkeyUnavailable": "A autenticação WebAuthn biométrica não está disponível neste navegador.",
+    "passkeyVerified": "Chave WebAuthn Verificada",
+    "registerPasskey": "Registrar Chave de Acesso FIDO2",
+    "setupMethod": "Método de Autenticação Primário:",
+    "step1": "Identidade Legal",
+    "step2": "Tenant DNA",
+    "step3": "Segurança & MFA",
+    "step4": "FinOps & PagBank",
+    "step4Heading": "4. FinOps & Split no PagBank",
+    "step4Subtitle": "Habilite transações instantâneas via PIX, cartões de crédito e faturamento automatizado.",
+    "taxId": "Identificador Fiscal (CPF / CNPJ / NIF)",
+    "validation": {
+      "required": "O nome da organização é obrigatório"
+    },
+    "passkeyUnavailableTitle": "Passkeys indisponíveis nesta versão",
+    "passkeyUnavailableDesc": "O registro de autenticadores de hardware (Touch ID, Face ID, Windows Hello, chaves de segurança) será ativado quando o registro WebAuthn verificado no servidor estiver disponível. Você pode concluir o onboarding agora e entrar com e-mail e senha.",
+    "passkeyRegisterBtn": "Registrar uma passkey",
+    "passkeyRegisteredTitle": "Passkey registrada",
+    "passkeyRegisteredDesc": "Você pode entrar com este autenticador da próxima vez.",
+    "passkeyRegisterErrorTitle": "Falha ao registrar a passkey",
+    "passkeyRegisterErrorDesc": "Você pode concluir o onboarding e registrar uma passkey depois no seu perfil."
+  },
+  "payments": {
+    "amountLabel": "Valor da Cobrança (BRL)",
+    "auditHeading": "Eventos do Livro-Razão em Tempo Real (public.audit_actions)",
+    "authorizeSeller": "Autorizar Vendedor PagBank",
+    "boletoHeading": "Boleto Bancário Gerado",
+    "boletoInstructions": "Linha digitável do código de barras para pagamento:",
+    "chargeError": "Falha ao processar cobrança PagBank.",
+    "chargeFailed": "Falha ao gerar registro de cobrança.",
+    "chargesSectionHeading": "Livro-Razão de Transações do Inquilino",
+    "chargesTableDesc": "Cobranças processadas com IDs de transação PagBank e rastreamento Schema.org Invoice.",
+    "chargesTableTitle": "Histórico de Transações e Cobranças",
+    "chargeSuccess": "Comprovante de cobrança gerado com sucesso!",
+    "colAmount": "Valor",
+    "colChargeId": "ID da Cobrança",
+    "colDate": "Data / Hora",
+    "colMethod": "Método",
+    "colSellerAccount": "Conta PagBank",
+    "colSellerEmail": "E-mail",
+    "colSellerName": "Razão Social do Vendedor",
+    "colSellerStatus": "Status do Vendedor",
+    "colSellerTaxId": "CNPJ / CPF",
+    "colStatus": "Status",
+    "commissionLabel": "Comissão da Plataforma (%)",
+    "connectError": "Erro ao obter link de autorização do PagBank Connect.",
+    "connectHeading": "Contas Conectadas e Motor de Split de Pagamentos",
+    "connectInitError": "Erro ao inicializar conexão PagBank Connect.",
+    "connectWindowOpened": "Janela de autorização do PagBank Connect aberta.",
+    "copied": "Copiado!",
+    "copyEmv": "Copiar Código PIX",
+    "customerEmail": "E-mail do Cliente",
+    "customerName": "Nome do Cliente",
+    "emptyAudits": "Nenhum evento de auditoria de pagamento registrado até o momento.",
+    "emptyCharges": "Nenhuma transação encontrada. Clique em 'Nova Cobrança Instantânea' para criar uma.",
+    "emptySellers": "Nenhum vendedor PagBank vinculado. Clique em 'Autorizar Vendedor PagBank' para conectar.",
+    "fdwDesc": "O Foreign Data Wrapper wasm_wrapper (wrappers v0.6.3) mapeia os endpoints REST do PagBank diretamente para tabelas relacionais do PostgreSQL isoladas no schema pagbank_fdw.",
+    "fdwHeading": "Arquitetura Supabase Wrappers & Foreign Data Wrapper (FDW)",
+    "invalidAmount": "Por favor, insira um valor válido maior que zero.",
+    "kpiPaid": "Cobranças Pagas",
+    "kpiPending": "Cobranças Pendentes",
+    "kpiSellers": "Vendedores Conectados (Split)",
+    "kpiTotal": "Volume Total Transacionado",
+    "methodBoleto": "Boleto Bancário",
+    "methodCard": "Cartão de Crédito",
+    "methodLegend": "Método de Pagamento",
+    "methodPix": "PIX Instantâneo (QR Code EMV)",
+    "modalCancel": "Cancelar",
+    "modalHeading": "Emitir Nova Cobrança PagBank",
+    "modalSubmit": "Gerar Cobrança",
+    "newCharge": "Nova Cobrança Instantânea",
+    "noAuditEvents": "Nenhum evento de auditoria de pagamento registrado até o momento.",
+    "noSplit": "Nenhum (100% Inquilino da Plataforma)",
+    "pixQrHeading": "QR Code PIX Dinâmico Gerado",
+    "pixQrInstructions": "Escaneie com o app do seu banco ou copie o código EMV:",
+    "printBoleto": "Imprimir / Baixar Boleto PDF",
+    "refresh": "Atualizar",
+    "sellerSplitLabel": "Vendedor para Split de Pagamento (Opcional)",
+    "sellersTableDesc": "Subcontas conectadas elegíveis para repasses e splits automatizados",
+    "sellersTableTitle": "Vendedores Autorizados",
+    "status": "Status",
+    "subtitle": "Módulo financeiro unificado: Pagamentos PIX instantâneos, Cartão, Boleto, Conexão Marketplace Split e Supabase Wrappers.",
+    "tabAudit": "Auditoria Schema.org",
+    "tabCharges": "Cobranças & Pedidos",
+    "tabConnect": "PagBank Connect & Split",
+    "tabFdw": "Supabase Wrappers (FDW)",
+    "taxonomyHeading": "Taxonomia Schema.org Implementada:",
+    "title": "Motor Multi-Tenant PagBank & FDW",
+    "colActions": "Ações",
+    "colCharges": "Cobranças",
+    "colCreatedAt": "Data de Criação",
+    "colCustomer": "Cliente",
+    "colDescription": "Descrição",
+    "colDueDate": "Vencimento",
+    "colEmail": "E-mail",
+    "colEntity": "Entidade",
+    "colId": "ID da Transação",
+    "colInstrument": "Instrumento",
+    "colName": "Nome do Vendedor",
+    "colNet": "Valor Líquido",
+    "colReference": "Referência",
+    "colSeller": "Vendedor",
+    "colSplit": "Divisão / Split",
+    "colTimestamp": "Registro de Data/Hora",
+    "colType": "Tipo @type",
+    "connectDesc": "Gerencie contas de parceiros autorizados para split de pagamentos automático no PagBank.",
+    "invalidCustomer": "Nome e e-mail do cliente são obrigatórios.",
+    "amountPlaceholder": "0,00"
+  },
+  "placeholder": {
+    "description1": "Geralmente não é uma boa ideia manter páginas em construção.",
+    "description2": "Esta página ajuda a demonstrar a navegação global.",
+    "loading": "Carregando página...",
+    "maintainer": "Mantido pela Cestari Studio Inc.",
+    "routeInfo": "Você está na rota '{{pathname}}'.",
+    "title": "Esta página ainda não está pronta"
+  },
+  "productsCatalog": {
+    "allEntitled": "5 Suítes Ativas",
+    "brandDnaDesc": "Modelos de identidade verbal, visual e comportamental resolvidos entre tenants clientes sob a Cestari Studio Agency.",
+    "brandDnaTitle": "Catálogo Multi-Tenant de Brand DNA",
+    "brandName": "Perfil de Marca",
+    "brandTableDesc": "Selecione um perfil para inspecionar tokens semânticos de Brand DNA, diretrizes de voz e posicionamento.",
+    "brandTableTitle": "Perfis de Marca de Tenants Ativos",
+    "brandTokensHeading": "Tokens Semânticos de Brand DNA",
+    "capabilitiesHeading": "Capabilities Necessárias",
+    "capabilitiesHeadingTitle": "Capabilities Compartilhadas da Plataforma",
+    "capabilitiesSub": "Capacidades reutilizáveis consumidas de forma uniforme por todas as 5 suítes de produtos genOS.",
+    "emptyBrands": "Nenhum perfil de marca corresponde aos seus critérios de busca.",
+    "entitledBadge": "Habilitado & Ativo",
+    "inspectTokens": "Inspecionar",
+    "jsonLdSnippet": "Contexto Schema.org JSON-LD Ativo",
+    "locale": "Idioma",
+    "marketSegment": "Segmento de Mercado",
+    "maturity": "Status de Maturidade",
+    "openModule": "Abrir Módulo",
+    "parentTenant": "Autoridade do Tenant Pai",
+    "searchBrands": "Buscar Perfis de Marca",
+    "searchPlaceholder": "Filtrar por nome, segmento de mercado ou categoria...",
+    "segment": "Categoria de Mercado",
+    "servicesHeading": "Serviços Fundamentais da Plataforma",
+    "servicesSub": "Serviços transversais que sustentam autenticação, shell de UI, regras de cascata e gates de release.",
+    "subproductsHeading": "Subprodutos & Componentes",
+    "subtitle": "Suítes autônomas de produtos multi-tenant, perfis de Brand DNA e serviços da plataforma governados por taxonomias Schema.org.",
+    "suitesDesc": "Cinco sistemas verticais operando sobre runtime compartilhado de agentes Helian, pgvector RAG e ledgers de auditoria imutáveis.",
+    "suitesTitle": "Suítes de Produtos genOS Multi-Tenant",
+    "supportedLocales": "Idiomas Suportados",
+    "tabBrandDna": "Perfis de Brand DNA",
+    "tabPlatform": "Serviços & Capabilities da Plataforma",
+    "tabProducts": "Suítes de Produtos (5)",
+    "tabsAriaLabel": "Seções de Produtos e Brand DNA",
+    "tabTaxonomy": "Grafo de Taxonomia Schema.org",
+    "taxonomyDesc": "Alinhamento formal de todas as páginas, entidades e ações da plataforma com o vocabulário padrão Schema.org.",
+    "taxonomyTitle": "Grafo de Taxonomia Multi-Tenant Schema.org",
+    "title": "Catálogo de Produtos & Brand DNA",
+    "verifiableOutcomes": "Resultados Verificáveis",
+    "notProvisionedTitle": "Catálogo de produtos não provisionado",
+    "notProvisionedDesc": "O catálogo normativo de produtos ainda não está provisionado neste ambiente. Quando a fonte do catálogo (migração + seed) for aplicada, as suítes de produtos, subprodutos, capabilities e outcomes aparecerão aqui.",
+    "loading": "Carregando o catálogo normativo de produtos…",
+    "suitesCount": "{{count}} Suítes",
+    "brandDnaNotProvisionedTitle": "Registro de Brand DNA não provisionado",
+    "brandDnaNotProvisionedDesc": "Ainda não existe um registro de Brand DNA provisionado neste ambiente. Os perfis de marca dos tenants serão listados aqui quando o serviço e o schema do registro de marcas existirem — nunca a partir de uma lista estática de demonstração."
+  },
+  "profile": {
+    "auth": {
+      "emailLabel": "E-mail corporativo",
+      "guestMode": "Visualizando Organização Demonstrativa Padrão",
+      "heading": "Identidade Remota e Chaves de Acesso",
+      "languageLabel": "Idioma da interface (Schema.org inLanguage)",
+      "magicLink": "Enviar link mágico",
+      "noPasskeys": "Nenhuma chave de acesso registrada para esta pessoa ainda.",
+      "passkeysHeading": "Chaves de Acesso Registradas (Schema.org SecurityCredential)",
+      "passwordLabel": "Senha",
+      "registerPasskey": "Registrar Chave WebAuthn",
+      "signedInAs": "Conectado como",
+      "signIn": "Entrar",
+      "signOut": "Sair"
+    },
+    "guest": {
+      "signInPrompt": "Entre com suas credenciais para acessar os recursos e o workspace do seu tenant.",
+      "welcome": "Sessão Convidado"
+    },
+    "language": {
+      "label": "Idioma Preferido da Interface"
+    },
+    "links": {
+      "accessKeys": "Chaves de acesso",
+      "authSection": "Autenticação",
+      "dashboard": "Visão Geral e Análises",
+      "label": "Links de perfil",
+      "payments": "Gateway Financeiro & PagBank",
+      "planAndBilling": "Plano e faturamento",
+      "planFormat": "Plano {{plan}}",
+      "products": "Produtos & Brand DNA",
+      "profileSettings": "Configurações de Perfil",
+      "userManagement": "Gerenciamento de usuários",
+      "userProfile": "Perfil de usuário & onboarding",
+      "workspaceSwitcher": "Configuração de Workspaces & Contexto"
+    },
+    "passkeys": {
+      "description": "As chaves de acesso fornecem autenticação criptográfica resistente a phishing usando Touch ID, Face ID ou chaves de segurança via W3C WebAuthn.",
+      "deviceNameLabel": "Nome do dispositivo ou chave de segurança",
+      "empty": "Nenhuma credencial de chave de acesso registrada ainda.",
+      "modalTitle": "Chaves de Acesso & Segurança Biométrica",
+      "registerButton": "Registrar Chave de Acesso",
+      "registeredList_one": "Credencial registrada ({{count}}):",
+      "registeredList_many": "Registered credentials ({{count}}):",
+      "registeredList_other": "Credenciais registradas ({{count}}):"
+    },
+    "readOnly": {
+      "brand": "Marca",
+      "instance": "Instância",
+      "organization": "Organização",
+      "owner": "Proprietário da instância",
+      "workspace": "Workspace / Projeto",
+      "workspaceId": "Workspace ID"
+    },
+    "settings": {
+      "complementMenuTheme": "Inverter tema do menu",
+      "themeLegend": "Tema do Carbon Design System"
+    }
+  },
+  "routes": {
+    "products": "Produtos & Brand DNA"
+  },
+  "signInModal": {
+    "accountTypePF": "Pessoa Física (Individual / PF)",
+    "accountTypePJ": "Pessoa Jurídica (Enterprise / PJ)",
+    "addressTitle": "Endereço Oficial",
+    "authenticating": "Autenticando...",
+    "changeEmail": "Alterar",
+    "companySizeLabel": "Porte da Empresa",
+    "companySizes": {
+      "ENTERPRISE": "Grande Empresa (250+ colaboradores / Enterprise)",
+      "MEDIUM": "Média Empresa (50-249 colaboradores / Medium)",
+      "MICRO": "Microempresa (1-9 colaboradores / Micro)",
+      "SMALL": "Pequena Empresa (10-49 colaboradores / Small)"
+    },
+    "completeSetup": "Concluir configuração & acessar",
+    "continue": "Continuar",
+    "countries": {
+      "BR": "Brasil (BR)",
+      "CN": "China (CN)",
+      "DE": "Deutschland (DE)",
+      "ES": "España (ES)",
+      "FR": "France (FR)",
+      "GB": "United Kingdom (GB)",
+      "JP": "Japão (JP)",
+      "PT": "Portugal (PT)",
+      "US": "United States (US)"
+    },
+    "countryLabel": "País / Jurisdição",
+    "emailLabel": "E-mail corporativo",
+    "error": {
+      "emptyPassword": "A senha é obrigatória.",
+      "invalidCredentials": "E-mail ou senha incorretos. Tente novamente.",
+      "invalidEmail": "Insira um endereço de e-mail válido.",
+      "title": "Erro de autenticação",
+      "resetFailed": "Falha ao enviar o link de redefinição de senha",
+      "passkeyFailed": "Falha ao entrar com passkey. Tente outro método."
+    },
+    "fullName": "Nome Completo",
+    "headerLabel": "Autenticação Cestari Studio",
+    "legalName": "Razão Social / Legal Business Name",
+    "locality": "Cidade / Município",
+    "logIn": "Entrar",
+    "magicLinkBtn": "Enviar link mágico por e-mail",
+    "onboardingIntro": "Selecione sua hierarquia multi-tenant Schema.org ativa e preferências antes de acessar o workspace:",
+    "otpSentDesc": "Verifique sua caixa de entrada para o link de acesso direto.",
+    "otpSentTitle": "Link mágico enviado",
+    "passkeyRegistered": "Credencial Passkey registrada",
+    "passwordLabel": "Senha",
+    "pfDetailsTitle": "Dados da Pessoa Física",
+    "pjDetailsTitle": "Dados da Empresa & Porte",
+    "region": "Estado / Província / UF",
+    "registerPasskey": "Registrar Passkey WebAuthn",
+    "rememberId": "Lembrar ID do usuário",
+    "repDetailsTitle": "Dados do Responsável Legal",
+    "repDoc": "Documento Pessoal do Responsável",
+    "repName": "Nome do Responsável Legal",
+    "repPosition": "Cargo Executivo / Função",
+    "settingUp": "Configurando...",
+    "steps": {
+      "credentials": "2. Credenciais",
+      "credentialsDesc": "Senha & Verificação",
+      "identity": "1. Identidade",
+      "identityDesc": "ID do usuário",
+      "mfa": "3. Multi-Fator (MFA)",
+      "mfaDesc": "Toque ou Câmera",
+      "onboarding": "Configuração de Onboarding",
+      "onboardingDesc": "Configuração do Workspace"
+    },
+    "streetAddress": "Logradouro / Rua e Número",
+    "title": "Entrar no genOS",
+    "tradeName": "Nome Fantasia / Brand Name",
+    "verifiedBadge": "Identidade Verificada",
+    "emailPlaceholder": "voce@empresa.com",
+    "passkeyUnavailableTitle": "Passkeys indisponíveis nesta versão",
+    "passkeyUnavailableDesc": "O acesso sem senha será ativado quando o registro WebAuthn verificado no servidor estiver disponível.",
+    "forgotPasswordBtn": "Esqueceu a senha?",
+    "resetSentTitle": "Link de redefinição enviado",
+    "resetSentDesc": "Verifique sua caixa de entrada para o link de redefinição de senha e escolha uma nova senha.",
+    "passkeySignInBtn": "Entrar com passkey"
+  },
+  "taxonomy": {
+    "billing": {
+      "description": "Gateway financeiro, integração PagBank, split de pagamentos, faturas e livro razão.",
+      "label": "Cobrança & FinOps"
+    },
+    "files": {
+      "description": "Documentos digitais, ativos de mídia, embeddings vetoriais RAG e buckets de armazenamento.",
+      "label": "Arquivos & Corpus de Conhecimento"
+    },
+    "products": {
+      "description": "Suítes de produtos multi-tenant (Content Factory, Client Ops, Schedule Ops, Reputation Ops, Academy Ops) e perfis Brand DNA.",
+      "label": "Produtos & Brand DNA"
+    },
+    "profile": {
+      "description": "Identidade corporativa multi-país (PF/PJ), passkeys FIDO2 e provisionamento de tenant.",
+      "label": "Perfil & Identidade"
+    },
+    "reports": {
+      "description": "Métricas operacionais, telemetria, relatórios de consumo e painéis KPI multi-tenant.",
+      "label": "Relatórios & Telemetria"
+    },
+    "settings": {
+      "description": "Hierarquia em 4 níveis de cascata, taxonomia PropertyValue Schema.org e governança do sistema.",
+      "label": "Configurações & Governança"
+    }
+  },
+  "tenantSettings": {
+    "categories": {
+      "billing": {
+        "description": "Credenciais PagBank, divisão de pagamentos multi-seller, planos de assinatura recorrente e transferências de saldo.",
+        "label": "Gateway Financeiro & Cobranças"
+      },
+      "governance": {
+        "description": "Hierarquia em 4 níveis (Organização → Workspace → Projeto → Pessoa), regras Schema.org e livro razão de auditoria.",
+        "label": "Governança & Políticas em Cascata"
+      },
+      "identity": {
+        "description": "Validação PF/PJ em múltiplos países, autenticação biométrica passkeys, dados de representantes legais e provisionamento de organização.",
+        "label": "Identidade Corporativa & Onboarding"
+      },
+      "knowledge": {
+        "description": "Documentos do corpus, configurações de busca semântica pgvector, modelos de embeddings e objetos de armazenamento.",
+        "label": "Base de Conhecimento & RAG Vetorial"
+      },
+      "overview": {
+        "description": "Saúde do workspace de tenant, telemetria, métricas de consumo e KPIs de desempenho multi-tenant.",
+        "label": "Visão Geral & Telemetria"
+      }
+    }
+  },
+  "welcome": {
+    "about": {
+      "consistency": {
+        "description": "Regras de herança LOCKED, INHERIT_OVERRIDABLE e MERGE garantem consistência visual, acessibilidade WCAG 2.2 AA e políticas de IA.",
+        "title": "Padrões e Governança"
+      },
+      "customize": {
+        "description": "Cada workspace e projeto pode personalizar temas Carbon, idiomas e bases vetoriais respeitando os bloqueios da organização.",
+        "title": "Personalização Granular"
+      },
+      "heading": "Sobre a arquitetura",
+      "purpose": {
+        "description": "Combina React 19 SSR, Carbon Design System v11 e Supabase Multi-Tenant (Organização → Workspace → Projeto → Pessoa).",
+        "title": "Propósito"
+      }
+    },
+    "features": {
+      "designSystemDesc": "Componentes e Tokens Acessíveis v11",
+      "designSystemTitle": "Carbon Design System",
+      "heading": "Recursos",
+      "multiTenancyDesc": "Hierarquia Schema.org em 4 Níveis",
+      "multiTenancyTitle": "Multi-Tenancy",
+      "vectorRagDesc": "Embeddings pgvector HNSW de 384 Dimensões",
+      "vectorRagTitle": "RAG Cognitivo"
+    }
+  },
+  "welcomeHeader": {
+    "button": {
+      "enterApp": "Acessar Painel do Inquilino",
+      "signIn": "Entrar no Workspace",
+      "useTemplate": "Usar este template"
+    },
+    "description1": "genOS é o sistema operacional generativo da Cestari Studio Inc.: workspaces multi-tenant com governança em cascata, recuperação de conhecimento e billing integrado.",
+    "title": "genOS by Cestari Studio",
+    "description2": "Entre para acessar sua organização, workspaces e projetos."
+  },
+  "workspaceSwitcher": {
+    "activeRole": "Função Ativa",
+    "createOrganization": "Criar Organização",
+    "heading": "Alternador de Workspace e Organização",
+    "modalHeading": "Alternar Contexto de Workspace Ativo",
+    "organizationLabel": "Organização (Nível 1)",
+    "orgIdentifierPlaceholder": "identificador-organizacao",
+    "orgNamePlaceholder": "Nome da organização",
+    "projectLabel": "Projeto / CreativeWork (Nível 3)",
+    "statusTitle": "Contexto do Tenant",
+    "workspaceLabel": "Workspace / Departamento (Nível 2)"
+  },
+  "settings": {
+    "profile": {
+      "orgName": "Nome da Organização",
+      "legalName": "Razão Social Registrada",
+      "country": "Jurisdição / País",
+      "postalCode": "Código Postal / CEP"
+    }
+  },
+  "knowledge": {
+    "modelLabel": "Modelo de Embedding",
+    "chunkSizeLabel": "Tamanho do Chunk de Documento",
+    "metricLabel": "Métrica de Distância pgvector",
+    "autoIndexLabel": "Segmentar e vetorizar uploads automaticamente"
+  },
+  "resetPassword": {
+    "title": "Escolha uma nova senha",
+    "subtitle": "Defina uma nova senha para sua conta Cestari Studio. O link de recuperação funciona uma vez e expira.",
+    "newLabel": "Nova senha",
+    "confirmLabel": "Confirmar nova senha",
+    "submit": "Definir nova senha",
+    "updating": "Atualizando senha...",
+    "backToSignIn": "Voltar para entrar",
+    "successTitle": "Senha atualizada",
+    "successDesc": "Sua senha foi alterada. Você já pode entrar com ela.",
+    "errorTitle": "Não foi possível atualizar a senha",
+    "error": {
+      "tooShort": "Use pelo menos 8 caracteres.",
+      "mismatch": "As senhas não coincidem.",
+      "generic": "Falha ao atualizar a senha."
+    }
+  }
+}
