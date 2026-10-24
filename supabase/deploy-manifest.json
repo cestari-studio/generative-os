@@ -367,6 +367,17 @@
       "preview_evidence": "preview-smoke 34/34 on generative-ate1wsans (973d884)",
       "verification": "app.cestari.studio now serves 973d884 \u2014 passkey button present, no fictional Brand DNA, no Supabase config error. Note: an earlier candidate (3939c62) had a flaky ssr-smoke broken-pipe failure and was NOT promoted (transient, same check passes on 973d884).",
       "stale_production_resolved": "app.cestari.studio no longer serves b580fc8 (146+ commit gap closed)"
+    },
+    "org_hierarchy_security_definer_fix": {
+      "applied_at": "2026-10-24 (owner-authorized)",
+      "migration_file": "supabase/migrations/20261024000000_org_hierarchy_security_definer_fix.sql",
+      "ledger_version": "20261024064601_org_hierarchy_security_definer_fix",
+      "remote_migrations_total": 22,
+      "bug_fixed": "Onboarding org creation blocked: authenticated user got ERROR 42501 'new row violates row-level security policy for table organizations'. Root cause: organizations_insert_policy bare auth.uid() InitPlan returns NULL (GUC request.jwt.claims not visible in InitPlan context) — reproduced + proven as authenticated with RLS enforced.",
+      "fix": "create_organization_hierarchy converted SECURITY INVOKER -> SECURITY DEFINER (justified: 6-table atomic org bootstrap that per-row RLS cannot express). search_path='' + qualified objects; auth.uid() re-checked in body (42501 when NULL); caller's own id for every owner FK; slug/name validation; EXECUTE revoked from PUBLIC/anon, granted only to authenticated.",
+      "live_verification": "is_definer=true; grants authenticated+service_role EXECUTE, anon denied; happy path as dev user created real org/workspace/project (cleaned up after); anonymous denied 42501.",
+      "disposable_pg_validation": "11/11 assertions on PostgreSQL 17.11 as authenticated with RLS enforced (scripts/test-org-hierarchy-sql.sh; wired into CI billing-sql job)",
+      "commit": "af88c0e"
     }
   },
   "phase2_candidates": {
