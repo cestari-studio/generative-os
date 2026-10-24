@@ -287,6 +287,14 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:notifications-sql
 
+      - name: Run Phase 2 normative catalog + web surface SQL tests (candidate migrations, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:phase2-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

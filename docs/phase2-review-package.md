@@ -1,7 +1,8 @@
 # Fase 2 — Pacote de Revisão (sem commit/push/PR)
 
 > **Data:** 2026-10-23 · **Base do alvo:** `c1bd70d88ce5c6ae88fac4befb4e820f92f41169` (`feat/complete-carbon-page-rebuild`) · **Fonte normativa:** `cestari-studio/genOS` @ `ffd97fa93ab425fff6bac5015d34944ef924090c` · **Estado do pacote:** 21 arquivos no working tree (5 modificados, 16 novos), **nenhum commit/push/PR**, nenhuma operação remota.
-> **Auditoria remota do owner (2026-10-23):** confirmou ausência esperada dos artefatos no GitHub (não commitados), ausência das 13 tabelas candidatas no Supabase (não aplicadas), Preview `c1bd70d` READY, produção `973d884` READY. Compatível com o estado deste pacote.
+> **Auditoria remota do owner (2026-10-23):** confirmou ausência esperada dos artefatos no GitHub (não commitados), ausência das tabelas candidatas no Supabase (não aplicadas), Preview `c1bd70d` READY, produção `973d884` READY. Compatível com o estado deste pacote.
+> **Correção de contagem (2026-10-24):** as duas migrações candidatas criam **14 tabelas físicas** — 7 normativas `catalog_*` (M1) + 7 da superfície (M2: `message_registry`, `operation_bindings`, `registry_allowlist`, `setting_normative_map`, `setting_normative_map_terms`, `surface_definitions`, `surface_revisions`). A contagem anterior "13" omitia `registry_allowlist` da contagem conceitual; ela é uma tabela física e consta das 14. RLS é habilitado nas 14 (M1 via loop `EXECUTE format`, M2 via 7 ALTERs). Rollback = `DROP TABLE` das 14 + `DROP TYPE` dos enums novos.
 
 ## 1. Inventário e hashes (re-verificados após auditoria, 2026-10-23)
 
@@ -10,7 +11,7 @@
 | Arquivo                                                               | sha256 (16)         | Nota                                                                        |
 | --------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------- |
 | `supabase/migrations/20261023120000_normative_catalog_registries.sql` | `dca270e302b35205`  | 7 tabelas normativas + RLS + grants                                         |
-| `supabase/migrations/20261023120100_web_surface_configuration.sql`    | `1cde52e5f719ea64`  | Camada B (6 tabelas) + validators de publicação                             |
+| `supabase/migrations/20261023120100_web_surface_configuration.sql`    | `1cde52e5f719ea64`  | Camada B (7 tabelas) + validators de publicação                             |
 | `supabase/seed/normative-catalog-seed.sql`                            | `6475b692a5b95231`  | 844 upserts idempotentes (determinístico entre runs)                        |
 | `supabase/seed/registry-allowlist.sql`                                | `3bda225cd78dd13b`  | 72 entradas, espelho gerado dos registries de código                        |
 | `scripts/import-normative-catalog.mjs`                                | —                   | importador determinístico (fail-closed)                                     |
@@ -57,9 +58,9 @@ Diff cumulativo dos modificados: **+25/−5 linhas** (fora os arquivos novos).
 3. `supabase/seed/registry-allowlist.sql`
 4. `supabase/seed/normative-catalog-seed.sql` (ou `node scripts/import-normative-catalog.mjs --source <clone pinado> --dsn <remoto> --apply` — produz o relatório de diff)
 
-**Pós-aplicação (read-back):** `list_migrations` = 23; contagens 225/100/200/60/30/4/225; RLS ativa nas 13 tabelas; anon lê 0 do catálogo e ≥0 das mensagens published; `registry_allowlist` = 72 linhas com checksum único.
+**Pós-aplicação (read-back):** `list_migrations` = 23; contagens 225/100/200/60/30/4/225; RLS ativa nas **14 tabelas** (7 `catalog_*` via loop `EXECUTE format` na M1, 7 da superfície via ALTERs na M2); anon lê 0 do catálogo e ≥0 das mensagens published; `registry_allowlist` = 72 linhas com checksum único.
 
-**Rollback/forward-recovery:** tudo aditivo — rollback = `DROP TABLE` das 13 tabelas novas + `DROP TYPE` dos 4 enums novos (nada existente é tocado); falha no meio da sequência deixa objetos anteriores aplicados e reexecutáveis (idempotentes).
+**Rollback/forward-recovery:** tudo aditivo — rollback = `DROP TABLE` das **14 tabelas novas** (7 `catalog_*`: `catalog_configurations`, `catalog_entitlement_profiles`, `catalog_features`, `catalog_journeys`, `catalog_operations`, `catalog_pages`, `catalog_traceability`; 7 da superfície: `message_registry`, `operation_bindings`, `registry_allowlist`, `setting_normative_map`, `setting_normative_map_terms`, `surface_definitions`, `surface_revisions`) + `DROP TYPE` dos 4 enums novos (nada existente é tocado); falha no meio da sequência deixa objetos anteriores aplicados e reexecutáveis (idempotentes).
 
 **Não fazer:** re-executar seeds contra `jkespoegdpkdcrxsxwry` (projeto-irmão, nunca alvo); editar as seeds à mão; promover Preview para produção (fora do escopo deste pacote).
 

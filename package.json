@@ -41,7 +41,7 @@
     "test:benchmark": "node scripts/benchmark.mjs",
     "test:workspace-sql": "./scripts/test-workspace-sql.sh",
     "test:notifications-sql": "./scripts/test-notifications-sql.sh",
-    "test:phase2-sql": "./scripts/test-phase2-sql.sh",
+    "test:phase2-sql": "./scripts/test-phase2-sql-ci.sh",
     "registry:sync": "node scripts/generate-registry-allowlist-sql.mjs",
     "registry:check": "node scripts/generate-registry-allowlist-sql.mjs --check"
   },
