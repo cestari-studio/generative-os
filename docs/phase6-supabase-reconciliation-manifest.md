@@ -1,5 +1,7 @@
 # Fase 6 — Manifesto de Reconciliação Supabase (preparado, não executado)
 
+> **ADENDO 2026-10-23 — EXECUTADO E VERIFICADO.** Este manifesto foi preparado em 2026-10-22 como plano bloqueado. A reconciliação foi **executada em 2026-10-23 com autorização do proprietário** (escopo completo: 4 migrations + 6 functions + verify_jwt + seed de catálogo) e **verificada por leitura viva em 2026-10-23** (Fase 0): 21 migrations aplicadas (= 21 arquivos locais), funções nas versões 7/5/7/6/6/7 com `verify_jwt` conforme `config.toml`, tabelas de billing/catálogo/notifications presentes, RPCs de billing presentes. Registro de execução: `supabase/deploy-manifest.json → production_deploy`. Estado consolidado: `docs/phase0-preflight-consolidated-state.md`. O conteúdo histórico abaixo é preservado como estava.
+
 **Data de preparação:** 2026-10-22
 **Estado:** `BLOCKED — explicit owner authorization required`
 **Fonte de hashes/versões:** [`supabase/deploy-manifest.json`](../supabase/deploy-manifest.json) (v2.0, gerado no commit `51a93719`)

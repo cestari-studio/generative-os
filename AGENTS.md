@@ -30,9 +30,9 @@
 - SQL changes: apply on disposable Postgres (matching remote major), then test happy + negative paths as `authenticated` with RLS enforced — cross-tenant read/write, replay, expiry, single-use, recursion, direct-write denial.
 - Record `PASS`/`FAIL`/`BLOCKED` with SHA. CI green ≠ runtime verified ≠ deployed ≠ accepted.
 
-## Current known gaps (do not re-declare as done)
+## Current known gaps (verified 2026-10-23 — see `docs/phase0-preflight-consolidated-state.md`)
 
-- Remote Supabase runtime is **not reconciled** (Edge Functions are pre-`74c3b87` versions; `verify_jwt=false` on all six). Phase 6 reconciliation is gated on owner approval.
-- Vercel Git integration for the existing project is **unproven** (project read 404/403 via connector). Do not create a duplicate project; resolve access first.
+- Remote Supabase runtime is **reconciled** (owner-authorized deploy 2026-10-23): 21 migrations applied, Edge Functions at versions 7/5/7/6/6/7 with `verify_jwt` per `supabase/config.toml`, billing/catalog/notifications tables and RPCs present. Verified live via MCP read. Do not re-apply applied migrations.
+- Vercel Git integration is **proven** (connected 2026-10-23; git-source Previews; production promoted to `973d884`, serving `app.cestari.studio`). **Residual channel restriction:** the Vercel MCP connector still returns 404/empty — use the Vercel CLI (authenticated `octavio-4895`, linked project `generative-os` — ID recorded in the Phase 0 doc). Do not create a duplicate project.
 - Identity record `00000000-0000-4000-8000-000000000010` is **frozen** (auth.users vs public.persons divergence) — do not mutate.
-- Phase 7 (Preview E2E, screenshots white/g100, WCAG 2.2 AA evidence, browser tests) is **not done**; route matrix `E2E_VERIFIED`/`ACCEPTED` statuses require it.
+- Phase 7 is **partially done**: preview-smoke 34/34, preview-axe 0 critical/serious, screenshots `e7247f8` (8 routes × desktop/tablet/mobile) recorded in `docs/release-evidence-ledger.md`. **Still pending:** human WCAG 2.2 AA manual checklist (all boxes unchecked — no route may go to `ACCEPTED` without it), white/g100 theme screenshots, and the axe evidence-path drift (`preview-3405000` cited vs `preview-b2beb6e` present). Route matrix `E2E_VERIFIED`/`ACCEPTED` statuses require these.

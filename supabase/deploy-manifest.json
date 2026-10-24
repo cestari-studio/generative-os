@@ -368,5 +368,27 @@
       "verification": "app.cestari.studio now serves 973d884 \u2014 passkey button present, no fictional Brand DNA, no Supabase config error. Note: an earlier candidate (3939c62) had a flaky ssr-smoke broken-pipe failure and was NOT promoted (transient, same check passes on 973d884).",
       "stale_production_resolved": "app.cestari.studio no longer serves b580fc8 (146+ commit gap closed)"
     }
+  },
+  "phase2_candidates": {
+    "recorded_at": "2026-10-23",
+    "state": "LOCAL ONLY — candidate migrations generated and verified on disposable PostgreSQL 17.11; NOT applied to any remote; NOT committed/pushed",
+    "owner_audit_2026-10-23": {
+      "github": "phase2 files return 404 on remote branch (expected: uncommitted local)",
+      "supabase": "21 remote migrations; all 13 candidate tables absent (expected: not applied)",
+      "vercel": "Preview c1bd70d READY; production 973d884 READY (distinct artifacts)"
+    },
+    "candidate_migrations": [
+      "supabase/migrations/20261023120000_normative_catalog_registries.sql",
+      "supabase/migrations/20261023120100_web_surface_configuration.sql"
+    ],
+    "candidate_seeds": ["supabase/seed/registry-allowlist.sql", "supabase/seed/normative-catalog-seed.sql"],
+    "application_order": [
+      "20261023120000_normative_catalog_registries",
+      "20261023120100_web_surface_configuration",
+      "registry-allowlist.sql",
+      "normative-catalog-seed.sql"
+    ],
+    "verification": "docs/phase2-implementation-evidence.md + docs/phase2-review-package.md",
+    "gate": "BLOCKED — explicit owner authorization required before any remote application"
   }
 }

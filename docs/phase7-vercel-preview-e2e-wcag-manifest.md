@@ -1,5 +1,7 @@
 # Fase 7 — Manifesto Vercel, Preview E2E e WCAG 2.2 AA (preparado, não executado)
 
+> **ADENDO 2026-10-23 — PARCIALMENTE EXECUTADO.** As dependências de proprietário foram resolvidas em 2026-10-23: vínculo Git conectado (07:17 UTC), env vars publishable configuradas para Preview+Production. Executado e registrado em `docs/release-evidence-ledger.md`: Preview git-source verificado, preview-smoke **34/34** (`generative-e3xsqpj8c`, SHA `3405000`), preview-axe **0 critical/serious** em 6 rotas, screenshots `docs/ui-rebuild/screenshots/e7247f8` (8 rotas × 3 viewports), promoção de produção para `973d884`. **Pendente:** (1) checklist manual WCAG 2.2 AA — gate humano, todas as caixas abertas em `docs/ui-rebuild/wcag-manual-review-checklist.md`, sem o qual nenhuma rota vai a `ACCEPTED`; (2) screenshots por tema (white/g100); (3) drift de evidência — o ledger cita `axe/preview-3405000`, mas o diretório presente é `axe/preview-b2beb6e`. Estado consolidado: `docs/phase0-preflight-consolidated-state.md`. O conteúdo histórico abaixo é preservado como estava.
+
 **Data de preparação:** 2026-10-22
 **Estado:** `BLOCKED — owner action required` (integração Git Vercel não comprovada)
 **Nenhum deployment, alteração de integração, promoção, domínio ou variável foi executado.**
