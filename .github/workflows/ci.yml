@@ -217,7 +217,7 @@ jobs:
           }
 
           check_route "/" "Cestari Studio"
-          check_route "/dashboard" "Effective Cascade Governance"
+          check_route "/dashboard" "Tenant Dashboard"
           check_route "/settings" "Multi-Tenant Cascade Settings"
           check_route "/knowledge" "Knowledge Base"
 
