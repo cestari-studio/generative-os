@@ -1,0 +1,63 @@
+/**
+ * Copyright IBM Corp. 2026
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+// ============================================================================
+// genOS / Cestari Studio — brand token alias layer
+// ============================================================================
+// Layer 0: official Carbon `--cds-*` tokens (white and g100 themes).
+// Layer 1: semantic `--genos-*` aliases that resolve to Carbon tokens by
+//          default — this file.
+// Layer 2: authorized brand overrides from src/brand/brand-manifest.json
+//          (applied at runtime by src/brand/apply-brand-tokens.js).
+// Layer 3: tenant/person cascade preferences (locked by org policy).
+// Rule: product CSS consumes `--genos-*` aliases. Aliases fall back to the
+// official Carbon token whenever a custom value is absent or invalid, in
+// both white and g100 modes, so the UI never loses color/contrast.
+
+:root {
+  // Color aliases → Carbon theme tokens
+  --genos-color-background: var(--cds-background);
+  --genos-color-background-hover: var(--cds-background-hover);
+  --genos-color-layer: var(--cds-layer);
+  --genos-color-layer-hover: var(--cds-layer-hover);
+  --genos-color-border: var(--cds-border-subtle);
+  --genos-color-border-strong: var(--cds-border-strong);
+  --genos-color-text: var(--cds-text-primary);
+  --genos-color-text-secondary: var(--cds-text-secondary);
+  --genos-color-text-placeholder: var(--cds-text-placeholder);
+  --genos-color-text-inverse: var(--cds-text-inverse);
+  --genos-color-link: var(--cds-link-primary);
+  --genos-color-link-hover: var(--cds-link-primary-hover);
+  --genos-color-focus: var(--cds-focus);
+  --genos-color-interactive: var(--cds-interactive);
+  --genos-color-highlight: var(--cds-highlight);
+  --genos-color-success: var(--cds-support-success);
+  --genos-color-warning: var(--cds-support-warning);
+  --genos-color-error: var(--cds-support-error);
+  --genos-color-info: var(--cds-support-info);
+
+  // Spacing aliases → Carbon spacing tokens
+  --genos-space-2xs: var(--cds-spacing-02);
+  --genos-space-xs: var(--cds-spacing-03);
+  --genos-space-sm: var(--cds-spacing-05);
+  --genos-space-md: var(--cds-spacing-07);
+  --genos-space-lg: var(--cds-spacing-09);
+  --genos-space-xl: var(--cds-spacing-10);
+
+  // Shape & motion aliases
+  --genos-radius-sm: 0;
+  --genos-radius-md: 0;
+  --genos-motion-fast: var(--cds-duration-fast-02);
+  --genos-motion-moderate: var(--cds-duration-moderate-02);
+}
+
+// Brand identity colors (Cestari Studio) — stable across white/g100 unless
+// overridden by the validated brand manifest.
+:root {
+  --genos-brand-primary: var(--cds-interactive);
+  --genos-brand-secondary: var(--cds-text-secondary);
+}

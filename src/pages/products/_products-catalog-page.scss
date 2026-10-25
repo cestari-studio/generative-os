@@ -1,0 +1,226 @@
+/**
+ * Copyright IBM Corp. 2026
+ *
+ * This source code is licensed under the Apache-2.0 license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+@use '@carbon/react/scss/spacing' as *;
+@use '@carbon/react/scss/type' as *;
+@use '@carbon/react/scss/theme' as *;
+@use '@carbon/react/scss/utilities/convert' as convert;
+@use '../../styles/carbon-foundations' as *;
+
+.cs--products-page__header {
+  @include cs-page-header;
+}
+
+.cs--products-page__header-tags {
+  @include cs-tag-cluster;
+}
+
+.cs--products-page__tabs {
+  margin-block-end: $spacing-07;
+}
+
+.cs--products-page__banner {
+  @include cs-tile-card;
+}
+
+.cs--products-page__banner-header {
+  @include cs-flex-between(flex-start);
+}
+
+.cs--products-page__banner-title {
+  @include cs-card-title($spacing-02);
+}
+
+.cs--products-page__banner-lead {
+  @include cs-card-body;
+}
+
+.cs--products-page__product-col {
+  margin-block-end: $spacing-05;
+}
+
+.cs--products-page__product-card {
+  @include cs-tile-card;
+
+  block-size: 100%;
+}
+
+.cs--products-page__product-card-top {
+  @include cs-flex-between(flex-start);
+}
+
+.cs--products-page__product-badges {
+  @include cs-tag-cluster;
+
+  margin-block-end: $spacing-02;
+}
+
+.cs--products-page__product-title {
+  @include type-style('heading-02');
+
+  color: $text-primary;
+  margin-block-end: $spacing-01;
+}
+
+.cs--products-page__product-key {
+  @include type-style('code-01');
+
+  color: $text-secondary;
+}
+
+.cs--products-page__product-tagline {
+  @include type-style('heading-compact-01');
+
+  color: $text-secondary;
+}
+
+.cs--products-page__product-desc {
+  @include type-style('body-long-01');
+
+  color: $text-secondary;
+}
+
+.cs--products-page__section-subtitle {
+  @include type-style('heading-compact-01');
+
+  margin-block-end: $spacing-02;
+}
+
+.cs--products-page__outcomes-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-02;
+}
+
+.cs--products-page__outcome-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-03;
+
+  @include type-style('body-short-01');
+
+  color: $text-primary;
+}
+
+.cs--products-page__checkmark {
+  color: $support-success;
+  flex-shrink: 0;
+}
+
+.cs--products-page__subproducts-tags {
+  @include cs-tag-cluster;
+}
+
+.cs--products-page__capabilities-tags {
+  @include cs-tag-cluster;
+}
+
+.cs--products-page__brand-search {
+  margin-block-end: $spacing-04;
+}
+
+.cs--products-page__table-tile {
+  @include cs-tile-card;
+}
+
+.cs--products-page__brand-inspector {
+  @include cs-tile-card;
+}
+
+.cs--products-page__inspector-title {
+  @include type-style('heading-02');
+
+  color: $text-primary;
+  margin-block-end: $spacing-01;
+}
+
+.cs--products-page__inspector-key {
+  @include type-style('code-01');
+
+  color: $text-secondary;
+}
+
+.cs--products-page__inspector-text {
+  @include type-style('body-long-01');
+
+  color: $text-secondary;
+}
+
+.cs--products-page__tab-heading {
+  @include type-style('heading-02');
+
+  color: $text-primary;
+  margin-block-end: $spacing-02;
+}
+
+.cs--products-page__tab-sub {
+  @include type-style('body-short-01');
+
+  color: $text-secondary;
+  margin-block-end: $spacing-05;
+}
+
+.cs--products-page__services-grid {
+  row-gap: $spacing-05;
+}
+
+.cs--products-page__service-col {
+  margin-block-end: $spacing-05;
+}
+
+.cs--products-page__service-tile {
+  @include cs-tile-card;
+
+  block-size: 100%;
+}
+
+.cs--products-page__service-title {
+  @include cs-card-title($spacing-01);
+}
+
+.cs--products-page__service-key {
+  @include type-style('code-01');
+
+  color: $text-secondary;
+}
+
+.cs--products-page__service-desc {
+  @include cs-card-body;
+}
+
+.cs--products-page__entities-tag-list {
+  @include cs-tag-cluster;
+}
+
+.cs--products-page__taxonomy-col {
+  margin-block-end: $spacing-05;
+}
+
+.cs--products-page__taxonomy-card {
+  @include cs-tile-card;
+
+  block-size: 100%;
+}
+
+.cs--products-page__taxonomy-header {
+  @include cs-flex-between(center);
+}
+
+.cs--products-page__taxonomy-title {
+  @include cs-card-title($spacing-02);
+}
+
+.cs--products-page__taxonomy-desc {
+  @include cs-card-body;
+
+  margin-block-end: $spacing-04;
+}
+
+.cs--products-page__header-caption {
+  color: $text-secondary;
+  padding-block: $spacing-02 0;
+}

@@ -1,0 +1,76 @@
+# Supabase project configuration — generative-os
+# Single source of truth for per-function JWT gateway decisions.
+# Regression test: src/__tests__/supabase-functions-config.test.js
+
+project_id = "ldjfjmihdvdmltrptngf"
+
+# ---------------------------------------------------------------------------
+# Local development ports (supabase start). Offset from the 5432x defaults to
+# avoid colliding with other local Supabase projects already running on this
+# machine (e.g. carbon-ai-workbench on 54321-54324).
+# ---------------------------------------------------------------------------
+
+[api]
+enabled = true
+port = 54331
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54332
+shadow_port = 54333
+
+[studio]
+enabled = true
+port = 54334
+
+[auth]
+enabled = true
+# LOCAL development URLs. The REMOTE (production) Auth config is managed
+# separately via the Management API and is NOT driven by this file:
+#   site_url        = https://app.cestari.studio
+#   uri_allow_list  = https://app.cestari.studio/**,
+#                     https://app.cestari.studio,
+#                     https://generative-*-cestari-studio.vercel.app/**,
+#                     https://generative-*-cestari-studio.vercel.app,
+#                     http://localhost:3000/**, http://localhost:3000,
+#                     http://localhost:5173/**, http://localhost:5173
+# (Fixed 2026-10-23: was http://localhost:3000, which broke recovery +
+# magic-link email redirects in production.)
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000", "http://localhost:5173"]
+jwt_expiry = 3600
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+# ---------------------------------------------------------------------------
+# Authenticated user endpoints: the gateway validates the Supabase JWT before
+# the request reaches the handler. Handlers still re-validate the user and
+# tenant membership server-side (defense in depth).
+# ---------------------------------------------------------------------------
+
+[functions.passkey-auth]
+verify_jwt = true
+
+[functions.settings-cascade]
+verify_jwt = true
+
+[functions.vector-rag]
+verify_jwt = true
+
+[functions.pagbank-connect]
+verify_jwt = true
+
+[functions.pagbank-order]
+verify_jwt = true
+
+# ---------------------------------------------------------------------------
+# PSP webhook: unauthenticated at the JWT gateway BY DESIGN — callers are the
+# PagBank PSP, not users. Authenticity is enforced in-handler via ECDSA
+# signature verification against PAGBANK_PUBLIC_KEY (fail-closed when the key
+# is not configured). verify_jwt stays false ONLY for this endpoint.
+# ---------------------------------------------------------------------------
+
+[functions.pagbank-webhook]
+verify_jwt = false

@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -26,8 +26,8 @@ export default defineConfig({
   server: {
     // Automatically find an available port if the default is in use
     strictPort: false,
-    hmr: {
-      // Let Vite automatically find an available port for WebSocket/HMR
+    ws: {
+      // Let Vite automatically find an available port for WebSocket server
       // This prevents "Port is already in use" errors for the WebSocket server
       clientPort: undefined,
     },
@@ -38,7 +38,10 @@ export default defineConfig({
   },
   ssr: {
     // Ensure proper handling of external dependencies in SSR
-    noExternal: [/^@carbon\//, /^@ibm\/plex/, /^@cestari\//],
+    noExternal: [/^@carbon\//, /^@carbon-labs\//, /^@ibm\/plex/, /^@cestari\//, 'prop-types', 'react-is'],
+    optimizeDeps: {
+      include: ['prop-types', 'react-is', 'classnames'],
+    },
   },
   test: {
     globals: true,
@@ -54,7 +57,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        silenceDeprecations: ['if-function'],
+        silenceDeprecations: ['if-function', 'global-builtin', 'import', 'color-functions'],
       },
     },
   },

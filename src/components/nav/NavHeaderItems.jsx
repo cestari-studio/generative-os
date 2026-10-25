@@ -1,5 +1,5 @@
 /**
- * Copyright IBM Corp. 2025, 2026
+ * Copyright IBM Corp. 2026
  *
  * This source code is licensed under the Apache-2.0 license found in the
  * LICENSE file in the root directory of this source tree.
@@ -26,34 +26,33 @@ export const NavHeaderItems = ({ routesInHeader, currentPath }) => {
 
   return (
     <>
-      {routesInHeader.map(({ path, carbon }) =>
-        !carbon.inSubMenu && carbon?.label ? (
-          carbon.subMenu ? (
-            <HeaderMenu
-              aria-label={carbon.labelKey ? t(carbon.labelKey, carbon.label) : carbon.label}
-              key={path}
-              menuLinkName={carbon.labelKey ? t(carbon.labelKey, carbon.label) : carbon.label}
-            >
-              {carbon.subMenu.map((subRoute) => (
-                <HeaderMenuItem
-                  as={RouterLink}
-                  to={subRoute.path}
-                  key={subRoute.path}
-                  isActive={isPathActive(subRoute.path, currentPath)}
-                >
-                  {subRoute.carbon.labelKey
-                    ? t(subRoute.carbon.labelKey, subRoute.carbon.label)
-                    : subRoute.carbon.label}
-                </HeaderMenuItem>
-              ))}
-            </HeaderMenu>
-          ) : (
-            <HeaderMenuItem as={RouterLink} key={path} to={path} isActive={isPathActive(path, currentPath)}>
-              {carbon.labelKey ? t(carbon.labelKey, carbon.label) : carbon.label}
-            </HeaderMenuItem>
-          )
-        ) : null,
-      )}
+      {routesInHeader.map(({ path, carbon }) => {
+        const itemKey = path || carbon.virtualPath || carbon.labelKey || carbon.label;
+        if (carbon.inSubMenu || !carbon?.label) return null;
+
+        return carbon.subMenu ? (
+          <HeaderMenu
+            aria-label={carbon.labelKey ? t(carbon.labelKey, carbon.label) : carbon.label}
+            key={itemKey}
+            menuLinkName={carbon.labelKey ? t(carbon.labelKey, carbon.label) : carbon.label}
+          >
+            {carbon.subMenu.map((subRoute) => (
+              <HeaderMenuItem
+                as={RouterLink}
+                to={subRoute.path}
+                key={subRoute.path}
+                isActive={isPathActive(subRoute.path, currentPath)}
+              >
+                {subRoute.carbon.labelKey ? t(subRoute.carbon.labelKey, subRoute.carbon.label) : subRoute.carbon.label}
+              </HeaderMenuItem>
+            ))}
+          </HeaderMenu>
+        ) : (
+          <HeaderMenuItem as={RouterLink} key={itemKey} to={path} isActive={isPathActive(path, currentPath)}>
+            {carbon.labelKey ? t(carbon.labelKey, carbon.label) : carbon.label}
+          </HeaderMenuItem>
+        );
+      })}
     </>
   );
 };

@@ -1,0 +1,169 @@
+{
+  "$schema": "feature-binding-ledger/v1",
+  "description": "Machine-readable ledger tracking normative feature bindings in the destination repo. Statuses: UNMAPPED, MAPPED_UNVERIFIED, IMPLEMENTED, INTEGRATION_VERIFIED, E2E_VERIFIED, BLOCKED_OWNER, BLOCKED_SCHEMA, DEFERRED_ADR. Status changes require evidence; E2E_VERIFIED requires a reproducible Preview run by SHA. Counters at the bottom are recomputed by scripts/validate-matrices.mjs patterns \u2014 never hand-edited without recomputation.",
+  "reconciled_at": "2026-10-23",
+  "head_sha": "2464d70",
+  "source_registries": {
+    "repo": "cestari-studio/genOS (read-only)",
+    "version": "0.9.0",
+    "note": "Feature semantics come from the normative registries; nothing runtime is copied."
+  },
+  "implemented_slices": [
+    {
+      "slice": "products-catalog",
+      "normative_keys": [
+        "product.content_factory",
+        "product.client_ops",
+        "product.schedule_ops",
+        "product.reputation_ops",
+        "product.academy_ops"
+      ],
+      "page": "/products",
+      "destination_files": [
+        "src/pages/products/ProductsCatalogPage.jsx",
+        "src/data/useNormativeCatalog.js",
+        "supabase/migrations/20261022060000_catalog_normative_source.sql",
+        "supabase/seed/catalog-normative-seed.sql"
+      ],
+      "data": "catalog_products/catalog_subproducts/catalog_capabilities/catalog_platform_services (NOT applied remotely)",
+      "policy": "RLS read=authenticated, write=platform_admin (validated in disposable PG 17.11)",
+      "tests": [
+        "src/__tests__/ProductsCatalogPage.test.jsx (3 tests)",
+        "src/__tests__/catalog-adapter-integration.test.mjs (7 tests, run in CI quality job)"
+      ],
+      "evidence": "CI run 39901369262: catalog integration total=7 passed=7 skipped=0",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Integration-verified against disposable PostgreSQL; NOT E2E_VERIFIED (requires Preview, BLOCKED_OWNER); remote catalog unprovisioned \u2014 page shows honest unprovisioned state in production env until Fase 6 gate.",
+      "last_verified_sha": "2f2a0f2"
+    },
+    {
+      "slice": "billing-pricebook-quotes",
+      "normative_keys": ["billing.pricebook", "billing.quotes", "billing.usage_metering"],
+      "page": "/payments",
+      "destination_files": [
+        "supabase/migrations/20261022053203_billing_pricebook_usage_metering.sql",
+        "supabase/functions/pagbank-order/index.ts",
+        "supabase/tests/billing_pricebook_rls.sql"
+      ],
+      "data": "13 billing tables (NOT applied remotely)",
+      "policy": "RLS per-tenant; quote-driven consume_quote CAS; claim_pagbank_order atomic",
+      "tests": [
+        "supabase/tests/billing_pricebook_rls.sql (44 assertions)",
+        "pagbank-order PSP unit tests (8)",
+        "src/__tests__/PaymentManagementPage.test.jsx quote-first contract (issue_manual_quote first; pagbank-order gets quoteId, never amountCents)"
+      ],
+      "evidence": "billing-sql CI job green on current heads",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "SQL integration verified in disposable PG; runtime NOT applied (RUNTIME_DRIFT documented); PagBank sandbox E2E BLOCKED_OWNER (credentials).",
+      "last_verified_sha": "2464d70"
+    },
+    {
+      "slice": "auth-onboarding-persistence",
+      "normative_keys": ["identity.session", "onboarding.progress"],
+      "page": "/onboarding",
+      "destination_files": [
+        "src/context/TenantContext.jsx",
+        "src/components/onboarding/OnboardingTearsheet.jsx",
+        "supabase/functions/passkey-auth/index.ts",
+        "supabase/functions/_shared/passkey-challenge.ts"
+      ],
+      "data": "persons.additional_property.onboarding (existing schema)",
+      "policy": "passkey challenge fail-closed; onboarding progress server-persisted",
+      "tests": ["src/__tests__/ (auth/onboarding suites)"],
+      "evidence": "CI green; passkey remote still pre-hardening (RUNTIME_DRIFT)",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Local tests green; remote passkey-auth is the old version (anonymous challenge flaw) until Fase 6 deploy gate.",
+      "last_verified_sha": "5e0ab676"
+    },
+    {
+      "slice": "settings-cascade",
+      "normative_keys": ["platform.configuration_naming.config_cascade_resolve"],
+      "page": "/settings",
+      "destination_files": ["src/pages/settings/TenantCascadeSettings.jsx", "src/context/TenantContext.jsx"],
+      "data": "resolve_effective_settings RPC (existing schema); apply_setting_cascade RPC",
+      "policy": "apply_setting_cascade validates auth.uid() + is_org_member (SECURITY DEFINER, search_path=\"\")",
+      "tests": [
+        "src/__tests__/TenantApplySettingCascade.test.jsx (2 contract tests: rejected apply leaves UI untouched; confirmed apply calls RPC with contract params)"
+      ],
+      "evidence": "221 unit tests + 7 skipped (2 new contract tests); browser-smoke 24/24; contract fix: removed optimistic updates \u2014 backend confirms before UI shows override",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Contract test proves no unconfirmed override in UI state; backend RPC contract verified via mocks. Multi-level cascade precedence + audit rows visible in UI. NOT E2E_VERIFIED (Preview BLOCKED_OWNER).",
+      "last_verified_sha": "a69fcc2"
+    },
+    {
+      "slice": "knowledge-pipeline",
+      "normative_keys": [
+        "capability.knowledge_ops.knowledge_source_document_manage",
+        "capability.knowledge_ops.ingestion_chunking",
+        "capability.knowledge_ops.hybrid_search_rag"
+      ],
+      "page": "/knowledge",
+      "destination_files": [
+        "src/pages/knowledge/KnowledgeVectorPage.jsx",
+        "supabase/functions/vector-rag/index.ts",
+        "supabase/functions/_shared/tenant-access.ts"
+      ],
+      "data": "knowledge_documents, knowledge_chunks (existing schema); match_knowledge_chunks RPC",
+      "policy": "vector-rag: user JWT + is_org_member per request (shared tenant-access helper); RLS via user-scoped client (no service role)",
+      "tests": [
+        "src/__tests__/tenant-access.test.ts (5 tests: missing orgId 400, unauthenticated 401, cross-tenant org-B denial 403, membership-check failure fails closed, valid member 200)"
+      ],
+      "evidence": "226 unit + 7 skipped; function validates user JWT + org membership before ingest/search; search scoped via match_knowledge_chunks RPC with org/workspace/project params; UI honestly describes 'deterministic lexical-hash vector retrieval' (not semantic embeddings)",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Cross-tenant denial proven via shared helper unit tests; auth/membership flow preserved from existing function (no behavior change, logic extracted for testability). NOT E2E_VERIFIED (Preview BLOCKED_OWNER). Deterministic embedding, not a semantic model \u2014 description preserved per directive.",
+      "last_verified_sha": "e9f6f5d"
+    },
+    {
+      "slice": "workspace-management",
+      "normative_keys": [
+        "product.client_ops.workspaces_access.client_workspace_create",
+        "product.client_ops.workspaces_access.workspace_member_access",
+        "product.client_ops.workspaces_access.workspace_configure"
+      ],
+      "page": "(workspace switcher UI; no dedicated management page yet)",
+      "destination_files": [
+        "supabase/migrations/20261023000000_workspace_create_rpc.sql",
+        "supabase/tests/workspace_management_rls.sql",
+        "supabase/tests/_prereq_workspace.sql",
+        "scripts/test-workspace-sql.sh"
+      ],
+      "data": "workspaces table (existing schema); organization_members",
+      "policy": "create_workspace SECURITY INVOKER: auth.uid() + app_private.has_org_admin_role; RLS insert policy also applies",
+      "tests": [
+        "supabase/tests/workspace_management_rls.sql (5 assertions: org admin creates, cross-tenant denied, non-admin denied, anonymous denied, duplicate identifier rejected)"
+      ],
+      "evidence": "workspace-sql CI step added to billing-sql job; TDD RED\u2192GREEN (RPC didn't exist -> 5/5 pass on disposable PG 17.11)",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Standalone create_workspace RPC closes the gap (workspaces previously only created inside hierarchy/corporate RPCs). UI management page not built \u2014 workspace switcher already consumes workspaces. NOT E2E_VERIFIED (Preview BLOCKED_OWNER).",
+      "last_verified_sha": "PENDING_COMMIT"
+    },
+    {
+      "slice": "notifications-foundation",
+      "normative_keys": ["capability.integration_notification.notification_dispatch_receipt (foundation only)"],
+      "page": "(no notifications page yet \u2014 persistence foundation)",
+      "destination_files": [
+        "supabase/migrations/20261023010000_notifications_foundation.sql",
+        "supabase/tests/notifications_rls.sql",
+        "scripts/test-notifications-sql.sh"
+      ],
+      "data": "notifications table (new, NOT applied remotely)",
+      "policy": "RLS select/update per org member; no client INSERT/DELETE policy (server-only writes); mark_notification_read SECURITY INVOKER with membership check",
+      "tests": [
+        "supabase/tests/notifications_rls.sql (5 assertions: org member reads, cross-tenant invisible, mark-read works, cross-tenant mark-read denied, direct insert denied)"
+      ],
+      "evidence": "notifications-sql CI step added; 5/5 pass on disposable PG 17.11 as authenticated with RLS",
+      "status": "INTEGRATION_VERIFIED",
+      "status_note": "Minimal honest foundation per normative integration_notification entities (NotificationIntent/DeliveryAttempt). Dispatch/channel/template machinery intentionally OUT of scope until provider integrations exist \u2014 no fake dispatch. NOT E2E_VERIFIED (Preview BLOCKED_OWNER).",
+      "last_verified_sha": "PENDING_COMMIT"
+    }
+  ],
+  "summary": {
+    "features_total": 225,
+    "features_with_page_keys_normative": 19,
+    "features_with_operation_ids_normative": 76,
+    "slices_implemented_destination": 7,
+    "slices_integration_verified": 7,
+    "slices_e2e_verified": 0,
+    "note": "206/225 features lack normative page bindings and 149/225 lack operation bindings at the registry level; the 3 slices above are the destination-implemented surfaces with test evidence. No status here authorizes claiming E2E or ACCEPTED \u2014 those need the blocked Preview environment and human review."
+  }
+}
