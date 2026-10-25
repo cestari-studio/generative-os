@@ -1,5 +1,23 @@
 # Release evidence ledger — cycle 4 (2026-10-23)
 
+## PR reconciliation + production promotion (2026-10-25, owner-directed)
+
+Owner directed: all PRs are approved; failing/erroring PRs must be **fixed from the foundation** (automations, scripts, tests, debug) through to commit and merge — not deleted. Each of the 24 PRs was triaged against current HEAD with commit/file-level evidence.
+
+**Fixed and merged (green CI):**
+
+- **#24** (`fix/supply-chain-critical-dev-deps`): rebased onto HEAD `5620f5b` (was failing stale ssr-smoke on old-`main` code). Genuine still-needed fix — pins `handlebars@4.7.10` + `shell-quote@1.12.0` in `overrides` (critical dev vulns). Lockfile verified pinned everywhere, scoped diff. **Merged into `main` (`41357df`).**
+- **#22** (`fix/remove-fictitious-form-examples-20261023`): rebased onto HEAD; removes fictitious placeholders ("Jane Doe", "Acme Studio") with test assertions, **and fixes a real current-HEAD SSR-title mismatch** (`/dashboard` asserted "Effective Cascade Governance" but actual `<title>` is "Tenant Dashboard"). Verified 15/15 tests on exact content. **Merged into integration branch (`d19643d`).**
+- **#17** (`fix/dashboard-roster-no-assumed-roles`): 27-commit stale reimplementation that would regress HEAD, but contained a genuine missing fix — roster inferred Owner/Member from e-mail match. Applied minimally onto HEAD in commit `599d6ab` (render `organization_role || membership_role || role`, fall back to "Not reported"; `notReported` i18n key added across 6 locales). Branch preserved; closed as superseded.
+
+**Superseded by HEAD (verified absorbed/stale, branches preserved, closed with evidence):** #2 (empty after rebase), #8 (0 unique, stale lint), #10 (catalog CI already in HEAD), #15 (both clean of synthetics), #18 (re-added HEAD-deleted placeholder), #20 (catalog CI already in HEAD), #11/#12/#13/#16/#19 (honest-state/catalog/brand intent already in HEAD), #14/#21 (would DELETE current test suites — net regression).
+
+**Already merged (earlier):** #3, #4, #5, #6.
+
+**Production:** promoted HEAD `5620f5b` to Vercel production — `app.cestari.studio` serves the exact build artifact `index-2LKVl3q8.js` (was stale `973d884`, 13 commits behind).
+
+**Remaining open:** only **PR #7** (`feat/complete-carbon-page-rebuild` → `main`), the integration PR holding all current work.
+
 ## Phase 2 applied to remote (2026-10-25, owner-authorized)
 
 The Phase 2 candidate migrations + seeds — previously `BLOCKED — LOCAL ONLY` — were applied to remote `ldjfjmihdvdmltrptngf` (generative-os) and verified live:
