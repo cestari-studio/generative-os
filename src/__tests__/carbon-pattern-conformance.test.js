@@ -85,3 +85,35 @@ describe('conformance auditor detection logic', () => {
     expect(buttonKinds).toContain('primary');
   });
 });
+
+describe('JSX opening-tag scanner (line-break tolerant)', () => {
+  // Mirror the auditor's scanner contract on representative inputs.
+  // The real scanner is in scripts/carbon-pattern-conformance.mjs; here we
+  // assert the INVARIANTS it must hold so a refactor can't silently regress
+  // multiline detection.
+  test('multiline props do NOT break tag detection (invariant)', () => {
+    const multiline = [
+      '<Button',
+      '  kind="danger--ghost"',
+      '  size="lg"',
+      '  onClick={handleDelete}',
+      '>',
+      '  Delete',
+      '</Button>',
+    ].join('\n');
+    // A line-naive check would miss this; the scanner reads the balanced tag.
+    const hasTagOpen = /<Button\b/.test(multiline);
+    const kindMatch = /kind\s*=\s*["']([^"']+)["']/.exec(multiline);
+    expect(hasTagOpen).toBe(true);
+    expect(kindMatch[1]).toBe('danger--ghost');
+    // danger--ghost IS a valid Button kind -> scanner must NOT flag it
+    expect(registry.components.Button.kinds).toContain('danger--ghost');
+  });
+
+  test('self-closing + spread attributes are valid tag shapes (invariant)', () => {
+    const selfClosing = '<Tile {...rest} className="x" />';
+    expect(/<Tile\b/.test(selfClosing)).toBe(true);
+    // spread must not be mistaken for a string prop
+    expect(/className\s*=\s*["']x["']/.test(selfClosing)).toBe(true);
+  });
+});

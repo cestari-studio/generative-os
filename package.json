@@ -45,6 +45,7 @@
     "test:org-hierarchy-sql": "./scripts/test-org-hierarchy-sql.sh",
     "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",
+    "carbon:patterns:regen": "node scripts/regen-carbon-patterns.mjs",
     "registry:sync": "node scripts/generate-registry-allowlist-sql.mjs",
     "registry:check": "node scripts/generate-registry-allowlist-sql.mjs --check"
   },

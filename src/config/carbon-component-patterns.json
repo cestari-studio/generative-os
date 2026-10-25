@@ -1,7 +1,7 @@
 {
   "$schema": "./carbon-component-patterns.schema.json",
   "registryVersion": 1,
-  "generatedAt": "2026-10-24",
+  "generatedAt": "2026-10-25",
   "source": "Carbon Design System storybook index via Carbon MCP code_search (authoritative)",
   "carbonVersion": "v11",
   "storybookHosts": {
@@ -66,14 +66,19 @@
         "default",
         "with-radio-selection",
         "with-selection-and-sorting",
-        "with-selection-and-expansion",
-        "with-expansion",
         "persistent-toolbar",
         "small-persistent-toolbar",
         "with-overflow-menu",
         "batch-expansion",
         "batch-expansion-multiple-tables",
-        "xlwith-two-lines"
+        "xlwith-two-lines",
+        "ailabel-with-selection",
+        "ailabel-with-radio-selection",
+        "ailabel-with-selection-and-expansion",
+        "ailabel-with-expansion",
+        "column-ailabel-with-selection-and-expansion",
+        "column-ailabel-sort",
+        "full-table-ai"
       ],
       "rules": {
         "composeFromDataTableParts": true,
@@ -85,7 +90,15 @@
       "scope": "core",
       "storybookPath": "/?path=/story/components-textinput--default",
       "defaultVariant": "default",
-      "variants": ["default", "inline", "read-only", "with-layer", "with-ailabel", "skeleton"],
+      "variants": [
+        "default",
+        "inline",
+        "read-only",
+        "with-layer",
+        "with-ailabel",
+        "skeleton",
+        "test-invalid-text-no-overlap"
+      ],
       "rules": {
         "requiresLabelText": true
       }
