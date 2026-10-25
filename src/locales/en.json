@@ -312,6 +312,7 @@
       "colId": "Person ID",
       "roleOwner": "Tenant Owner / Administrator",
       "roleMember": "Workspace Member",
+      "notReported": "Not reported",
       "unnamed": "Anonymous Person",
       "inviteUnavailableTitle": "Member invitation is not available yet — the invitation flow is not provisioned for this organization.",
       "inviteUnavailableNote": "Member invitation is not provisioned for this organization yet. Manage members directly in the organization roster."

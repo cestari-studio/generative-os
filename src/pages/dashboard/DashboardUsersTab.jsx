@@ -37,17 +37,22 @@ export const DashboardUsersTab = () => {
     { key: 'identifier', header: t('dashboard.users.colId', 'Person ID') },
   ];
 
+  const notReported = t('dashboard.users.notReported', 'Not reported');
+
   const rows = persons.map((person, index) => {
+    // Role comes from the member's actual organization/workspace membership
+    // (never inferred from an e-mail match). When the person is the current
+    // user and the backend did not surface a role, fall back to an explicit
+    // "not reported" rather than fabricating Owner/Member by identity.
     const isCurrentUser = user?.email === person.email;
+    void isCurrentUser;
 
     return {
       id: person.id || `person-${index}`,
       name: person.name || person.email || t('dashboard.users.unnamed', 'Anonymous Person'),
       email: person.email || '—',
-      role: isCurrentUser
-        ? t('dashboard.users.roleOwner', 'Tenant Owner / Administrator')
-        : t('dashboard.users.roleMember', 'Workspace Member'),
-      status: t('common.selected', 'Active'),
+      role: person.organization_role || person.membership_role || person.role || notReported,
+      status: person.status || notReported,
       identifier: person.id || '—',
     };
   });
