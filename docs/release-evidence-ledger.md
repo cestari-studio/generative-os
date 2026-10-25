@@ -1,5 +1,18 @@
 # Release evidence ledger — cycle 4 (2026-10-23)
 
+## Phase 2 applied to remote (2026-10-25, owner-authorized)
+
+The Phase 2 candidate migrations + seeds — previously `BLOCKED — LOCAL ONLY` — were applied to remote `ldjfjmihdvdmltrptngf` (generative-os) and verified live:
+
+| Step      | Artifact                                      | Result                                                                                                                                               |
+| --------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migration | `20261023120000_normative_catalog_registries` | Applied → ledger `20261025141955` (7 new catalog tables)                                                                                             |
+| Migration | `20261023120100_web_surface_configuration`    | Applied → ledger `20261025142026` (7 surface tables + publication validator)                                                                         |
+| Seed      | `registry-allowlist.sql`                      | **76 rows** (18 component, 6 edge_function, 18 public_projection, 15 rpc, 10 route, 9 template), single checksum `bd4ca960…`, version `2026-10-23.1` |
+| Seed      | `normative-catalog-seed.sql`                  | **844 rows**: 225 features, 100 operations, 200 configurations, 60 pages, 30 journeys, 4 entitlement_profiles, 225 traceability                      |
+
+**Live verification:** 14/14 tables present, RLS enabled on all 14; 5 validator/trigger functions created; 225/225 features `NORMATIVE_ONLY` with source provenance (genOS @ `ffd97fa9`); remote migrations total **24**. **RLS paths (as authenticated/anon, RLS enforced):** authenticated READ catalog_features=225; authenticated non-admin WRITE=42501 denied; anon READ catalog_features=0 (no anon policy); anon READ registry_allowlist=76. The 5 pre-existing `catalog_*` tables (from `20261022060000`) were untouched — Phase 2 adds 7 NEW catalog tables (no shape conflicts; `CREATE TABLE IF NOT EXISTS`).
+
 ## Production hotfixes (2026-10-24, owner-authorized)
 
 Two production bugs surfaced by owner UX testing on `app.cestari.studio` were fixed at the root and verified live:

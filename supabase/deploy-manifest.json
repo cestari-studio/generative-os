@@ -401,5 +401,41 @@
     ],
     "verification": "docs/phase2-implementation-evidence.md + docs/phase2-review-package.md",
     "gate": "BLOCKED — explicit owner authorization required before any remote application"
+  },
+  "phase2_applied": {
+    "applied_at": "2026-10-25 (owner-authorized)",
+    "state": "APPLIED to remote ldjfjmihdvdmltrptngf (generative-os) + verified live",
+    "migrations": [
+      {
+        "file": "supabase/migrations/20261023120000_normative_catalog_registries.sql",
+        "ledger_version": "20261025141955_normative_catalog_registries"
+      },
+      {
+        "file": "supabase/migrations/20261023120100_web_surface_configuration.sql",
+        "ledger_version": "20261025142026_web_surface_configuration"
+      }
+    ],
+    "seeds": [
+      {
+        "file": "supabase/seed/registry-allowlist.sql",
+        "rows": 76,
+        "by_kind": "18 component, 6 edge_function, 18 public_projection, 15 rpc, 10 route, 9 template",
+        "checksum": "single bd4ca960…, version 2026-10-23.1"
+      },
+      {
+        "file": "supabase/seed/normative-catalog-seed.sql",
+        "rows": 844,
+        "counts": "225 features, 100 operations, 200 configurations, 60 pages, 30 journeys, 4 entitlement_profiles, 225 traceability"
+      }
+    ],
+    "remote_migrations_total": 24,
+    "live_verification": {
+      "tables": "14/14 present (7 catalog_* + 7 surface), RLS enabled on all 14",
+      "validator_functions": "5 created (validate_surface_revision_payload, enforce_surface_revision_publication, enforce_operation_binding_evidence, enforce_setting_map_none_has_no_terms, enforce_surface_template_allowlist)",
+      "feature_maturity": "225/225 NORMATIVE_ONLY (normative metadata, not runtime claims)",
+      "provenance": "225/225 features carry source_provenance genOS @ ffd97fa9",
+      "rls_paths": "authenticated READ catalog_features=225; authenticated non-admin WRITE=42501 denied; anon READ catalog_features=0; anon READ registry_allowlist=76"
+    },
+    "note": "5 pre-existing catalog_* tables (catalog_products/subproducts/versions/capabilities/platform_services from 20261022060000) untouched; Phase 2 adds 7 NEW catalog tables (features/operations/configurations/pages/journeys/entitlement_profiles/traceability) + 7 surface tables. CREATE TABLE IF NOT EXISTS — no shape conflicts."
   }
 }
