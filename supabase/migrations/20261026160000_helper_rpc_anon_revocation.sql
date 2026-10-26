@@ -50,3 +50,16 @@ GRANT EXECUTE ON FUNCTION public.create_workspace(uuid, text, text) TO authentic
 REVOKE EXECUTE ON FUNCTION public.mark_notification_read(uuid) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.mark_notification_read(uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.mark_notification_read(uuid) TO authenticated, service_role;
+
+-- Phase 2 web-surface trigger helpers (CI grant-exposure guard caught these two).
+REVOKE EXECUTE ON FUNCTION public.enforce_surface_revision_publication() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.enforce_surface_revision_publication() FROM anon;
+GRANT EXECUTE ON FUNCTION public.enforce_surface_revision_publication() TO authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.enforce_operation_binding_evidence() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.enforce_operation_binding_evidence() FROM anon;
+GRANT EXECUTE ON FUNCTION public.enforce_operation_binding_evidence() TO authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.enforce_setting_map_none_has_no_terms() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.enforce_setting_map_none_has_no_terms() FROM anon;
+GRANT EXECUTE ON FUNCTION public.enforce_setting_map_none_has_no_terms() TO authenticated, service_role;
