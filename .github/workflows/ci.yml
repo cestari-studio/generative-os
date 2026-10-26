@@ -400,6 +400,14 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:p2-time-state-sql
 
+      - name: Run legacy corporate-tenant restrict SQL tests (Stage-1 scope correction)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:legacy-corporate-restrict-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

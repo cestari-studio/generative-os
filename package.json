@@ -54,6 +54,7 @@
     "test:red-team-p1-sql": "./scripts/test-red-team-p1-sql.sh",
     "test:readiness-org-scoping-sql": "./scripts/test-readiness-org-scoping-sql.sh",
     "test:p2-time-state-sql": "./scripts/test-p2-time-state-sql.sh",
+    "test:legacy-corporate-restrict-sql": "./scripts/test-legacy-corporate-restrict-sql.sh",
     "check:rpc-grant-exposure": "node scripts/check-rpc-grant-exposure.mjs",
     "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",
