@@ -6,7 +6,7 @@
  */
 
 // GENERATED FILE — DO NOT HAND-EDIT. Regenerate: npm run spec:generate
-// Generator 1.0.0; sources: 19 specs.
+// Generator 1.0.0; sources: 20 specs.
 
 export type person_birth_date = string;
 export type person_full_name = string;

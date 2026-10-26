@@ -16,7 +16,7 @@ import { PageHeader } from '@carbon/ibm-products';
 import { useTenant } from '../../context/useTenant';
 import { PageLayout } from '../../layouts/page-layout';
 import { TENANT_SETTINGS_CATEGORIES } from '../../routes/config';
-import { useOnboardingReadiness } from '../../data/useOnboardingReadiness';
+import { useOnboardingReadiness, TENANT_ONBOARDING_WIZARD_KEY } from '../../data/useOnboardingReadiness';
 
 export const ProtectedRoute = ({ children, category }) => {
   const { t } = useTranslation();
@@ -25,12 +25,13 @@ export const ProtectedRoute = ({ children, category }) => {
 
   // Server-authoritative onboarding readiness (ADR 0001 / Fase C). The gate asks
   // the server whether required steps are incomplete; it never infers completion
-  // from account_type/name/counts/plan_tier. When the backend RPC is not yet
-  // deployed, the adapter surfaces `unavailable_backend` and we keep the
-  // session-only gate (the recorded dependency), never a fabricated local readiness.
+  // from account_type/name/counts/plan_tier, and never sends a client-chosen list
+  // of required steps — it only names WHICH wizard it is gating. When the backend
+  // RPC is not yet deployed, the adapter surfaces `unavailable_backend` and we keep
+  // the session-only gate (the recorded dependency), never a fabricated readiness.
   const { readiness, resolve } = useOnboardingReadiness({
     isAuthenticated: () => Boolean(user),
-    requiredStepKeys: [],
+    wizardKey: TENANT_ONBOARDING_WIZARD_KEY,
   });
 
   useEffect(() => {

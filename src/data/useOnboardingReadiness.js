@@ -19,6 +19,7 @@
  *   { status: 'checking' }                                   — initial, before resolution
  *   { status: 'unknown' }                                    — resolution failed; NOT "allowed"
  *   { status: 'unauthenticated' }                            — no signed-in user
+ *   { status: 'unavailable_backend' }                        — RPC not deployed; NOT "allowed"
  *
  * The backend operation `resolve_onboarding_readiness` is provided by the
  * journey-ledger migration. If the RPC is not yet deployed (returns 404 /
@@ -32,6 +33,14 @@ import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
 
 const CHECKING = Object.freeze({ status: 'checking', decision: null });
 const UNAUTHENTICATED = Object.freeze({ status: 'unauthenticated', decision: null });
+
+/**
+ * Canonical wizard identity for the tenant onboarding journey. This NAMES which
+ * trusted server-side definition (`onboarding_journey_definitions.wizard_key`)
+ * the readiness RPC resolves — it is NOT a list of required steps. The required
+ * steps are always resolved server-side from that published definition.
+ */
+export const TENANT_ONBOARDING_WIZARD_KEY = 'onboarding.tenant';
 
 function normalizeRpc(data) {
   if (!data || typeof data !== 'object') return { status: 'unknown', decision: null };
@@ -68,9 +77,14 @@ function isBackendMissing(error) {
 /**
  * @param {object} opts
  * @param {() => boolean} opts.isAuthenticated - whether a user is signed in
- * @param {string[]} opts.requiredStepKeys - step keys the gate requires completed
+ * @param {string} opts.wizardKey - identifies the journey definition to resolve
+ *   server-side. NEVER a list of required steps: the RPC resolves required steps
+ *   from the trusted `onboarding_journey_definitions` config; the client only
+ *   names WHICH wizard it is gating (Master Directive §11.1 — the client must
+ *   not choose the set of steps whose completion counts as sufficient).
+ * @param {string} [opts.wizardVersion] - journey definition version (RPC default '1.0.0')
  */
-export function useOnboardingReadiness({ isAuthenticated, requiredStepKeys = [] } = {}) {
+export function useOnboardingReadiness({ isAuthenticated, wizardKey, wizardVersion } = {}) {
   const [readiness, setReadiness] = useState(CHECKING);
   const mountedRef = useRef(true);
   useEffect(() => {
@@ -85,12 +99,23 @@ export function useOnboardingReadiness({ isAuthenticated, requiredStepKeys = [] 
       setReadiness(UNAUTHENTICATED);
       return UNAUTHENTICATED;
     }
+    // Fail-closed: without a wizard identity we cannot ask the server to resolve
+    // readiness. That is an `unknown` state, NEVER an implicit allow.
+    if (!wizardKey || typeof wizardKey !== 'string') {
+      const r = { status: 'unknown', decision: null, reason: 'wizard_key_missing' };
+      if (mountedRef.current) setReadiness(r);
+      return r;
+    }
     setReadiness(CHECKING);
     try {
       const supabase = getSupabaseBrowserClient();
-      const { data, error } = await supabase.rpc('resolve_onboarding_readiness', {
-        p_required_step_keys: requiredStepKeys,
-      });
+      // Server-authoritative: pass ONLY the wizard identity (key + version). The
+      // required steps are resolved server-side from onboarding_journey_definitions.
+      // We never send a client-supplied required-step list (that was the P0
+      // authorization vector the journey-ledger migration removed).
+      const args = { p_wizard_key: wizardKey };
+      if (wizardVersion != null) args.p_wizard_version = wizardVersion;
+      const { data, error } = await supabase.rpc('resolve_onboarding_readiness', args);
       if (error) {
         if (isBackendMissing(error)) {
           const r = {
@@ -117,7 +142,7 @@ export function useOnboardingReadiness({ isAuthenticated, requiredStepKeys = [] 
       if (mountedRef.current) setReadiness(r);
       return r;
     }
-  }, [isAuthenticated, requiredStepKeys]);
+  }, [isAuthenticated, wizardKey, wizardVersion]);
 
   return { readiness, resolve };
 }

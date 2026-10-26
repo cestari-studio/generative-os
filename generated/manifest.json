@@ -1,7 +1,7 @@
 {
   "generator_version": "1.0.0",
   "files": {
-    "types/spec-types.ts": "0bb5c8e387eea0b6bf415dfb71ac529814401b6a16062caad7003a80c9586215",
+    "types/spec-types.ts": "a999a8e1cd571bac26cd43542076c672b55177d028d3a819b075a521b86cd95c",
     "form-definitions/onboarding.person.form.json": "89c9784b9995a7c32c9353580e40bba016c6b94ad8866875c8bf65865440e5be",
     "traceability/onboarding.person.trace.json": "3dc8db2903d8302d124be43a899ed72b5ca88f916899ad30e3c7d32f7b1e15f4",
     "envelopes/fase1-poc.envelope.json": "9b7a5637b1aa4d5d3e3f163ab4a9faadcc377fff1b181d9892b385adeff5742b",
