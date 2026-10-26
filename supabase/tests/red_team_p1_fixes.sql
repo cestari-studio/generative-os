@@ -39,12 +39,14 @@ DECLARE
   v_run uuid;
   v_step uuid;
 BEGIN
+  -- ADR §6.1 (owner decision): P3 = {identity, organization} subject-only. The
+  -- fixture mirrors the owner-decided sensitive-declaration set.
   INSERT INTO public.onboarding_journey_definitions
     (wizard_key, wizard_version, required_step_keys, subject_step_keys, status)
   VALUES
     ('onboarding.tenant', '1.0.0',
      ARRAY['onboarding.tenant.identity', 'onboarding.tenant.organization'],
-     ARRAY['onboarding.tenant.identity'],
+     ARRAY['onboarding.tenant.identity', 'onboarding.tenant.organization'],
      'published')
   ON CONFLICT (wizard_key, wizard_version) DO UPDATE
     SET subject_step_keys = EXCLUDED.subject_step_keys;
@@ -228,28 +230,46 @@ END $$;
 RESET ROLE;
 
 -- ===========================================================================
--- P1-2c. WITHOUT a subject_step_keys declaration, the delegate CAN complete
--- (proves the fix does not break legitimate delegated completion — the guard
--- only engages for steps the SERVER declared subject-only)
+-- P1-2c. A step NOT in subject_step_keys IS delegate-completable (proves the
+-- guard is targeted, not a blanket delegation denial). Uses a dedicated wizard
+-- whose definition declares a delegable step, so it is independent of the
+-- tenant wizard's P3 set ({identity, organization} are both subject-only there).
 -- ===========================================================================
+DO $$
+BEGIN
+  INSERT INTO public.onboarding_journey_definitions
+    (wizard_key, wizard_version, required_step_keys, subject_step_keys, status)
+  VALUES
+    ('onboarding.p1deleg', '1.0.0',
+     ARRAY['onboarding.p1deleg.delegable'],
+     ARRAY[]::text[],
+     'published')
+  ON CONFLICT (wizard_key, wizard_version) DO UPDATE
+    SET subject_step_keys = EXCLUDED.subject_step_keys;
+END $$;
+
 SET ROLE authenticated;
 SET request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
 
 DO $$
 DECLARE
-  v_run uuid := (SELECT run_id FROM p1_ctx);
-  v_org_step uuid;
+  v_run2 uuid;
+  v_step2 uuid;
   v_state text;
 BEGIN
-  -- organization step is required but NOT in subject_step_keys.
+  INSERT INTO public.onboarding_runs (wizard_key, wizard_version, actor_id, subject_user_id, idempotency_key, run_state)
+  VALUES ('onboarding.p1deleg', '1.0.0', '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'p1-deleg-run', 'active')
+  RETURNING id INTO v_run2;
+  INSERT INTO public.onboarding_delegations (run_id, actor_id, subject_user_id, allowed_step_keys, status)
+  VALUES (v_run2, '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', ARRAY['onboarding.p1deleg.delegable'], 'active');
   INSERT INTO public.onboarding_step_states (run_id, step_key, state)
-  VALUES (v_run, 'onboarding.tenant.organization', 'in_progress')
-  RETURNING id INTO v_org_step;
-  UPDATE public.onboarding_step_states SET state = 'completed' WHERE id = v_org_step
+  VALUES (v_run2, 'onboarding.p1deleg.delegable', 'in_progress')
+  RETURNING id INTO v_step2;
+  UPDATE public.onboarding_step_states SET state = 'completed' WHERE id = v_step2
   RETURNING state INTO v_state;
   ASSERT v_state = 'completed',
-    'P1-2c FAIL: delegate must be able to complete a NON-subject-reserved step they hold a delegation for';
-  RAISE NOTICE 'P1-2c PASS: delegate completes a non-subject-reserved step (delegation still works)';
+    'P1-2c FAIL: delegate must be able to complete a step NOT declared subject-only';
+  RAISE NOTICE 'P1-2c PASS: delegate completes a non-subject-reserved step (delegation works where the server allows it)';
 END $$;
 
 RESET ROLE;
@@ -294,5 +314,23 @@ BEGIN
 END $$;
 
 RESET ROLE;
+
+-- ===========================================================================
+-- ADR §6.1/§6.2 (owner decision P3): the onboarding.tenant definition carries
+-- subject_step_keys = {identity, organization} after 180000 (config reconciliation
+-- is encoded, not vacuous). Mode stays self_service (P2).
+-- ===========================================================================
+DO $$
+DECLARE
+  v_ssk text[];
+BEGIN
+  SELECT subject_step_keys INTO v_ssk
+    FROM public.onboarding_journey_definitions
+   WHERE wizard_key = 'onboarding.tenant' AND wizard_version = '1.0.0' AND status = 'published';
+  ASSERT v_ssk @> ARRAY['onboarding.tenant.identity', 'onboarding.tenant.organization']
+         AND array_length(v_ssk, 1) = 2,
+    format('P3-CONFIG FAIL: onboarding.tenant subject_step_keys = %s, expected exactly {identity, organization}', v_ssk);
+  RAISE NOTICE 'P3-CONFIG PASS: onboarding.tenant subject_step_keys = {identity, organization} (P3 encoded, not vacuous)';
+END $$;
 
 DO $$ BEGIN RAISE NOTICE '=== ALL RED-TEAM P1 FIX ASSERTIONS PASSED ==='; END $$;

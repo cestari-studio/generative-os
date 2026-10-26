@@ -179,4 +179,4 @@ For EACH authorized migration, in chronological order:
 
 ---
 
-**Coordinator status:** Gates 1 (framed, needs your word), 2 (closed), 4 (closed) are ready. Gates 3 and 5 are your explicit decisions. **Blocking Stage 1 presentation: ADR P2/P3 (your decisions, below).** No remote action has been or will be taken without your per-stage approval.
+**Coordinator status:** Gates 1 (framed, needs your word), 2 (closed), 4 (closed) are ready. Gates 3 and 5 are your explicit decisions. **ADR P2/P3 (and the certified-principal half of P4) are now DECIDED by the owner (2026-10-26, ADR §6.1): `onboarding.tenant` = `self_service`; `subject_step_keys = {identity, organization}` (encoded in `20261026180000`, §6.2 reconciliation); P4 = `policy-per-step`.** `BLK-tenancy-adr-p2-p3` is unblockable on your confirmation. No remote action has been or will be taken without your per-stage approval.

@@ -51,6 +51,22 @@ COMMENT ON COLUMN public.onboarding_journey_definitions.subject_step_keys IS
   'service_role; resolved server-side by app_private.can_complete_step.';
 
 -- ---------------------------------------------------------------------------
+-- ADR §6.1/§6.2 (owner decision 2026-10-26): encode the P3 sensitive-declaration
+-- set for onboarding.tenant. The 170000 seed predates the decision and carries
+-- no subject_step_keys content (the column defaults to '{}'), which would leave
+-- the subject-only guard vacuous for this wizard. Reconcile forward-only: set
+-- subject_step_keys = {identity, organization} (legal-identity + legal-
+-- representation are sensitive declarations completed by the subject personally).
+-- mode stays at the self_service default (P2: no delegation for onboarding.tenant),
+-- so no mode change is needed. Idempotent (re-apply is a no-op).
+-- ---------------------------------------------------------------------------
+UPDATE public.onboarding_journey_definitions
+   SET subject_step_keys = ARRAY['onboarding.tenant.identity', 'onboarding.tenant.organization']
+ WHERE wizard_key = 'onboarding.tenant'
+   AND wizard_version = '1.0.0'
+   AND status = 'published';
+
+-- ---------------------------------------------------------------------------
 -- P1-2b. can_complete_step: resolve the step's subject-only class from the run's
 -- published definition when the caller passes NULL (the RLS call sites). A
 -- client can no longer bypass the guard by omitting p_step_type — the helper

@@ -580,14 +580,63 @@ They are decisions of policy, not of engineering, and are therefore not made in 
   principal the gate certifies **for each delegated wizard** (subject-always vs
   policy-per-step, §2.8/§2.9) — is still PENDING below.
 
-| #   | Decision (PENDING)                                                                                                                                                                                                                                                                                                                                                                                    | Scope blocked until decided                                                                      |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| P1  | **Which wizards are `delegated` vs `self_service`** — the per-wizard mode assignment in published normative config. (The orthogonal **scope** assignment, `personal` vs `organizational`, is decided in §2.12 with a fail-closed `organizational` default; per-wizard overrides of the default remain part of this PENDING item.)                                                                     | Any `delegated` wizard's release; the `mode` values written to `onboarding_journey_definitions`. |
-| P2  | **The delegation policy content** — who may act for whom, which steps are delegable, required delegation evidence, and denial rules (§2.8).                                                                                                                                                                                                                                                           | All `delegated` flows; the delegation-policy store's rows; assertion §5.4/§5.5 expectations.     |
-| P3  | **Which steps are "sensitive declarations"** (consent, legal representation, legal-identity) that can never be delegate-satisfied, per wizard. (`subject_step_keys` now exists as the mechanism — Worker A, `20261026180000`; the **content** of that array per wizard remains this PENDING item.)                                                                                                    | Step-level completion rules; legal/compliance sign-off.                                          |
-| P4  | **Which principal the readiness gate certifies for each delegated wizard** (subject-always vs policy-per-step), where the directive leaves it to policy (§2.8, §2.9). **Partially decided** — the context-binding half is resolved by §2.12 (see above).                                                                                                                                              | Readiness verdict semantics for delegated wizards; the §5.10 expectation.                        |
-| P5  | **`trusted_verifier` set** — which backend verifiers (e.g., e-mail/identity verification) may complete steps without being the subject, and under what rules.                                                                                                                                                                                                                                         | Any step whose completion type is `trusted_verifier`.                                            |
-| P6  | **Backfill confirmation** — that classifying every pre-existing run as `self_service` (actor==subject) is correct for the historical data, and the classification of the seed `generative-os-enterprise` org. **New sub-question:** existing definitions backfill to `scope='organizational'` (the fail-closed default) — confirm that is correct for any personal-scope journeys already configured. | The step-5 migration's backfill; tenancy-column backfill (§4.3); the §2.12 scope backfill.       |
+### 6.1 Owner decisions on the delegation model (recorded 2026-10-26)
+
+The owner resolved P2, P3 and the certified-principal half of P4 for the delegation
+model encoded by `20261026150000_onboarding_actor_subject_delegation.sql`. These are
+**normative content decisions** for the `onboarding_journey_definitions` /
+`subject_step_keys` config the migrations encode — they are recorded here and MUST be
+reflected in the deployed normative config (see §6.2 for the config-gap reconciliation).
+
+- **P2 (delegation policy / mode) — DECIDED: `onboarding.tenant` is `self_service`.**
+  actor==subject is enforced server-side for this wizard; **no delegation is
+  permitted** for it. Its delegation policy is therefore empty (no delegator/delegate
+  pairs, no delegable steps). This is the most restrictive assignment and matches the
+  current zero-delegation reality: today no wizard is `delegated`. Any future wizard
+  that requires delegation is a **new** decision (its own P2 entry), not an inference
+  from this one. Rationale: the only deployed wizard is tenant provisioning, which is
+  inherently a self-service act by the person establishing their own tenant.
+- **P3 (sensitive-declaration set) — DECIDED for `onboarding.tenant`: the
+  `identity` and `organization` steps are sensitive declarations** (legal-identity /
+  CPF-CNPJ attestation and the legal-representation declaration, respectively) that
+  MUST be completed by the subject personally — `subject_step_keys =
+{identity, organization}`. They are never delegate-satisfiable. The `workspace`
+  step is not a sensitive declaration. (Under P2's `self_service` mode ALL steps are
+  subject-only anyway; this P3 set governs the completion rules should any future
+  `delegated` wizard reuse these step types, and it is the normative content of the
+  `subject_step_keys` mechanism.)
+- **P4 (certified principal) — DECIDED: `policy-per-step`.** The readiness gate
+  certifies the principal named by each step's completion rules (§2.8/§2.10): a
+  subject-only step certifies the **subject**; a delegable step certifies the
+  principal the policy authorized **for that step**. The gate never certifies a
+  principal whom the step's own rules did not authorize. This supersedes the
+  "subject-always" alternative and completes the P4 item (the context-binding half
+  was already decided by §2.12).
+
+### 6.2 Config-gap reconciliation (normative config MUST match §6.1)
+
+The `onboarding.tenant` v1.0.0 seed in `20261026170000_readiness_blocked_decision.sql`
+predates §6.1: it sets `required_step_keys = {identity, organization, workspace}` but
+**no `mode` and no `subject_step_keys` content**. The migration's own defaults apply
+on apply: `mode` (added by `20261026150000`, default `self_service`) yields P2's
+decision correctly, and `subject_step_keys` (added by `20261026180000`, default `{}`)
+yields **no** sensitive declarations — which does NOT match P3 (`{identity,
+organization}`). **Reconciliation (additive, owner-authorized at apply time):** the
+deployed definition MUST be brought to `mode='self_service'` (the default — no change
+needed) **and `subject_step_keys = {identity, organization}`** (a forward-only UPDATE
+to the seeded definition, e.g. appended to `20261026180000` or a small additive
+migration). Until that config is written, P3 is **decided-but-not-encoded** and the
+`subject_step_keys` guard for `onboarding.tenant` is vacuous. This is flagged for the
+Stage-2 apply/verification step, not silently assumed.
+
+| #   | Decision                                                                                                                                                                                        | Status / scope                                                                                                                                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P1  | **Which wizards are `delegated` vs `self_service`** — the per-wizard mode assignment. (Scope assignment `personal`/`organizational` is decided in §2.12, fail-closed `organizational` default.) | **PARTIALLY DECIDED:** `onboarding.tenant` = `self_service` (§6.1, P2). Other/future wizards remain PENDING per-wizard.                                            |
+| P2  | **The delegation policy content** — who may act for whom, which steps are delegable, evidence, denial rules (§2.8).                                                                             | **DECIDED for `onboarding.tenant`** (§6.1): `self_service`, no delegation (empty policy). Future `delegated` wizards need their own P2 entry — PENDING per-wizard. |
+| P3  | **Which steps are "sensitive declarations"** per wizard.                                                                                                                                        | **DECIDED for `onboarding.tenant`** (§6.1): `subject_step_keys = {identity, organization}`; encoded in `20261026180000` (§6.2). Future wizards PENDING.            |
+| P4  | **Which principal the readiness gate certifies for each delegated wizard** (subject-always vs policy-per-step).                                                                                 | **DECIDED (§6.1): policy-per-step** (context-binding half already by §2.12).                                                                                       |
+| P5  | **`trusted_verifier` set** — which backend verifiers may complete steps without being the subject, and under what rules.                                                                        | **PENDING** — no `trusted_verifier` step exists yet; decision deferred until one is introduced.                                                                    |
+| P6  | **Backfill confirmation** — pre-existing runs as `self_service`; seed-org classification; the §2.12 `scope='organizational'` backfill for any personal-scope journeys.                          | **PENDING** — owner confirmation required at backfill/apply time.                                                                                                  |
 
 No PENDING item is resolved by inference from code, reports, or the permissive behavior of
 the currently-applied migration. Each requires an explicit, recorded decision. Items marked

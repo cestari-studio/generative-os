@@ -42,6 +42,13 @@
 -- caller's progress GLOBALLY (no org context required) — isolating the
 -- mechanism under test. Worker A's org-scoping behavior is covered separately
 -- by readiness_org_scoping.sql on 'organizational' journeys.
+-- ADR §6.1 (owner decision P3): onboarding.tenant.subject_step_keys = {identity,
+-- organization} — BOTH subject-only, so NO step of that wizard is delegable. The
+-- P2-2/P2-3 delegation-MECHANISM assertions therefore must NOT use
+-- onboarding.tenant.organization (it is now subject-only); they use a dedicated
+-- synthetic delegable wizard instead (isolating the mechanism, per this suite's
+-- own design). onboarding.tenant's P3 subject-only guard is covered separately
+-- by the red-team-p1 suite.
 DO $$
 BEGIN
   INSERT INTO public.onboarding_journey_definitions (wizard_key, wizard_version, required_step_keys, status, scope) VALUES
@@ -50,7 +57,8 @@ BEGIN
     ('onboarding.p2amb',  '1.0.0', ARRAY['onboarding.p2amb.one'],  'published', 'personal'),
     ('onboarding.p2one',  '1.0.0', ARRAY['onboarding.p2one.one', 'onboarding.p2one.two'], 'published', 'personal'),
     ('onboarding.p2exp',  '1.0.0', ARRAY['onboarding.p2exp.one'],  'published', 'personal'),
-    ('onboarding.p2sup',  '1.0.0', ARRAY['onboarding.p2sup.one'],  'published', 'personal');
+    ('onboarding.p2sup',  '1.0.0', ARRAY['onboarding.p2sup.one'],  'published', 'personal'),
+    ('onboarding.p2deleg', '1.0.0', ARRAY['onboarding.p2deleg.delegable'], 'published', 'personal');
 END $$;
 
 -- Temp context table owned by the authenticated role (the probes all run as
@@ -77,7 +85,7 @@ BEGIN
   RETURNING id INTO v_run;
 
   INSERT INTO public.onboarding_step_states (run_id, step_key, state)
-  VALUES (v_run, 'onboarding.tenant.organization', 'in_progress')
+  VALUES (v_run, 'onboarding.p2deleg.delegable', 'in_progress')
   RETURNING id INTO v_step;
 
   INSERT INTO p2_ctx (k, v) VALUES ('p2_1_run', v_run), ('p2_1_step', v_step);
@@ -296,11 +304,11 @@ DECLARE
   v_step uuid;
 BEGIN
   INSERT INTO public.onboarding_runs (wizard_key, wizard_version, actor_id, subject_user_id, idempotency_key)
-  VALUES ('onboarding.tenant', '1.0.0', v_delegate, v_subject, 'p2-2-run')
+  VALUES ('onboarding.p2deleg', '1.0.0', v_delegate, v_subject, 'p2-2-run')
   RETURNING id INTO v_run;
 
   INSERT INTO public.onboarding_step_states (run_id, step_key, state)
-  VALUES (v_run, 'onboarding.tenant.organization', 'in_progress')
+  VALUES (v_run, 'onboarding.p2deleg.delegable', 'in_progress')
   RETURNING id INTO v_step;
 
   INSERT INTO p2_ctx (k, v) VALUES ('p2_2_run', v_run), ('p2_2_step', v_step)
@@ -326,13 +334,13 @@ DECLARE
   v_conflict boolean := false;
 BEGIN
   INSERT INTO public.onboarding_delegations (run_id, actor_id, subject_user_id, allowed_step_keys, expires_at, status)
-  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.tenant.organization'], clock_timestamp() + interval '1 hour', 'active')
+  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.p2deleg.delegable'], clock_timestamp() + interval '1 hour', 'active')
   RETURNING id INTO v_d1;
   INSERT INTO p2_ctx (k, v) VALUES ('p2_2_d1', v_d1) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v;
 
   BEGIN
     INSERT INTO public.onboarding_delegations (run_id, actor_id, subject_user_id, allowed_step_keys, expires_at, status)
-    VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.tenant.organization'], clock_timestamp() + interval '2 hours', 'active');
+    VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.p2deleg.delegable'], clock_timestamp() + interval '2 hours', 'active');
   EXCEPTION WHEN unique_violation THEN
     v_conflict := true;
   END;
@@ -369,7 +377,7 @@ DECLARE
   v_visible int;
   v_completed int;
 BEGIN
-  v_ok := app_private.can_complete_step(v_run, 'onboarding.tenant.organization', NULL);
+  v_ok := app_private.can_complete_step(v_run, 'onboarding.p2deleg.delegable', NULL);
   ASSERT NOT v_ok, 'P2-2b FAIL: can_complete_step authorized via an expired delegation';
 
   SELECT count(*) INTO v_visible FROM public.onboarding_step_states WHERE id = v_step;
@@ -405,7 +413,7 @@ DECLARE
   v_corpse_status text;
 BEGIN
   INSERT INTO public.onboarding_delegations (run_id, actor_id, subject_user_id, allowed_step_keys, expires_at, status)
-  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.tenant.organization'], clock_timestamp() + interval '1 hour', 'active')
+  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.p2deleg.delegable'], clock_timestamp() + interval '1 hour', 'active')
   RETURNING id INTO v_d2;
 
   SELECT status INTO v_corpse_status FROM public.onboarding_delegations WHERE id = v_d1;
@@ -433,7 +441,7 @@ DECLARE
   v_ctype text;
   v_by uuid;
 BEGIN
-  ASSERT app_private.can_complete_step(v_run, 'onboarding.tenant.organization', NULL),
+  ASSERT app_private.can_complete_step(v_run, 'onboarding.p2deleg.delegable', NULL),
     'P2-2c FAIL: fresh delegation does not authorize (can_complete_step=false)';
 
   UPDATE public.onboarding_step_states SET state = 'completed' WHERE id = v_step
@@ -457,7 +465,7 @@ DECLARE
   v_step uuid;
 BEGIN
   INSERT INTO public.onboarding_runs (wizard_key, wizard_version, actor_id, subject_user_id, idempotency_key)
-  VALUES ('onboarding.tenant', '1.0.0', '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'p2-2e-run')
+  VALUES ('onboarding.p2deleg', '1.0.0', '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'p2-2e-run')
   RETURNING id INTO v_run;
   INSERT INTO p2_ctx (k, v) VALUES ('p2_2e_run', v_run) ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v;
 END $$;
@@ -476,12 +484,12 @@ DECLARE
 BEGIN
   -- Born-corpse: inserted directly with a past expiry (status stays 'active').
   INSERT INTO public.onboarding_delegations (run_id, actor_id, subject_user_id, allowed_step_keys, expires_at, status)
-  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.tenant.organization'], clock_timestamp() - interval '1 second', 'active')
+  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.p2deleg.delegable'], clock_timestamp() - interval '1 second', 'active')
   RETURNING id INTO v_corpse;
 
   -- A revoked delegation for the same (run, delegate) coexists (index is partial).
   INSERT INTO public.onboarding_delegations (run_id, actor_id, subject_user_id, allowed_step_keys, expires_at, status)
-  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.tenant.organization'], clock_timestamp() + interval '1 hour', 'revoked')
+  VALUES (v_run, v_delegate, v_subject, ARRAY['onboarding.p2deleg.delegable'], clock_timestamp() + interval '1 hour', 'revoked')
   RETURNING id INTO v_revoked;
 
   -- Re-activate the revoked one: the corpse must be swept, not block.
@@ -516,13 +524,13 @@ DECLARE
   v_ok boolean;
 BEGIN
   INSERT INTO public.onboarding_runs (wizard_key, wizard_version, actor_id, subject_user_id, idempotency_key)
-  VALUES ('onboarding.tenant', '1.0.0', '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'p2-3a-run')
+  VALUES ('onboarding.p2deleg', '1.0.0', '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'p2-3a-run')
   RETURNING id INTO v_run;
 
   v_exp := clock_timestamp() + interval '150 milliseconds';
   INSERT INTO public.onboarding_delegations (run_id, actor_id, subject_user_id, allowed_step_keys, expires_at, status)
   VALUES (v_run, '22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111',
-          ARRAY['onboarding.tenant.organization'], v_exp, 'active');
+          ARRAY['onboarding.p2deleg.delegable'], v_exp, 'active');
 
   PERFORM pg_sleep(0.25);
 
@@ -533,7 +541,7 @@ BEGIN
   ASSERT clock_timestamp() > v_exp,
     'P2-3a SETUP FAIL: wall clock has not crossed the boundary — sleep ineffective, probe vacuous';
 
-  v_ok := app_private.can_complete_step(v_run, 'onboarding.tenant.organization', NULL);
+  v_ok := app_private.can_complete_step(v_run, 'onboarding.p2deleg.delegable', NULL);
   ASSERT NOT v_ok,
     'P2-3a FAIL: delegation expired mid-transaction still authorizes (transaction-frozen clock in use)';
   RAISE NOTICE 'P2-3a PASS: mid-transaction delegation expiry denies immediately (wall-clock), now() witness %s < %s', now(), v_exp;
