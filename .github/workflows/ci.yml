@@ -333,6 +333,14 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:rpc-grants-sql
 
+      - name: Run safe-provisioning (takeover-safe) SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:provision-tenant-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

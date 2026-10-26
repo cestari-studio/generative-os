@@ -46,6 +46,7 @@
     "test:journey-ledger-sql": "./scripts/test-journey-ledger-sql.sh",
     "test:pagbank-grants-sql": "./scripts/test-pagbank-grants-sql.sh",
     "test:rpc-grants-sql": "./scripts/test-rpc-grants-sql.sh",
+    "test:provision-tenant-sql": "./scripts/test-provision-tenant-sql.sh",
     "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns:regen": "node scripts/regen-carbon-patterns.mjs",
