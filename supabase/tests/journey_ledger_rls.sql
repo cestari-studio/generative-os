@@ -135,6 +135,34 @@ BEGIN
   v_assert := v_assert + 1;
   RAISE NOTICE 'OK %: readiness required steps resolve server-side (no client-controlled list param)', v_assert;
 
+  -- 12. DEFECT 2 guard: an EMPTY required-step definition must NOT publish (CHECK) — and if one
+  --     existed, the RPC must return unavailable, not allow. The CHECK must fire even when a
+  --     PRIVILEGED writer (service_role) tries to publish an empty list. (authenticated cannot
+  --     insert definitions at all — that is the intended service-managed RLS.)
+  -- The CHECK is about the constraint, not RLS; run it as the postgres (owner) role
+  -- which bypasses RLS, so the INSERT reaches the CHECK. (service_role is still
+  -- subject to the definitions SELECT-only RLS for writes in this disposable DB.)
+  RESET ROLE;
+  BEGIN
+    INSERT INTO public.onboarding_journey_definitions (wizard_key, wizard_version, required_step_keys, status)
+    VALUES ('onboarding.empty', '1.0.0', ARRAY[]::text[], 'published');
+    RAISE EXCEPTION 'ASSERTION FAILED: published empty required_step_keys was accepted (CHECK must reject)';
+  EXCEPTION WHEN check_violation THEN
+    v_assert := v_assert + 1;
+    RAISE NOTICE 'OK %: published empty required_step_keys rejected by CHECK constraint', v_assert;
+  END;
+  -- and a draft (non-published) empty definition must NOT be used by the RPC (-> unavailable).
+  INSERT INTO public.onboarding_journey_definitions (wizard_key, wizard_version, required_step_keys, status)
+  VALUES ('onboarding.empty', '1.0.0', ARRAY[]::text[], 'draft');
+  SET ROLE authenticated;
+  SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+  SELECT public.resolve_onboarding_readiness('onboarding.empty', '1.0.0') INTO v_decision;
+  IF v_decision->>'decision' <> 'unavailable' THEN
+    RAISE EXCEPTION 'ASSERTION FAILED: empty/draft definition must be unavailable, got %', v_decision;
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: empty/draft definition -> unavailable (never unconditional allow)', v_assert;
+
   RESET ROLE;
   RAISE NOTICE '=== ALL % ASSERTIONS PASSED ===', v_assert;
 END $$;

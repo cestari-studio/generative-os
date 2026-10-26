@@ -81,4 +81,19 @@ describe('spec generator — semantic integrity', () => {
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/up to date/);
   });
+
+  test('duplicate field_key aliases emit each TS identifier once (red-team DEFECT 1, no TS2300)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'specgen-alias-'));
+    cpSync(join(ROOT, 'specs'), dir, { recursive: true });
+    // Add an alias field spec: same field_key as person.full_name, different spec_key.
+    const alias = JSON.parse(readFileSync(join(ROOT, 'specs/fields/person.full-name.json'), 'utf8'));
+    alias.spec_key = 'field.person.display-name';
+    writeFileSync(join(dir, 'fields', 'person.display-name.json'), JSON.stringify(alias, null, 2));
+    const genDir = mkdtempSync(join(tmpdir(), 'gen-alias-'));
+    const r = run('scripts/spec-generate.mjs', [], { SPEC_DIR_OVERRIDE: dir, SPEC_GEN_OVERRIDE: genDir });
+    expect(r.code).toBe(0);
+    const types = readFileSync(join(genDir, 'types/spec-types.ts'), 'utf8');
+    const occurrences = (types.match(/^export type person_full_name/gm) ?? []).length;
+    expect(occurrences).toBe(1);
+  });
 });

@@ -87,16 +87,34 @@ const COPYRIGHT_HEADER = [
 ];
 
 // --- Artifact 1: TS types ------------------------------------------------------
+// Two field specs may legitimately share a `field_key` (aliases with distinct
+// spec_key). Emit each TS identifier ONCE — keyed by the emitted identifier, not
+// the spec index. An exact duplicate (same name, same type) is dropped; a
+// CONFLICT (same name, different type) is a hard failure — emitting both would
+// produce `tsc` TS2300 Duplicate identifier (red-team DEFECT 1).
+const emittedTypes = new Map(); // identifier -> tsType
+const typeConflicts = [];
+for (const f of fields) {
+  const name = f.field_key.replace(/[^a-zA-Z0-9]/g, '_');
+  const ts = TYPE_MAP[f.data?.type] ?? 'unknown';
+  if (emittedTypes.has(name)) {
+    if (emittedTypes.get(name) !== ts) {
+      typeConflicts.push(`${name}: '${emittedTypes.get(name)}' vs '${ts}' (from ${f.spec_key})`);
+    }
+    continue; // exact duplicate — already emitted
+  }
+  emittedTypes.set(name, ts);
+}
+if (typeConflicts.length > 0) {
+  console.error(`SPEC-GENERATE: conflicting TS types for the same identifier: ${typeConflicts.join('; ')}`);
+  process.exit(1);
+}
 const typeLines = [
   ...COPYRIGHT_HEADER,
   '// GENERATED FILE — DO NOT HAND-EDIT. Regenerate: npm run spec:generate',
   `// Generator ${GENERATOR_VERSION}; sources: ${specs.length} specs.`,
   '',
-  ...fields.map((f) => {
-    const name = f.field_key.replace(/[^a-zA-Z0-9]/g, '_');
-    const ts = TYPE_MAP[f.data?.type] ?? 'unknown';
-    return `export type ${name} = ${ts};`;
-  }),
+  ...[...emittedTypes.entries()].map(([name, ts]) => `export type ${name} = ${ts};`),
   '',
   ...journeys.map(
     (j) =>

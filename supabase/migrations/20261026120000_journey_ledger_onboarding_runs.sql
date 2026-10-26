@@ -140,7 +140,10 @@ CREATE TABLE IF NOT EXISTS public.onboarding_journey_definitions (
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT onboarding_journey_def_unique UNIQUE (wizard_key, wizard_version),
   CONSTRAINT onboarding_journey_def_wizard_charset CHECK (wizard_key ~ '^[a-z0-9_.-]+$'),
-  CONSTRAINT onboarding_journey_def_status_check CHECK (status IN ('draft', 'published', 'archived'))
+  CONSTRAINT onboarding_journey_def_status_check CHECK (status IN ('draft', 'published', 'archived')),
+  -- A published definition must declare at least one required step; an empty
+  -- required list would make the gate unconditionally 'allow' (red-team DEFECT 2).
+  CONSTRAINT onboarding_journey_def_required_nonempty CHECK (status <> 'published' OR array_length(required_step_keys, 1) IS NOT NULL)
 );
 
 ALTER TABLE public.onboarding_journey_definitions ENABLE ROW LEVEL SECURITY;
@@ -194,6 +197,20 @@ BEGIN
     RETURN pg_catalog.jsonb_build_object(
       'decision', 'unavailable',
       'reason', 'journey_definition_missing',
+      'run_id', NULL,
+      'incomplete_steps', '[]'::jsonb,
+      'required_steps', '[]'::jsonb,
+      'next_step_key', NULL
+    );
+  END IF;
+
+  -- Defensive: a definition that yields zero required steps is indistinguishable
+  -- from "no requirement" -> would be unconditional 'allow'. Treat as unavailable
+  -- (red-team DEFECT 2). The CHECK constraint also blocks publishing an empty list.
+  IF v_required IS NULL OR pg_catalog.array_length(v_required, 1) IS NULL THEN
+    RETURN pg_catalog.jsonb_build_object(
+      'decision', 'unavailable',
+      'reason', 'journey_definition_empty',
       'run_id', NULL,
       'incomplete_steps', '[]'::jsonb,
       'required_steps', '[]'::jsonb,
