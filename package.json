@@ -52,6 +52,8 @@
     "test:readiness-blocked-sql": "./scripts/test-readiness-blocked-sql.sh",
     "test:readiness-concurrency-race": "./scripts/test-readiness-concurrency-race.sh",
     "test:red-team-p1-sql": "./scripts/test-red-team-p1-sql.sh",
+    "test:readiness-org-scoping-sql": "./scripts/test-readiness-org-scoping-sql.sh",
+    "test:p2-time-state-sql": "./scripts/test-p2-time-state-sql.sh",
     "check:rpc-grant-exposure": "node scripts/check-rpc-grant-exposure.mjs",
     "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",

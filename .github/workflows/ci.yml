@@ -384,6 +384,22 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:red-team-p1-sql
 
+      - name: Run readiness org-scoping SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:readiness-org-scoping-sql
+
+      - name: Run P2 time/state-integrity SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:p2-time-state-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

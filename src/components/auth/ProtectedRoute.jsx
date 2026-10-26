@@ -18,10 +18,26 @@ import { PageLayout } from '../../layouts/page-layout';
 import { TENANT_SETTINGS_CATEGORIES } from '../../routes/config';
 import { useOnboardingReadiness, TENANT_ONBOARDING_WIZARD_KEY } from '../../data/useOnboardingReadiness';
 
+/**
+ * Fail-closed non-authorized state rendered when the readiness gate resolves to
+ * anything other than `allow`. Shows an explicit notification — never children,
+ * never a fabricated allow.
+ */
+const NonAuthorizedState = ({ kind, title, subtitle }) => (
+  <div className="cs--protected-gate-non-authorized" role="status" aria-live="polite">
+    <InlineNotification lowContrast hideCloseButton kind={kind} title={title} subtitle={subtitle} />
+  </div>
+);
+NonAuthorizedState.propTypes = {
+  kind: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  subtitle: PropTypes.string.isRequired,
+};
+
 export const ProtectedRoute = ({ children, category }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, loading, openSignInModal, openOnboardingFlow } = useTenant();
+  const { user, loading, openSignInModal, openOnboardingFlow, activeOrganizationId } = useTenant();
 
   // Server-authoritative onboarding readiness (ADR 0001 / Fase C). The gate asks
   // the server whether required steps are incomplete; it never infers completion
@@ -39,7 +55,7 @@ export const ProtectedRoute = ({ children, category }) => {
       resolve();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, activeOrganizationId]);
 
   // Server says required steps are incomplete -> route to the onboarding flow at
   // the next required step (not the dashboard). This closes FS4's direct-route bypass.
@@ -59,10 +75,88 @@ export const ProtectedRoute = ({ children, category }) => {
   }
 
   if (user) {
-    // Readiness still resolving, or resolved to allow / unavailable_backend
-    // (dependency recorded): render children. `require_steps` triggers the
-    // onboarding flow via the effect above.
-    return children;
+    // Fail-closed: render authorized children ONLY on an explicit server-side
+    // decision='allow'. Every other outcome — checking, unknown, unauthenticated,
+    // unavailable_backend, blocked, unavailable, malformed payload, network
+    // timeout — must NOT render the private surface.
+
+    // Readiness still resolving — show a loading state, never children.
+    if (readiness.status === 'checking') {
+      return (
+        <div className="cs--protected-gate-loading" role="status" aria-live="polite">
+          <Loading withOverlay={false} description={t('auth.protected.resolving', 'Resolving tenant readiness...')} />
+        </div>
+      );
+    }
+
+    // Explicit allow — the ONLY authorized path.
+    if (readiness.status === 'ready' && readiness.decision === 'allow') {
+      return children;
+    }
+
+    // require_steps — the onboarding flow opens via the effect above; render nothing.
+    if (readiness.status === 'ready' && readiness.decision === 'require_steps') {
+      return (
+        <div className="cs--protected-gate-loading" role="status" aria-live="polite">
+          <Loading withOverlay={false} description={t('auth.protected.redirecting', 'Redirecting to onboarding...')} />
+        </div>
+      );
+    }
+
+    // blocked — server-side policy denial.
+    if (readiness.status === 'ready' && readiness.decision === 'blocked') {
+      return (
+        <NonAuthorizedState
+          kind="error"
+          title={t('auth.protected.blockedTitle', 'Access Blocked')}
+          subtitle={t(
+            'auth.protected.blockedSubtitle',
+            'Your access to this tenant workspace has been restricted by a server-side policy. Contact your administrator for assistance.',
+          )}
+        />
+      );
+    }
+
+    // unavailable — the readiness service is unavailable.
+    if (readiness.status === 'ready' && readiness.decision === 'unavailable') {
+      return (
+        <NonAuthorizedState
+          kind="warning"
+          title={t('auth.protected.unavailableTitle', 'Service Unavailable')}
+          subtitle={t(
+            'auth.protected.unavailableSubtitle',
+            'The tenant readiness service is temporarily unavailable. Please try again later.',
+          )}
+        />
+      );
+    }
+
+    // unavailable_backend — the readiness RPC is not deployed.
+    if (readiness.status === 'unavailable_backend') {
+      return (
+        <NonAuthorizedState
+          kind="warning"
+          title={t('auth.protected.backendUnavailableTitle', 'Service Unavailable')}
+          subtitle={t(
+            'auth.protected.backendUnavailableSubtitle',
+            'The tenant readiness service is not yet available. Please try again later.',
+          )}
+        />
+      );
+    }
+
+    // unknown — resolution failed (RPC error, timeout, malformed payload).
+    // This is a fail-closed catch-all: any unrecognized state is non-authorized.
+    return (
+      <NonAuthorizedState
+        kind="error"
+        title={t('auth.protected.unknownTitle', 'Unable to Verify Access')}
+        subtitle={t(
+          'auth.protected.unknownSubtitle',
+          'We could not verify your access to this tenant workspace. Please try again later.',
+        )}
+      />
+    );
   }
 
   const activeCategory = TENANT_SETTINGS_CATEGORIES.find(

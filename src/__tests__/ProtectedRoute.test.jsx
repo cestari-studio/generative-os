@@ -33,7 +33,7 @@ beforeEach(() => {
 afterEach(() => setupAfterEach(server));
 afterAll(() => setupAfterAll(server));
 
-test('renders children directly when user is authenticated', () => {
+test('renders children directly when user is authenticated and server allows', async () => {
   const authContext = {
     ...DEFAULT_CONTEXT_VALUE,
     user: { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'tenant.admin@ibm.com' },
@@ -50,7 +50,8 @@ test('renders children directly when user is authenticated', () => {
     </MemoryRouter>,
   );
 
-  expect(screen.getByTestId('private-tenant-content')).toBeInTheDocument();
+  // The gate resolves readiness asynchronously; wait for the allow decision.
+  await waitFor(() => expect(screen.getByTestId('private-tenant-content')).toBeInTheDocument());
   expect(screen.getByText('Confidential Payments Table')).toBeInTheDocument();
   expect(screen.queryByText('Tenant-Level Settings Access Restricted')).not.toBeInTheDocument();
 });
@@ -291,5 +292,247 @@ describe('ProtectedRoute — server-authoritative readiness gate (§11)', () => 
     );
 
     await waitFor(() => expect(rpcMock.mock.calls.length).toBeGreaterThanOrEqual(2));
+  });
+
+  // P1-4 mitigation — org-context switch: when the active organization changes,
+  // the gate re-resolves (the prior org's allow must not persist).
+  test('org-context switch (activeOrganizationId change) re-resolves the gate', async () => {
+    rpcMock.mockResolvedValue({ data: { decision: 'allow', run_id: 'run-1' }, error: null });
+    const openOnboardingFlow = vi.fn();
+    const ctxA = {
+      ...DEFAULT_CONTEXT_VALUE,
+      user: authedUser,
+      loading: false,
+      openOnboardingFlow,
+      activeOrganizationId: 'org-a',
+    };
+
+    const { rerender } = renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctxA}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalledTimes(1));
+
+    // Switch to a different organization (same user).
+    const ctxB = { ...ctxA, activeOrganizationId: 'org-b' };
+    rerender(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctxB}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock.mock.calls.length).toBeGreaterThanOrEqual(2));
+  });
+});
+
+describe('ProtectedRoute — fail-closed negative proofs (P2-5)', () => {
+  const authedUser = { id: 'usr_a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', email: 'tenant.admin@ibm.com' };
+
+  test('decision=blocked -> children NOT rendered, blocked notification shown', async () => {
+    rpcMock.mockResolvedValue({
+      data: { decision: 'blocked', reason: 'policy_violation', run_id: 'run-1' },
+      error: null,
+    });
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId('private-content')).not.toBeInTheDocument());
+    expect(screen.getByText('Access Blocked')).toBeInTheDocument();
+  });
+
+  test('decision=unavailable -> children NOT rendered, unavailable notification shown', async () => {
+    rpcMock.mockResolvedValue({
+      data: { decision: 'unavailable', reason: 'maintenance', run_id: 'run-1' },
+      error: null,
+    });
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId('private-content')).not.toBeInTheDocument());
+    expect(screen.getByText('Service Unavailable')).toBeInTheDocument();
+  });
+
+  test('RPC throws (network timeout) -> children NOT rendered, error notification shown', async () => {
+    rpcMock.mockRejectedValue(new Error('Network timeout'));
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId('private-content')).not.toBeInTheDocument());
+    expect(screen.getByText('Unable to Verify Access')).toBeInTheDocument();
+  });
+
+  test('PGRST202 (backend missing) -> children NOT rendered, unavailable notification shown', async () => {
+    rpcMock.mockResolvedValue({
+      data: null,
+      error: { code: 'PGRST202', message: 'Could not find the function public.resolve_onboarding_readiness' },
+    });
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId('private-content')).not.toBeInTheDocument());
+    expect(screen.getByText('Service Unavailable')).toBeInTheDocument();
+  });
+
+  test('malformed payload (missing decision field) -> children NOT rendered, error notification shown', async () => {
+    rpcMock.mockResolvedValue({
+      data: { run_id: 'run-1' }, // no decision field
+      error: null,
+    });
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId('private-content')).not.toBeInTheDocument());
+    expect(screen.getByText('Unable to Verify Access')).toBeInTheDocument();
+  });
+
+  test('null data -> children NOT rendered, error notification shown', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId('private-content')).not.toBeInTheDocument());
+    expect(screen.getByText('Unable to Verify Access')).toBeInTheDocument();
+  });
+
+  test('checking state -> children NOT rendered, loading shown', async () => {
+    // Never resolve the RPC — readiness stays in 'checking'.
+    rpcMock.mockReturnValue(new Promise(() => {}));
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    // Give effects a chance to fire.
+    await new Promise((res) => setTimeout(res, 50));
+    expect(screen.queryByTestId('private-content')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByText('Resolving tenant readiness...')).toBeInTheDocument();
+  });
+
+  test('require_steps -> children NOT rendered, redirect loading shown', async () => {
+    rpcMock.mockResolvedValue({
+      data: {
+        decision: 'require_steps',
+        next_step_key: 'onboarding.person.address',
+        run_id: 'run-1',
+        incomplete_steps: ['onboarding.person.address'],
+      },
+      error: null,
+    });
+    const openOnboardingFlow = vi.fn();
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false, openOnboardingFlow };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(openOnboardingFlow).toHaveBeenCalledWith(0));
+    expect(screen.queryByTestId('private-content')).not.toBeInTheDocument();
+    expect(screen.getByText('Redirecting to onboarding...')).toBeInTheDocument();
+  });
+
+  test('non-PGRST202 RPC error -> children NOT rendered, error notification shown', async () => {
+    rpcMock.mockResolvedValue({
+      data: null,
+      error: { code: '42501', message: 'permission denied for function resolve_onboarding_readiness' },
+    });
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={ctx}>
+          <ProtectedRoute category="billing">
+            <div data-testid="private-content">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByTestId('private-content')).not.toBeInTheDocument());
+    expect(screen.getByText('Unable to Verify Access')).toBeInTheDocument();
   });
 });

@@ -9,7 +9,8 @@
 > **Status:** DRAFT for owner review (no migration applied; forward-only/additive only,
 > validated on disposable PostgreSQL 17.11 before any remote request).
 > Relates: `fase0-preflight-report.md`, `fase-minus1-spec-control-plane-plan.md`, Fase A/B,
-> `red-team-audit-readiness-generator.md` (DEFECT 3), `ui-rebuild/master-directive.md` §6.
+> `red-team-audit-readiness-generator.md` (DEFECT 3), `ui-rebuild/master-directive.md` §6,
+> `red-team-audit-provisioning-readiness-cycle.md` (P1-4 org-scoping; P2-1..P2-5 hardening).
 >
 > **Blocking note (actor/subject):** the readiness gate MUST NOT be considered complete
 > until §2.7–§2.10 (actor/subject semantics, modes, readiness decision, completion
@@ -241,6 +242,200 @@ policies/RPC in a new forward-only migration). The already-applied migration MUS
 edited; existing rows backfill to `mode = 'self_service'` semantics (actor==subject),
 which is the restrictive default.
 
+### 2.12 Organizational scope contract for readiness (resolves red-team P1-4)
+
+The independent red team reproduced (`red-team-audit-provisioning-readiness-cycle.md`
+P1-4) that `resolve_onboarding_readiness` selected the caller's **latest run for the
+wizard with no `target_organization_id` filter**, so a completed run in organization A
+yielded `allow` while the caller operated in organization B — a cross-tenant bleed of
+completion state in both directions (and, inversely, a newer incomplete B run shadowing
+an older complete A run). The owner decided the normative contract below; it is recorded
+here verbatim and is **decided, not pending**.
+
+Every published journey definition declares exactly one **scope** —
+`personal | organizational` — from server-managed normative config
+(`onboarding_journey_definitions.scope`, writable only by `service_role`), never from
+browser parameters. Scope is an axis **orthogonal to mode** (§2.8): mode says **who**
+may complete steps; scope says **in which organizational context** completion counts.
+The fail-closed default for an undeclared scope is `organizational`.
+
+#### 2.12.1 The contract (normative, owner-decided)
+
+| #   | Situation                                                                       | Decision (normative)                                                                                                   |
+| --- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 1   | `personal` journey, explicitly-declared global scope                            | Evaluate the subject's progress **globally** per policy (no organization context is resolved or required).             |
+| 2   | `organizational` journey, active context A, a run completed for A               | May allow **ONLY A** (when every other policy in §2.9 passes).                                                         |
+| 3   | `organizational` journey, active context B, only a run completed for A exists   | MUST NOT allow because of A's run. (Without a live B run the outcome is `require_steps` for B, never A's `allow`.)     |
+| 4   | `organizational` journey, no valid target organization context                  | **`unavailable` / `org_context_missing`** — never a permissive fallback (rationale in §2.12.2).                        |
+| 5   | Caller without membership/authorization in the active context                   | **`blocked` / `org_membership_required`** — an affirmative policy denial, never allow.                                 |
+| 6   | Multiple eligible live runs for the same context, no unambiguous selection rule | **`unavailable` / `ambiguous_runs`** until the ambiguity is resolved — never an arbitrary latest-wins pick.            |
+| 7   | `NULL target_organization_id`                                                   | Is **never** a wildcard for "any organization"; a NULL-target run never matches an organizational context.             |
+| 8   | Delegated-actor authorization                                                   | Never silently becomes the subject's personal or organizational authorization (§2.8, §2.10 attribution still governs). |
+
+Run selection is a function of exactly five dimensions, all server-resolved:
+**principal** (`actor_id`/`subject_user_id` = `auth.uid()`), **journey**
+(`wizard_key`), **version** (`wizard_version`), **organizational context** (§2.12.3),
+and the **delegation rules** of §2.8/§2.10. No other signal (recency alone, run
+existence, e-mail, `persons.account_type`) may influence selection.
+
+#### 2.12.2 Missing org context is `unavailable`, not `blocked` — rationale
+
+Situation 4 resolves to **`unavailable` / `org_context_missing`** (Worker A's
+implementation choice in migration `20261026190000_readiness_org_scoping.sql`, ratified
+here). The distinction preserves the §2.9 taxonomy's meaning:
+
+- `unavailable` certifies "_the configuration or state could not be resolved safely_."
+  An absent active-organization pointer is precisely that: the system cannot determine
+  **which** context to evaluate, so no safe decision exists. Nothing has been denied;
+  the principal may simply not have selected (or been provisioned) a context yet.
+- `blocked` certifies "_policy denies the operation/access_" — an affirmative verdict
+  **about the principal**. That is situation 5: the caller names an active context and
+  the membership check fails (`org_membership_required`).
+
+Mapping a not-yet-established context to `blocked` would misreport a resolvable state
+as a policy denial (and the UI would show a "contact your administrator" denial surface
+to a user who merely has no active org). Mapping it to `require_steps` or `allow` would
+be a permissive fallback, which this contract forbids. Both failure surfaces remain
+fail-closed: neither renders the private route nor opens the wizard (§2.13.5).
+
+#### 2.12.3 Org-context mechanism (server-trusted, never a client argument)
+
+- The readiness RPC keeps its `(wizard_key, version)` signature — **the browser never
+  passes an organization id**. The active organization context is resolved
+  **server-side** from `persons.active_organization_id` for `auth.uid()`.
+- The stored pointer is **never blindly trusted**: membership is independently
+  re-validated at evaluation time (`app_private.is_org_member`). A stale or forged
+  pointer degrades to `blocked` / `org_membership_required` (situation 5), never to
+  `allow`. The pointer's only sanctioned writer
+  (`public.switch_active_context`) itself validates membership before writing — the RPC
+  re-checks because stored state can drift.
+- The consumer (`ProtectedRoute`) MUST re-resolve readiness when the active
+  organization changes (`activeOrganizationId`), not only on user-identity change —
+  closing the client half of P1-4 (implemented in
+  `src/components/auth/ProtectedRoute.jsx`).
+
+#### 2.12.4 Fail-closed invariants (extension of §2.9)
+
+The following MUST NEVER yield `allow`: absent/unpublished/empty definition
+(`journey_definition_missing` / `journey_definition_empty`); missing org context on an
+organizational journey (`org_context_missing`); ambiguous eligible runs
+(`ambiguous_runs`); unauthenticated caller (`authentication_required`); any
+query/permission failure (`resolution_error`); and every `blocked` reason
+(`run_blocked`, `run_state_blocked`, `policy_denied`, `org_membership_required`). A
+completed run in the current context is superseded (the gate was already passed for
+that context) and a fresh run is offered — completion in context A never satisfies
+context B.
+
+### 2.13 P2 hardening decisions (time, state and route-gate integrity)
+
+The owner decided to close the red team's five P2 hardening items. The normative
+decisions are recorded here with the implementing artifacts named per item. Worker B's
+implementing migration (`20261026200000_p2_time_state_integrity.sql`) and SQL suite
+(`supabase/tests/p2_time_state_integrity.sql`) are in the local tree; nothing is
+applied remotely. The merge coordination point with Worker A's org-scoping migration
+is recorded in §2.13.6.
+
+#### 2.13.1 `completed_at` is server-controlled — no backdating (red-team P2-1) — decided and implemented
+
+`completed_at` MUST be server-stamped **only on a valid transition INTO a completed
+state**; any client-supplied value is discarded (overwritten, never preserved); the
+stamp is immutable while the row stays completed (a client rewrite attempt is ignored)
+and is cleared on regression out of completed. This holds for **both**
+`onboarding_step_states.completed_at` (attribution trigger rewrite) and
+`onboarding_runs.completed_at` — the latter joins the P1-1 server-authoritative guard
+set, so a direct authenticated UPDATE cannot change it at all, and server-side
+transitions stamp/clear it with `clock_timestamp()`. Re-completion restamps.
+Supersedes the backdatable `IF NEW.completed_at IS NULL` behavior of
+`20261026150000:325-327`. Implemented in `20261026200000_p2_time_state_integrity.sql`
+(P2-1a/P2-1b, Worker B).
+
+#### 2.13.2 Expired delegations never authorize and never corpse-block (red-team P2-2) — decided and implemented
+
+- An expired delegation MUST NOT authorize anything — enforced by **revalidation on
+  use**: `app_private.can_complete_step` re-checks `status='active'` AND expiry on every
+  write-path call (the RLS call sites), so an expired (or corpse) delegation never
+  authorizes regardless of the stored `status`.
+- An expired-but-`status='active'` delegation MUST NOT block a fresh grant for the
+  same `(run_id, actor_id)`: on any delegation INSERT or (re)activation, a trigger
+  sweeps **other** active-but-expired rows for the same `(run_id, actor_id)` to
+  `status='expired'` (wall-clock corpse test), freeing the partial-unique-index slot.
+  Two genuinely **live** active delegations still collide (`23505`) — the constraint
+  is preserved. Expiration is always derived from `expires_at`, never trusted from the
+  stored `status` alone. Implemented in `20261026200000_p2_time_state_integrity.sql`
+  (`app_private.sweep_expired_delegations`, Worker B).
+
+#### 2.13.3 Temporal reference per operation — `now()` vs `clock_timestamp()` (red-team P2-3) — decided and implemented
+
+Normative rule, as implemented by Worker B and ratified here:
+
+- **`clock_timestamp()` (wall clock) is REQUIRED** wherever the comparison is an
+  **expiry / authorization boundary or an audit-trail write time**: delegation expiry
+  in `can_complete_step`, run expiry in `resolve_onboarding_readiness`, the
+  delegation corpse sweep, and every `completed_at` stamp. Rationale: an
+  authorization boundary is a wall-clock fact — a delegation or run that expires
+  mid-transaction MUST stop being honored immediately, and in a long transaction that
+  completes several steps each row MUST carry its own true write time, not the shared
+  transaction-start time.
+- **`now()` (transaction time) is KEPT** for bookkeeping inside one transaction
+  (`created_at`, `updated_at`, `set_updated_at()`): transaction-consistent values are
+  intended there and they feed no expiry/TTL/authorization decision.
+- The choice MUST be documented at the function. Implemented in
+  `20261026200000_p2_time_state_integrity.sql` (P2-3a/P2-3b, Worker B).
+
+#### 2.13.4 Deterministic run selection — tie-breaker + ambiguity rejection (red-team P2-4) — decided and implemented
+
+- **Ambiguity rejection:** more than one **eligible live ACTIVE run** for the
+  selection dimensions yields `unavailable` / `ambiguous_runs` — never an arbitrary
+  pick (expired/terminal runs are not eligible and never poison the count). Present
+  in both Worker A's org-scoped body and Worker B's hardening body.
+- **Tie-breaker:** latest-run selection MUST order by
+  `ORDER BY created_at DESC, id DESC` — the `(created_at, id)` pair is unique (`id` is
+  the PK), so the pick is fully deterministic and independent of insertion order or
+  plan choices. Implemented in `20261026200000_p2_time_state_integrity.sql` (P2-4,
+  Worker B); the merge into the org-scoped body is §2.13.6.
+
+#### 2.13.5 `ProtectedRoute` fail-closed contract (red-team P2-5) — decided and implemented
+
+The route gate's contract is **fail-closed on the server decision**, superseding the
+previous "session-only" intent:
+
+- Children render **only** on an explicit server `decision = 'allow'`.
+- Every other outcome — `checking`, `require_steps` (the onboarding flow opens; the
+  private surface renders nothing), `blocked`, `unavailable`, `unavailable_backend`,
+  `unknown`, malformed payload, network timeout — renders an explicit non-authorized
+  state (Carbon `InlineNotification`), **never children**.
+- The gate re-resolves on **both** user-identity change and `activeOrganizationId`
+  change (§2.12.3).
+
+Implemented in `src/components/auth/ProtectedRoute.jsx` (Worker C). The server-side
+`blocked` decision introduced by `20261026170000_readiness_blocked_decision.sql` is
+now actually enforced in the UI: it neither opens the wizard nor renders the route.
+
+#### 2.13.6 Merge coordination point — one `resolve_onboarding_readiness` body (OPEN)
+
+Migrations `20261026190000` (Worker A, org-scoping) and `20261026200000` (Worker B,
+P2-3/P2-4) **both `CREATE OR REPLACE public.resolve_onboarding_readiness`** — last
+writer wins the function body. Worker B's file intentionally carries the
+**non-org-filtered** variant (170000 base) because the org filter is Worker A's owned
+change, and Worker B verified empirically that naive last-writer-wins **reverts** the
+org-scoping. The merge MUST produce ONE function body combining, and the application
+order (or a single reconciled migration) MUST be fixed before any remote apply:
+
+- **from Worker A (org-scoping):** scope resolution
+  (`persons.active_organization_id` re-validated via `app_private.is_org_member`), the
+  `target_organization_id` predicate on BOTH the live-run count AND the latest-run
+  selection, the `org_context_missing` / `org_membership_required` reasons, and the
+  fail-closed `EXCEPTION WHEN OTHERS → unavailable/resolution_error` wrapper.
+- **from Worker B (hardening):** `ORDER BY created_at DESC, id DESC`, the
+  `>1 live ACTIVE run → unavailable/ambiguous_runs` rejection, and
+  `clock_timestamp()` for every run-expiry comparison.
+
+Until that single reconciled body exists and both suites
+(`readiness_org_scoping.sql` + `p2_time_state_integrity.sql`) pass against it per §5,
+the merged readiness RPC is **not verified** and MUST NOT be applied remotely. This is
+an engineering coordination point (owned by Workers A+B together), not a pending
+product decision.
+
 ## 3. Consequences
 
 - Requires owner-authorized additive migrations (tenancy columns, run/step ledger, possibly RPC grant
@@ -271,6 +466,19 @@ subject_user_id` are **not** blocked by this item, because under §2.8 the migra
 already confines run access to the single principal involved; the block applies to the
 distinction itself, not to self-service flows that never exercise it.
 
+### 3.2 Org-scope + P2 hardening — implementation status (local tree only)
+
+The §2.12 org-scope contract, the §2.13.1–§2.13.4 hardening, and the §2.13.5 route
+gate are implemented in the local tree (migrations
+`20261026190000_readiness_org_scoping.sql` + `20261026200000_p2_time_state_integrity.sql`,
+suites `supabase/tests/readiness_org_scoping.sql` + `supabase/tests/p2_time_state_integrity.sql`,
+and `src/components/auth/ProtectedRoute.jsx`). **Two coordination gates remain before
+any of this is verified:** (a) the §2.13.6 merge of the two readiness-RPC bodies into
+one, and (b) both §5 suites passing against the merged body on a disposable PostgreSQL
+with RLS enforced as non-superuser roles. **None of this is applied remotely** (owner
+authorization required), and no org-scope or P2 behavior may be presented as released
+until both gates clear.
+
 ## 4. Migration plan (draft — see `supabase/migrations/` draft when authorized to draft locally)
 
 1. `tenancy_columns`: add `tenant_kind`, `authority_level` enums + columns + parent validation trigger.
@@ -284,6 +492,18 @@ distinction itself, not to self-service flows that never exercise it.
    rules on `onboarding_journey_definitions`, `completed_by`/`completion_type`/`policy_ref` on
    `onboarding_step_states`, the delegation-policy store, tightened RLS + readiness RPC with the
    `blocked` decision. Backfill existing rows to `self_service`. Forward-only; never edits step 2.
+6. **(new, additive) `readiness_org_scoping`** (`20261026190000_readiness_org_scoping.sql`,
+   local tree): implement §2.12 — `scope` column on `onboarding_journey_definitions`
+   (default `organizational`, fail-closed) + org-scoped `resolve_onboarding_readiness`
+   (server-derived, membership-revalidated context; `ambiguous_runs` rejection). Forward-only;
+   never edits step 2 or step 5.
+7. **(new, additive) P2 hardening** (`20261026200000_p2_time_state_integrity.sql`,
+   local tree): implement §2.13.1–§2.13.4 — server-stamped `completed_at` on valid
+   completed transitions only (steps + runs), expired-delegation corpse sweep +
+   revalidation on use, `clock_timestamp()` for expiry/authorization boundaries, and
+   the `id DESC` tie-breaker. Forward-only; never edits prior steps. **Open merge:**
+   steps 6 and 7 both `CREATE OR REPLACE public.resolve_onboarding_readiness` — a
+   single reconciled body (§2.13.6) MUST be produced before any remote apply.
 
 ## 5. Test plan (normative assertions — disposable PostgreSQL 17.11, non-superuser roles, RLS enforced)
 
@@ -315,6 +535,26 @@ The migration implementing §2.11 is accepted only with SQL tests covering, at m
 19. Cross-wizard completion → does not satisfy the target wizard.
 20. Backend/policy resolution failure → fail-closed (`unavailable`), never `allow`.
 
+**Organizational scope (§2.12) — implemented in `supabase/tests/readiness_org_scoping.sql` (Worker A)**
+
+21. Org-A completed run, evaluating in org B → NOT `allow` (core P1-4; `require_steps`/`no_active_run` for B).
+22. Delegated run (actor≠subject) in org A, evaluating in org B → NOT `allow`.
+23. `scope='personal'` journey evaluates globally (no org context required).
+24. `organizational` journey, no active org context → `unavailable`/`org_context_missing`.
+25. Active org the caller is not a member of (stale/forged pointer) → `blocked`/`org_membership_required`.
+26. Multiple eligible live runs in the same context → `unavailable`/`ambiguous_runs`.
+27. `NULL target_organization_id` never matches an organizational context.
+28. A delegated-actor's org-A authorization never satisfies the subject's org-B gate.
+
+**P2 hardening (§2.13) — implemented in `supabase/tests/p2_time_state_integrity.sql` (Worker B), except where noted**
+
+29. `completed_at` with a backdated client value → rewritten to server `clock_timestamp()` on a valid completed transition (steps and runs); immutable while completed; cleared on regression; direct authenticated UPDATE of run `completed_at` raises 42501 (P2-1).
+30. Re-delegation for the same `(run_id, actor_id)` after expiry → succeeds (corpse swept to `expired`); two live active delegations still collide (23505); expired delegation never authorizes on the write path (P2-2).
+31. Delegation/run expiry crossing a boundary mid-transaction → stops authorizing immediately (`clock_timestamp()` semantics per §2.13.3) (P2-3).
+32. Two runs with identical `created_at`, different states → deterministic selection (`id DESC` tie-breaker); >1 live ACTIVE run → `unavailable`/`ambiguous_runs` (P2-4). Assertions 31–32 run against Worker B's body; they MUST be re-run against the §2.13.6 merged body.
+33. `ProtectedRoute` renders children **only** on `decision='allow'`; `blocked`/`unavailable`/`unknown`/`unavailable_backend` render the non-authorized state (P2-5; implemented in `src/components/auth/ProtectedRoute.jsx`, Worker C).
+34. **Merged body (§2.13.6):** assertions 21–28 AND 31–32 MUST all pass against the single reconciled `resolve_onboarding_readiness` before any remote apply.
+
 If any assertion depends on an interpretation not yet decided, it is recorded as PENDING (§6);
 the expectation MUST NOT be adjusted to make the suite pass.
 
@@ -323,14 +563,33 @@ the expectation MUST NOT be adjusted to make the suite pass.
 The following are explicitly **PENDING** and block the corresponding scope until decided.
 They are decisions of policy, not of engineering, and are therefore not made in this ADR.
 
-| #   | Decision (PENDING)                                                                                                                                                                                            | Scope blocked until decided                                                                      |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| P1  | **Which wizards are `delegated` vs `self_service`** — the per-wizard mode assignment in published normative config.                                                                                           | Any `delegated` wizard's release; the `mode` values written to `onboarding_journey_definitions`. |
-| P2  | **The delegation policy content** — who may act for whom, which steps are delegable, required delegation evidence, and denial rules (§2.8).                                                                   | All `delegated` flows; the delegation-policy store's rows; assertion §5.4/§5.5 expectations.     |
-| P3  | **Which steps are "sensitive declarations"** (consent, legal representation, legal-identity) that can never be delegate-satisfied, per wizard.                                                                | Step-level completion rules; legal/compliance sign-off.                                          |
-| P4  | **Which principal the readiness gate certifies for each delegated wizard** (subject-always vs policy-per-step), where the directive leaves it to policy (§2.8, §2.9).                                         | Readiness verdict semantics for delegated wizards; the §5.10 expectation.                        |
-| P5  | **`trusted_verifier` set** — which backend verifiers (e.g., e-mail/identity verification) may complete steps without being the subject, and under what rules.                                                 | Any step whose completion type is `trusted_verifier`.                                            |
-| P6  | **Backfill confirmation** — that classifying every pre-existing run as `self_service` (actor==subject) is correct for the historical data, and the classification of the seed `generative-os-enterprise` org. | The step-5 migration's backfill; tenancy-column backfill (§4.3).                                 |
+**Decided since this table was first written (no longer pending):**
+
+- **Readiness org-scoping (red-team P1-4):** DECIDED — the §2.12 contract (scope axis,
+  context binding, `org_context_missing`/`org_membership_required`/`ambiguous_runs`
+  taxonomy, NULL-is-never-a-wildcard, five-dimension run selection). Owner-decided;
+  recorded 2026-10-26.
+- **P2 hardening (red-team P2-1..P2-5):** DECIDED — §2.13 (server-stamped
+  `completed_at`, expired-delegation revalidation without corpse-block, the
+  `now()`/`clock_timestamp()` rule, deterministic tie-breaker + ambiguity rejection,
+  `ProtectedRoute` fail-closed). Owner-decided; recorded 2026-10-26.
+- **P4 (partial):** the **context-binding** half of P4 is DECIDED by §2.12 — readiness
+  is certified for one principal **in one organizational context**, per the
+  five-dimension selection, and a delegated-actor authorization never silently becomes
+  the subject's personal or organizational authorization. The remaining half — which
+  principal the gate certifies **for each delegated wizard** (subject-always vs
+  policy-per-step, §2.8/§2.9) — is still PENDING below.
+
+| #   | Decision (PENDING)                                                                                                                                                                                                                                                                                                                                                                                    | Scope blocked until decided                                                                      |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| P1  | **Which wizards are `delegated` vs `self_service`** — the per-wizard mode assignment in published normative config. (The orthogonal **scope** assignment, `personal` vs `organizational`, is decided in §2.12 with a fail-closed `organizational` default; per-wizard overrides of the default remain part of this PENDING item.)                                                                     | Any `delegated` wizard's release; the `mode` values written to `onboarding_journey_definitions`. |
+| P2  | **The delegation policy content** — who may act for whom, which steps are delegable, required delegation evidence, and denial rules (§2.8).                                                                                                                                                                                                                                                           | All `delegated` flows; the delegation-policy store's rows; assertion §5.4/§5.5 expectations.     |
+| P3  | **Which steps are "sensitive declarations"** (consent, legal representation, legal-identity) that can never be delegate-satisfied, per wizard. (`subject_step_keys` now exists as the mechanism — Worker A, `20261026180000`; the **content** of that array per wizard remains this PENDING item.)                                                                                                    | Step-level completion rules; legal/compliance sign-off.                                          |
+| P4  | **Which principal the readiness gate certifies for each delegated wizard** (subject-always vs policy-per-step), where the directive leaves it to policy (§2.8, §2.9). **Partially decided** — the context-binding half is resolved by §2.12 (see above).                                                                                                                                              | Readiness verdict semantics for delegated wizards; the §5.10 expectation.                        |
+| P5  | **`trusted_verifier` set** — which backend verifiers (e.g., e-mail/identity verification) may complete steps without being the subject, and under what rules.                                                                                                                                                                                                                                         | Any step whose completion type is `trusted_verifier`.                                            |
+| P6  | **Backfill confirmation** — that classifying every pre-existing run as `self_service` (actor==subject) is correct for the historical data, and the classification of the seed `generative-os-enterprise` org. **New sub-question:** existing definitions backfill to `scope='organizational'` (the fail-closed default) — confirm that is correct for any personal-scope journeys already configured. | The step-5 migration's backfill; tenancy-column backfill (§4.3); the §2.12 scope backfill.       |
 
 No PENDING item is resolved by inference from code, reports, or the permissive behavior of
-the currently-applied migration. Each requires an explicit, recorded decision.
+the currently-applied migration. Each requires an explicit, recorded decision. Items marked
+"decided" above were decided explicitly by the product owner and are recorded in the cited
+sections; they are listed only to keep the ledger complete.

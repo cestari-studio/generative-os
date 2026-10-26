@@ -1,10 +1,10 @@
 {
   "generator_version": "1.0.0",
   "files": {
-    "types/spec-types.ts": "ec44c6edba31c6ed4391ddd19cd2c9a158137797d26ef4bb3906e6a70dd8eeb1",
+    "types/spec-types.ts": "4d403a172c3049cec70c05b2006adb9967888df84db258be958786d8e9c6d549",
     "form-definitions/onboarding.person.form.json": "89c9784b9995a7c32c9353580e40bba016c6b94ad8866875c8bf65865440e5be",
     "traceability/onboarding.person.trace.json": "3dc8db2903d8302d124be43a899ed72b5ca88f916899ad30e3c7d32f7b1e15f4",
-    "envelopes/fase1-poc.envelope.json": "b35d879dea2597d626a85158200868cd490fc58e05350b816f6fbf9641691fab",
-    "tests/validation-test-list.md": "7bd916491078a2ebed5badfa88320334d36dee4a7fe5c084ce91e716c9bbf8fd"
+    "envelopes/fase1-poc.envelope.json": "65c533304b2ecbd02d6ad4d6f9cf6032b9416b25cbe114585030e7ddb9757724",
+    "tests/validation-test-list.md": "076465e2a8136b1e14d486c55bbe74baf0c6d2a78e36413f3aca93d36ee8f1e1"
   }
 }

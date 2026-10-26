@@ -1,0 +1,30 @@
+{
+  "spec_key": "operation.onboarding.resolve-readiness",
+  "spec_version": "1.0.0",
+  "operation_key": "onboarding.resolve-readiness",
+  "endpoint": { "kind": "rpc", "target": "resolve_onboarding_readiness" },
+  "auth": "authenticated",
+  "tenant_context": "server-derived: persons.active_organization_id re-validated via is_org_member; the browser never passes an org id (ADR 0001 §2.12.3)",
+  "idempotency": { "strategy": "none" },
+  "errors": {
+    "401": "forbidden",
+    "42501": "forbidden",
+    "PGRST202": "unavailable",
+    "5xx": "unavailable",
+    "timeout": "unavailable",
+    "rls_denied": "unavailable",
+    "decision:blocked": "forbidden",
+    "decision:unavailable": "unavailable",
+    "decision:require_steps": "ready"
+  },
+  "tests": [
+    "supabase/tests/readiness_org_scoping.sql::core-p1-orgA-run-never-allows-orgB",
+    "supabase/tests/readiness_org_scoping.sql::delegated-run-orgA-never-allows-orgB",
+    "supabase/tests/readiness_org_scoping.sql::personal-scope-evaluates-globally",
+    "supabase/tests/readiness_org_scoping.sql::org-context-missing-unavailable",
+    "supabase/tests/readiness_org_scoping.sql::org-membership-required-blocked",
+    "supabase/tests/readiness_org_scoping.sql::ambiguous-runs-unavailable",
+    "supabase/tests/readiness_org_scoping.sql::null-target-never-wildcard",
+    "planned:resolve_onboarding_readiness.anon-denial"
+  ]
+}

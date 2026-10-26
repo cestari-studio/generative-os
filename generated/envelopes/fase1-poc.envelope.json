@@ -10,6 +10,7 @@
     "field.person.full-name",
     "field.person.tax-id",
     "journey.onboarding.person",
+    "operation.onboarding.resolve-readiness",
     "operation.onboarding.save-progress",
     "operation.provisioning.create-tenant",
     "policy.onboarding.readiness",

@@ -1,8 +1,8 @@
 {
   "spec_key": "policy.onboarding.readiness",
-  "spec_version": "1.0.0",
+  "spec_version": "1.1.0",
   "policy_key": "onboarding.readiness",
   "effect": "require_step",
-  "predicate": "actor.has_session AND person.has_valid_membership AND NOT person.onboarding_completed",
+  "predicate": "actor.has_session AND (journey.scope == 'personal' OR (actor.has_valid_active_org_context AND actor.has_membership(active_org) AND run.target_organization_id == active_org)) AND run.selected_unambiguously(principal, wizard_key, wizard_version, active_org, delegation_rules) AND person.required_steps_incomplete",
   "roles_ref": ["org_member"]
 }

@@ -1,6 +1,6 @@
 {
-  "comment": "Fase 0 read-only baseline snapshot (docs/fase0-preflight-report.md, SHA a919bc0), extended with RPCs/tables from the local migration tree applied after that capture (create_workspace, mark_notification_read, provision_corporate_tenant per migration 20261026140000). Deterministic, offline. endpoints_anon = INVOKER RPCs EXECUTE-exposed to anon (Fase 0 §1.4; provision_corporate_tenant is granted to authenticated only, NOT anon).",
-  "captured_from": "fase0-preflight-report.md @ a919bc0 + local migrations 20261023000000, 20261023010000, 20261026140000",
+  "comment": "Fase 0 read-only baseline snapshot (docs/fase0-preflight-report.md, SHA a919bc0), extended with RPCs/tables from the local migration tree applied after that capture (create_workspace, mark_notification_read, provision_corporate_tenant per migration 20261026140000; resolve_onboarding_readiness per migration 20261026120000, org-scoped replacement 20261026190000). Deterministic, offline. endpoints_anon = INVOKER RPCs EXECUTE-exposed to anon (Fase 0 §1.4; provision_corporate_tenant and resolve_onboarding_readiness are granted to authenticated only, NOT anon).",
+  "captured_from": "fase0-preflight-report.md @ a919bc0 + local migrations 20261023000000, 20261023010000, 20261026140000, 20261026120000, 20261026190000",
   "rpc": [
     "save_onboarding_progress",
     "create_or_update_corporate_tenant",
@@ -19,7 +19,8 @@
     "mark_notification_read",
     "switch_active_context",
     "match_knowledge_chunks",
-    "provision_corporate_tenant"
+    "provision_corporate_tenant",
+    "resolve_onboarding_readiness"
   ],
   "edge_functions": [
     "pagbank-connect",
