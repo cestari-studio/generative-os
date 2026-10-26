@@ -119,8 +119,15 @@ export const OnboardingTearsheet = ({ className }) => {
           setIsSubmitting(false);
           return;
         }
+      }
 
-        if (typeof createOrUpdateCorporateTenant === 'function') {
+      // FS2 (Master Directive §10 / consumer migration): tenant provisioning happens
+      // ONLY at the final confirm (step 3 "Finish"), never at step 0 — the user must
+      // review all wizard data before any tenant is created. The safe successor
+      // (provision_corporate_tenant) raises 42501 when the identifier collides with an
+      // org the caller does NOT already administer (takeover guard) — surfaced honestly.
+      if (currentStep === 3 && typeof createOrUpdateCorporateTenant === 'function') {
+        try {
           await createOrUpdateCorporateTenant({
             name: orgName.trim(),
             identifier: orgName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
@@ -129,6 +136,22 @@ export const OnboardingTearsheet = ({ className }) => {
             countryCode,
             workspaceName,
           });
+        } catch (provisionErr) {
+          const isTakeoverDenied = provisionErr?.code === '42501' || /42501/.test(provisionErr?.message || '');
+          setNotification({
+            kind: 'error',
+            title: isTakeoverDenied
+              ? t('onboarding.provisioning.identifierTaken', 'This organization identifier is already in use')
+              : t('onboarding.provisioning.failed', 'Could not provision the organization'),
+            subtitle: isTakeoverDenied
+              ? t(
+                  'onboarding.provisioning.identifierTakenHint',
+                  'Choose a different organization name, or ask an administrator of the existing organization to invite you.',
+                )
+              : provisionErr.message,
+          });
+          setIsSubmitting(false);
+          return;
         }
       }
 

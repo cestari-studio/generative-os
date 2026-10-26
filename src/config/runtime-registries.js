@@ -214,6 +214,11 @@ export const ENDPOINT_ALLOWLIST = Object.freeze({
   'rpc.save_onboarding_progress': { kind: 'rpc', target: 'save_onboarding_progress', auth: 'authenticated' },
   'rpc.mark_notification_read': { kind: 'rpc', target: 'mark_notification_read', auth: 'authenticated' },
   'rpc.switch_active_context': { kind: 'rpc', target: 'switch_active_context', auth: 'authenticated' },
+  'rpc.provision_corporate_tenant': {
+    kind: 'rpc',
+    target: 'provision_corporate_tenant',
+    auth: 'authenticated',
+  },
   'rpc.match_knowledge_chunks': { kind: 'rpc', target: 'match_knowledge_chunks', auth: 'authenticated+org' },
   'proj.public.catalog_products': { kind: 'public_projection', target: 'catalog_products', auth: 'authenticated+rls' },
   'proj.public.catalog_subproducts': {

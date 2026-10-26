@@ -480,7 +480,11 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       projectName = 'Default Project',
     }) => {
       const supabase = getSupabaseBrowserClient();
-      const { data, error } = await supabase.rpc('create_or_update_corporate_tenant', {
+      // Safe-provisioning successor (migration 20261026140000): identical 13-arg
+      // signature to the legacy create_or_update_corporate_tenant, but takeover-safe —
+      // a conflicting identifier requires the caller to ALREADY be org_owner/org_admin
+      // (else 42501) and never promotes on conflict / never overwrites org data.
+      const { data, error } = await supabase.rpc('provision_corporate_tenant', {
         p_name: name,
         p_identifier: identifier,
         p_legal_name: legalName,
