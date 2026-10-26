@@ -107,6 +107,13 @@ const typeLines = [
 const typesTs = typeLines.join('\n');
 
 // --- Artifact 2: declarative form-definition (JSON, NOT React) ----------------
+// Steps reference fields by their spec REFERENCE key (spec_key, e.g.
+// 'field.person.full-name'), while the field's physical key is `field_key`
+// (e.g. 'person.full_name'). Resolve by spec_key — never conflate the two.
+// Emit BOTH keys, preserve declared metadata, and FAIL on any unresolvable
+// reference (silently dropping metadata is how this defect shipped).
+const fieldBySpecKey = new Map(fields.map((f) => [f.spec_key, f]));
+const unresolvedRefs = [];
 const formDef = {
   generated_by: `spec-generate@${GENERATOR_VERSION}`,
   forms: steps.map((s) => ({
@@ -114,19 +121,26 @@ const formDef = {
     title: s.title,
     surface_ref: s.surface_ref,
     fields: (s.fields ?? []).map((fk) => {
-      const f = fields.find((x) => x.field_key === fk);
-      return f
-        ? {
-            field_key: f.field_key,
-            component: f.ui?.component,
-            label_key: f.ui?.label_key,
-            required: f.rules?.required_when ?? null,
-            classification: f.privacy?.classification,
-          }
-        : { field_key: fk, unresolved: true };
+      const f = fieldBySpecKey.get(fk);
+      if (!f) {
+        unresolvedRefs.push(`${s.step_key} -> ${fk}`);
+        return { ref: fk, unresolved: true };
+      }
+      return {
+        ref: f.spec_key,
+        field_key: f.field_key,
+        component: f.ui?.component,
+        label_key: f.ui?.label_key,
+        required: f.rules?.required_when ?? null,
+        classification: f.privacy?.classification,
+      };
     }),
   })),
 };
+if (unresolvedRefs.length > 0) {
+  console.error(`SPEC-GENERATE: unresolvable field reference(s): ${unresolvedRefs.join(', ')}`);
+  process.exit(1);
+}
 const formDefJson = JSON.stringify(formDef, null, 2) + '\n';
 
 // --- Artifact 3: traceability row set ------------------------------------------

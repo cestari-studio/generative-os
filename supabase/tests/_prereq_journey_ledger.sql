@@ -38,3 +38,7 @@ INSERT INTO auth.users (id) VALUES
   ('22222222-2222-2222-2222-222222222222');
 
 INSERT INTO public.organizations (identifier, name) VALUES ('acme', 'Acme Org');
+
+-- The journey-ledger migration creates onboarding_journey_definitions; the test
+-- seeds the trusted required-steps config for the PF wizard (service-side data).
+-- Applied AFTER the migration in the harness (see test-journey-ledger-sql.sh).

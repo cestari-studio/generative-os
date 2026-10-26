@@ -7,8 +7,12 @@
       "surface_ref": "surface.onboarding.person",
       "fields": [
         {
-          "field_key": "field.person.full-name",
-          "unresolved": true
+          "ref": "field.person.full-name",
+          "field_key": "person.full_name",
+          "component": "TextInput",
+          "label_key": "onboarding.fullName.label",
+          "required": "always",
+          "classification": "internal"
         }
       ]
     },
@@ -18,16 +22,28 @@
       "surface_ref": "surface.onboarding.person",
       "fields": [
         {
-          "field_key": "field.person.full-name",
-          "unresolved": true
+          "ref": "field.person.full-name",
+          "field_key": "person.full_name",
+          "component": "TextInput",
+          "label_key": "onboarding.fullName.label",
+          "required": "always",
+          "classification": "internal"
         },
         {
-          "field_key": "field.person.tax-id",
-          "unresolved": true
+          "ref": "field.person.tax-id",
+          "field_key": "person.tax_id",
+          "component": "TextInput",
+          "label_key": "onboarding.taxId.label",
+          "required": "jurisdiction_requires",
+          "classification": "restricted"
         },
         {
-          "field_key": "field.person.birth-date",
-          "unresolved": true
+          "ref": "field.person.birth-date",
+          "field_key": "person.birth_date",
+          "component": "DatePicker",
+          "label_key": "onboarding.birthDate.label",
+          "required": "jurisdiction_requires",
+          "classification": "confidential"
         }
       ]
     },
@@ -37,8 +53,12 @@
       "surface_ref": "surface.onboarding.person",
       "fields": [
         {
-          "field_key": "field.person.full-name",
-          "unresolved": true
+          "ref": "field.person.full-name",
+          "field_key": "person.full_name",
+          "component": "TextInput",
+          "label_key": "onboarding.fullName.label",
+          "required": "always",
+          "classification": "internal"
         }
       ]
     }

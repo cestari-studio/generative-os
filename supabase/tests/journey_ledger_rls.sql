@@ -10,6 +10,12 @@
 \set QUIET on
 \pset footer off
 
+-- Seed the trusted journey definition (service-side normative config) that the
+-- readiness RPC resolves required steps from. This is config data, not a test
+-- of the seed itself.
+INSERT INTO public.onboarding_journey_definitions (wizard_key, wizard_version, required_step_keys, status)
+VALUES ('onboarding.person', '1.0.0', ARRAY['onboarding.person.identity','onboarding.person.address'], 'published')
+ON CONFLICT (wizard_key, wizard_version) DO NOTHING;
 
 DO $$
 DECLARE
@@ -70,8 +76,8 @@ BEGIN
   v_assert := v_assert + 1;
   RAISE NOTICE 'OK %: optimistic concurrency revision increments', v_assert;
 
-  -- 6. Readiness: required [identity,address]; identity completed, address not -> require_steps + next=address.
-  SELECT public.resolve_onboarding_readiness(ARRAY['onboarding.person.identity','onboarding.person.address']) INTO v_decision;
+  -- 6. Readiness (server-resolved required steps): identity completed, address not -> require_steps + next=address.
+  SELECT public.resolve_onboarding_readiness('onboarding.person', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'require_steps' OR v_decision->>'next_step_key' <> 'onboarding.person.address' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: readiness expected require_steps/address, got %', v_decision;
   END IF;
@@ -82,7 +88,7 @@ BEGIN
   UPDATE public.onboarding_step_states
   SET state = 'completed', completed_at = now(), revision = revision + 1, verified_at = now(), validation_state = 'verified'
   WHERE run_id = v_run_id AND step_key = 'onboarding.person.address';
-  SELECT public.resolve_onboarding_readiness(ARRAY['onboarding.person.identity','onboarding.person.address']) INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.person', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'allow' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: readiness expected allow, got %', v_decision;
   END IF;
@@ -91,7 +97,7 @@ BEGIN
 
   -- 8. Readiness: anonymous (no sub) -> unavailable/authentication_required.
   SET request.jwt.claims = '{"role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness(ARRAY['onboarding.person.identity']) INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.person', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'unavailable' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: anonymous readiness expected unavailable, got %', v_decision;
   END IF;
@@ -103,12 +109,31 @@ BEGIN
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, idempotency_key, expires_at)
   VALUES ('onboarding.person', '22222222-2222-2222-2222-222222222222'::uuid, '22222222-2222-2222-2222-222222222222'::uuid, 'run-b-expired', now() - interval '1 hour')
   RETURNING id INTO v_other_run;
-  SELECT public.resolve_onboarding_readiness(ARRAY['onboarding.person.identity']) INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.person', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'require_steps' OR v_decision->>'reason' <> 'no_active_run' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: expired run should not count as active, got %', v_decision;
   END IF;
   v_assert := v_assert + 1;
   RAISE NOTICE 'OK %: expired run not treated as active', v_assert;
+
+  -- 10. P0 integrity: a MISSING journey definition -> unavailable, NEVER allow.
+  SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+  SELECT public.resolve_onboarding_readiness('onboarding.nonexistent', '9.9.9') INTO v_decision;
+  IF v_decision->>'decision' <> 'unavailable' OR v_decision->>'reason' <> 'journey_definition_missing' THEN
+    RAISE EXCEPTION 'ASSERTION FAILED: missing definition must be unavailable (not allow), got %', v_decision;
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: missing journey definition -> unavailable (never silently allow)', v_assert;
+
+  -- 11. P0 integrity: the RPC takes NO client step-list param — required steps come from server config.
+  --     Prove by checking the function signature arity is (text, text), NOT a text[] list.
+  PERFORM 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+   WHERE n.nspname='public' AND p.proname='resolve_onboarding_readiness' AND p.pronargs = 2;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'ASSERTION FAILED: resolve_onboarding_readiness must take (wizard_key, version), not a client list';
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: readiness required steps resolve server-side (no client-controlled list param)', v_assert;
 
   RESET ROLE;
   RAISE NOTICE '=== ALL % ASSERTIONS PASSED ===', v_assert;

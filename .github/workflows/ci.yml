@@ -87,6 +87,9 @@ jobs:
       - name: Carbon component-pattern conformance gate
         run: npm run check:carbon-patterns
 
+      - name: Spec Control Plane — deterministic generation gate
+        run: npm run spec:check
+
       - name: Build client and SSR bundles
         run: npm run build
 

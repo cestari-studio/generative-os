@@ -123,11 +123,43 @@ GRANT SELECT, INSERT, UPDATE ON public.onboarding_runs TO service_role;
 GRANT SELECT, INSERT, UPDATE ON public.onboarding_step_states TO service_role;
 
 -- ---------------------------------------------------------------------------
--- resolve_onboarding_readiness — SECURITY INVOKER, server-authoritative.
--- Returns the actor's active run + incomplete required steps. The actor is the
--- caller (auth.uid()); never a browser-supplied user id.
+-- onboarding_journey_definitions — TRUSTED, server-side normative config for
+-- the required steps of each wizard/version. The readiness RPC resolves the
+-- required steps FROM THIS TABLE, never from a client-supplied array (P0 fix:
+-- a client must not be able to pass an empty/partial list to obtain a
+-- permissive decision). Readable by authenticated (definitions are not secret);
+-- writable only by service_role (definitions are normative config).
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.resolve_onboarding_readiness(p_required_step_keys text[] DEFAULT ARRAY[]::text[])
+CREATE TABLE IF NOT EXISTS public.onboarding_journey_definitions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  wizard_key text NOT NULL,
+  wizard_version text NOT NULL,
+  required_step_keys text[] NOT NULL DEFAULT '{}',
+  status text NOT NULL DEFAULT 'published',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT onboarding_journey_def_unique UNIQUE (wizard_key, wizard_version),
+  CONSTRAINT onboarding_journey_def_wizard_charset CHECK (wizard_key ~ '^[a-z0-9_.-]+$'),
+  CONSTRAINT onboarding_journey_def_status_check CHECK (status IN ('draft', 'published', 'archived'))
+);
+
+ALTER TABLE public.onboarding_journey_definitions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS onboarding_journey_def_read ON public.onboarding_journey_definitions;
+CREATE POLICY onboarding_journey_def_read ON public.onboarding_journey_definitions
+  FOR SELECT TO authenticated USING (status = 'published');
+
+GRANT SELECT ON public.onboarding_journey_definitions TO authenticated;
+GRANT ALL ON public.onboarding_journey_definitions TO service_role;
+
+-- ---------------------------------------------------------------------------
+-- resolve_onboarding_readiness — SECURITY INVOKER, server-authoritative.
+-- Takes a wizard_key + version; the REQUIRED STEPS ARE RESOLVED SERVER-SIDE
+-- from onboarding_journey_definitions (trusted config), NEVER from the client.
+-- The actor is the caller (auth.uid()); never a browser-supplied user id.
+-- Decision: allow | require_steps | unavailable (backend failure/config absent
+-- is NEVER silently 'allow').
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.resolve_onboarding_readiness(p_wizard_key text, p_wizard_version text DEFAULT '1.0.0')
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY INVOKER
@@ -136,7 +168,7 @@ AS $$
 DECLARE
   v_uid uuid := (SELECT auth.uid());
   v_run public.onboarding_runs;
-  v_required text[] := COALESCE(p_required_step_keys, ARRAY[]::text[]);
+  v_required text[];
   v_incomplete text[];
 BEGIN
   IF v_uid IS NULL THEN
@@ -145,7 +177,26 @@ BEGIN
       'reason', 'authentication_required',
       'run_id', NULL,
       'incomplete_steps', '[]'::jsonb,
-      'required_steps', pg_catalog.to_jsonb(v_required),
+      'required_steps', '[]'::jsonb,
+      'next_step_key', NULL
+    );
+  END IF;
+
+  -- Resolve required steps from TRUSTED server-side config, not from the client.
+  SELECT required_step_keys INTO v_required
+  FROM public.onboarding_journey_definitions
+  WHERE wizard_key = p_wizard_key AND wizard_version = p_wizard_version AND status = 'published'
+  LIMIT 1;
+
+  IF NOT FOUND THEN
+    -- No trusted definition for this wizard/version: we cannot determine what is
+    -- required. That is an UNAVAILABLE state, never a permissive 'allow'.
+    RETURN pg_catalog.jsonb_build_object(
+      'decision', 'unavailable',
+      'reason', 'journey_definition_missing',
+      'run_id', NULL,
+      'incomplete_steps', '[]'::jsonb,
+      'required_steps', '[]'::jsonb,
       'next_step_key', NULL
     );
   END IF;
@@ -153,15 +204,17 @@ BEGIN
   SELECT * INTO v_run
   FROM public.onboarding_runs
   WHERE (actor_id = v_uid OR subject_user_id = v_uid)
+    AND wizard_key = p_wizard_key
     AND run_state = 'active'
     AND (expires_at IS NULL OR expires_at > now())
   ORDER BY created_at DESC
   LIMIT 1;
 
   IF NOT FOUND THEN
-    -- No active run: onboarding has not started (or all runs completed/expired).
+    -- No active run for this wizard: onboarding has not started. The required
+    -- steps are those the trusted definition declares; the first is next.
     RETURN pg_catalog.jsonb_build_object(
-      'decision', CASE WHEN pg_catalog.array_length(v_required, 1) IS NULL THEN 'allow' ELSE 'require_steps' END,
+      'decision', 'require_steps',
       'reason', 'no_active_run',
       'run_id', NULL,
       'incomplete_steps', pg_catalog.to_jsonb(v_required),
@@ -202,8 +255,8 @@ BEGIN
 END;
 $$;
 
-REVOKE EXECUTE ON FUNCTION public.resolve_onboarding_readiness(text[]) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.resolve_onboarding_readiness(text[]) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.resolve_onboarding_readiness(text, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.resolve_onboarding_readiness(text, text) TO authenticated;
 
-COMMENT ON FUNCTION public.resolve_onboarding_readiness(text[]) IS
-  'Server-authoritative onboarding readiness (ADR 0001). SECURITY INVOKER; actor = auth.uid(). Returns decision allow|require_steps|unavailable + incomplete/next step. Completing a step never grants role/membership/entitlement.';
+COMMENT ON FUNCTION public.resolve_onboarding_readiness(text, text) IS
+  'Server-authoritative onboarding readiness (ADR 0001, P0 fix). SECURITY INVOKER; actor = auth.uid(). Required steps resolve SERVER-SIDE from onboarding_journey_definitions (trusted config), never from a client-supplied array. Decision allow|require_steps|unavailable; a missing definition or backend failure is NEVER silently allow.';
