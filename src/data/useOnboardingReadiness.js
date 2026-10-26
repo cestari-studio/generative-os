@@ -75,6 +75,32 @@ function isBackendMissing(error) {
 }
 
 /**
+ * Bounded readiness resolution (red-team F1): an RPC that hangs (never settles)
+ * must NOT leave the gate on an unbounded spinner with no path to an explicit
+ * non-authorized state. After RESOLUTION_TIMEOUT_MS the race rejects and the
+ * adapter degrades to `unknown` (fail-closed: never children, never a
+ * fabricated allow). The underlying RPC promise is left to settle on its own;
+ * its late result is ignored because the timeout already won the race.
+ */
+export const RESOLUTION_TIMEOUT_MS = 15000;
+
+class ResolutionTimeoutError extends Error {
+  constructor() {
+    super('readiness resolution timed out');
+    this.name = 'ResolutionTimeoutError';
+  }
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new ResolutionTimeoutError()), ms);
+    }),
+  ]);
+}
+
+/**
  * @param {object} opts
  * @param {() => boolean} opts.isAuthenticated - whether a user is signed in
  * @param {string} opts.wizardKey - identifies the journey definition to resolve
@@ -115,7 +141,10 @@ export function useOnboardingReadiness({ isAuthenticated, wizardKey, wizardVersi
       // authorization vector the journey-ledger migration removed).
       const args = { p_wizard_key: wizardKey };
       if (wizardVersion != null) args.p_wizard_version = wizardVersion;
-      const { data, error } = await supabase.rpc('resolve_onboarding_readiness', args);
+      const { data, error } = await withTimeout(
+        supabase.rpc('resolve_onboarding_readiness', args),
+        RESOLUTION_TIMEOUT_MS,
+      );
       if (error) {
         if (isBackendMissing(error)) {
           const r = {

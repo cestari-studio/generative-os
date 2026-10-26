@@ -16,7 +16,11 @@
  */
 import { test, expect, vi, describe, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useOnboardingReadiness, TENANT_ONBOARDING_WIZARD_KEY } from '../data/useOnboardingReadiness';
+import {
+  useOnboardingReadiness,
+  TENANT_ONBOARDING_WIZARD_KEY,
+  RESOLUTION_TIMEOUT_MS,
+} from '../data/useOnboardingReadiness';
 
 const rpcMock = vi.fn();
 vi.mock('../lib/supabase.client.js', () => ({
@@ -244,5 +248,35 @@ describe('useOnboardingReadiness (Fase C / §11)', () => {
     });
     expect(r.status).toBe('unknown');
     expect(r.decision).toBeNull();
+  });
+
+  // Red-team F1: an RPC that HANGS (never settles) must not leave the gate on an
+  // unbounded spinner — the bounded resolution timeout degrades to `unknown`
+  // (fail-closed: never children, never a fabricated allow), giving the user a
+  // path to an explicit non-authorized state.
+  test('hanging RPC (never settles) -> unknown after the resolution timeout, NOT allow or a stuck spinner', async () => {
+    vi.useFakeTimers();
+    try {
+      rpcMock.mockReturnValue(new Promise(() => {})); // never resolves
+      const { result } = renderHook(() => useOnboardingReadiness({ isAuthenticated: authed, wizardKey: WIZARD }));
+      let resolvePromise;
+      await act(async () => {
+        resolvePromise = result.current.resolve();
+      });
+      // Still checking before the timeout elapses.
+      expect(result.current.readiness.status).toBe('checking');
+      // Advance past the resolution timeout: the race rejects -> unknown.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(RESOLUTION_TIMEOUT_MS + 100);
+      });
+      const r = await resolvePromise;
+      expect(r.status).toBe('unknown');
+      expect(r.decision).toBeNull();
+      expect(result.current.readiness.status).toBe('unknown');
+      expect(result.current.readiness.status).not.toBe('checking');
+      expect(result.current.readiness.decision).not.toBe('allow');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
