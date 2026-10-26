@@ -1,5 +1,44 @@
 # Release evidence ledger — cycle 4 (2026-10-23)
 
+## Parallel autonomous remediation (2026-10-26, contract: parallel workers + independent auditor)
+
+Owner contract: parallel specialized workers (≤4 implementers, ≤6 total incl. coordinator+auditor) with central coordination, independent review, evidence-based integration. All local work; no protected remote action.
+
+### P0 fixes (Coordinator, in-flight before workers)
+
+| Defect                                                                                                          | Root cause                                                                                                                      | Fix                                                                                                                                                                                                                                                                                                            | Evidence                                               |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **Readiness RPC client-controlled authorization** (`resolve_onboarding_readiness(p_required_step_keys text[])`) | A client could pass an empty/partial step list to obtain a permissive decision                                                  | Rewrote to `(wizard_key, version)`; required steps resolve **server-side** from new trusted `onboarding_journey_definitions` (service-managed, authenticated-read published). Missing definition / backend failure → `unavailable`, never silently `allow`. No client list param (arity `(text,text)` proven). | **11/11** PG 17.11 assertions incl. P0 integrity tests |
+| **Spec generator semantic defect**                                                                              | resolved step fields by `field_key` (physical) but steps reference `spec_key` (normative) → every form field `unresolved: true` | resolve by `spec_key` via Map; emit `ref`+`field_key`+metadata; **fail on unresolvable ref** (no silent drop)                                                                                                                                                                                                  | regenerated artifacts + manifest; **4** semantic tests |
+
+### Worker outputs (integrated by Coordinator)
+
+| Worker                             | Deliverable                                                                                                                                                                                                                                                                                                                                                  | Evidence              |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- |
+| **C** (frontend error-states)      | 5 payment load-error tests (KPI/charges/sellers/audit/exception — error notification, `R$ 0.00` never shown, no fabricated zeros); 1 readiness malformed-payload test; 1 passkey exception-path test                                                                                                                                                         | **21/21** pass        |
+| **5** (DB perf triage)             | `docs/db-performance-findings-triage.md` — **16** still-unindexed FKs (not 17); duplicate index confirmed; 26→2 genuine multi-policy pairs; 148 zero-scan indexes all keep/rare; 16 additive indexes proposed (NOT applied); no consolidation/removal                                                                                                        | live-DB introspection |
+| **D** (RPC grants + DEFINER audit) | `docs/rpc-grants-security-definer-audit.md` — 3 anon-RPCs confirmed INVOKER+anon+PUBLIC (pg_default_acl + PG PUBLIC default); 13 DEFINER all anon-revoked, 11/13 keep-justified; **CRITICAL**: `claim_pagbank_order` + `attach_psp_idempotency` NO auth check + live-executable by `authenticated` (payment DoS) → proposed additive migration (NOT applied) | live-DB verified      |
+
+### Independent red team (Agent 7) — `docs/red-team-audit-readiness-generator.md`
+
+Reproduced **0 P0, 1 P1, 2 P2** against the P0 fixes; all 3 fixed this cycle:
+
+| Defect                                                                                         | Reproduction                                                                                       | Fix                                                                                             | Status                      |
+| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------- |
+| **DEFECT 1 (P1)** duplicate TS type identifiers for a `field_key` alias → `tsc` TS2300         | 2 field specs, same `field_key`, distinct `spec_key` → `export type person_full_name = string;` ×2 | generator emits each identifier once (Map); exact dup dropped, conflict → hard fail             | **fixed** + 1 semantic test |
+| **DEFECT 2 (P2)** published definition with empty `required_step_keys` → unconditional `allow` | seed published def with `ARRAY[]` → gate returns `allow`                                           | CHECK constraint rejects empty publish + defensive RPC guard → `unavailable`                    | **fixed** (13/13 SQL)       |
+| **DEFECT 3 (P2)** actor-vs-subject RLS lets a subject flip the actor's gate                    | subject (non-actor) completes steps → actor's gate `allow`                                         | **documented** as design-integrity ambiguity for tenancy ADR / owner decision (not a clear bug) | **documented**              |
+
+### Integrated verification (same checkout)
+
+- **290 unit tests / 7 skipped** (was 249 at cycle start), `spec:check` deterministic, lint/build/branding/matrices/carbon OK.
+- **CI green** on `fe7202d`, `dc61055`; latest integration commit `0be9d23`.
+- `npm run spec:check` wired as an explicit `quality` gate.
+
+### Blockers (updated; scoped, not hidden)
+
+`BLK-rpc-readiness-deploy` (readiness RPC still a draft migration — needs owner authorization to apply remotely) · `BLK-rpc-anon-exec` (proposed grant migration drafted by Worker D, NOT applied — owner decision) · `BLK-pagbank-no-auth-rpcs` (**new, critical**: `claim_pagbank_order`/`attach_psp_idempotency` no auth check + `authenticated`-executable — Worker D proposal pending owner) · `BLK-tenancy-actor-subject-rls` (**new**: DEFECT 3 design decision) · `BLK-passkey-rp-browser` · `BLK-e2e-preview-auth` · `BLK-tenancy-adr-signoff` · `BLK-pr7-human-review`
+
 ## Autonomous execution cycle (2026-10-26, contract: gates = validation criteria, not blockers)
 
 Owner contract: execute all local/independent work across phases A–G, register specific blockers, continue independent paths; authorization restricted to external irreversible/privileged actions only. Delivered per phase, with maturity states (not interchangeable).
