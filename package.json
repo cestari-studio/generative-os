@@ -44,6 +44,7 @@
     "test:phase2-sql": "./scripts/test-phase2-sql-ci.sh",
     "test:org-hierarchy-sql": "./scripts/test-org-hierarchy-sql.sh",
     "test:journey-ledger-sql": "./scripts/test-journey-ledger-sql.sh",
+    "test:pagbank-grants-sql": "./scripts/test-pagbank-grants-sql.sh",
     "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns:regen": "node scripts/regen-carbon-patterns.mjs",
