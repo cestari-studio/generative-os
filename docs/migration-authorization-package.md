@@ -152,4 +152,31 @@ Apply in order: `170000` → `180000` → `190000` → `200000` → `210000`.
 - Any drop/revoke of `create_or_update_corporate_tenant` beyond the Stage-1 restriction (PUBLIC/anon/authenticated/service_role EXECUTE removal via `20261026210000`) — the full drop is the separate Gate-3 decision above.
 - Preview E2E (BLockered separately: needs authorized session/secrets + `app.cestari.studio` for passkeys).
 
-**Coordinator status:** Gates 1 (framed, needs your word), 2 (closed), 4 (closed) are ready. Gates 3 and 5 are your explicit decisions. No remote action has been or will be taken without your per-stage approval.
+## Execution protocol (per authorized migration — mandatory)
+
+For EACH authorized migration, in chronological order:
+
+1. **Confirm the target project** is `ldjfjmihdvdmltrptngf` (never another).
+2. **Verify the expected prior ledger state** — the last-applied version matches the manifest's expected predecessor (for Stage 1's first migration: `20261025142026`; for each subsequent: the prior migration in the sequence).
+3. **Verify the migration checksum and dependencies** against this package (SHA-256 above; in-set dependency edges above).
+4. **Apply ONLY the next migration in chronological order** — one at a time, never a batch.
+5. **Verify postconditions:** grants, RLS, the function/table/column it creates or alters, and the migration-ledger entry — all read-only.
+6. **STOP on any** error, missing dependency, unexpected privilege/grant, checksum discrepancy, or ledger divergence. Do NOT skip ahead or continue to the next migration; report and await owner direction.
+
+**After Stage 1:** re-run the relevant negative tests as non-superuser roles — **including the test proving the legacy `create_or_update_corporate_tenant` is STILL `authenticated`-executable** (Stage 1 only removed its anon/PUBLIC grant). **After Stage 2:** verify NO unauthorized role retains EXECUTE on the legacy RPC, and the safe replacement (`provision_corporate_tenant`) still works for the intended caller.
+
+---
+
+## Residual-risk tracking — legacy `create_or_update_corporate_tenant` (open until Stage 2)
+
+**`BLK-provisioning-takeover` is OPEN, not closed.** The safe successor `provision_corporate_tenant` (Stage 1, `140000`) provides a safe provisioning _path_, but it does NOT deactivate the vulnerable legacy RPC. Until Stage 2's `210000` is applied **and** its negative privilege tests pass, the following hold and are tracked explicitly:
+
+- The legacy RPC remains **executable by `authenticated`** — the authenticated-takeover defect (DEFECT B in `docs/release-evidence-ledger.md`) is **not remediated**.
+- The application MUST NOT rely on the legacy RPC as a safe provisioning path (no consumer does — verified — but the RPC remains invocable by any authenticated session).
+- The takeover remediation is **complete only when** `210000` is applied AND the C1–C5 negative tests pass against the live remote.
+
+**If Stage 1 is authorized independently of Stage 2**, this residual exposure is **explicitly accepted and tracked** as `BLK-provisioning-takeover` (scope: authenticated-takeover via the legacy RPC) until Stage 2 is verified. **Coordinator recommendation (safer operational plan):** prevalidate BOTH stages and run a controlled, sequential rollout — Stage 1 then Stage 2 in one supervised sequence, stopping immediately at the first failed verification — so the window in which the legacy RPC is still `authenticated`-executable is minimized. This is a recommendation, not an authorization; the staging is the owner's call.
+
+---
+
+**Coordinator status:** Gates 1 (framed, needs your word), 2 (closed), 4 (closed) are ready. Gates 3 and 5 are your explicit decisions. **Blocking Stage 1 presentation: ADR P2/P3 (your decisions, below).** No remote action has been or will be taken without your per-stage approval.
