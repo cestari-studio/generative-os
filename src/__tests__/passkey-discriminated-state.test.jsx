@@ -103,4 +103,16 @@ describe('passkey discriminated list state (Fase E)', () => {
     const res = await result.current.listPasskeys();
     expect(res.status).toBe('unsupported');
   });
+
+  test('list THROWS (exception, not returned error) -> { status: unknown }, never ready/empty-success', async () => {
+    const listMock = vi.fn().mockRejectedValue(new Error('client crashed'));
+    mockAuthSession(listMock);
+    const { result } = renderHook(() => useTenant(), { wrapper: ssrWrapper });
+    const res = await result.current.listPasskeys();
+    // A thrown backend failure must surface as `unknown` — never as `ready`
+    // with an empty list (which would be indistinguishable from "no passkey").
+    expect(res.status).toBe('unknown');
+    expect(res.status).not.toBe('ready');
+    expect(res.error).toMatch(/client crashed/);
+  });
 });

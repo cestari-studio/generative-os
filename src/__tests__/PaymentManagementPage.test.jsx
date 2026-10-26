@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { describe, expect, test, vi } from 'vitest';
-import { fireEvent, screen } from '@testing-library/react';
+import { describe, expect, test, vi, beforeEach } from 'vitest';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 import { renderWithoutProviders } from '../test/test-utils';
@@ -40,39 +40,82 @@ const invokeSpy = vi.fn().mockResolvedValue({
   error: null,
 });
 
-// Mock Supabase browser client functions
-vi.mock('../lib/supabase.client', () => ({
-  getSupabaseBrowserClient: () => ({
-    auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
-      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-    },
-    rpc: rpcSpy,
-    from: vi.fn().mockReturnValue({
+// Default happy-path `from` chain: every table query resolves one charge row.
+const defaultFrom = vi.fn().mockReturnValue({
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  in: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  limit: vi.fn().mockResolvedValue({
+    data: [
+      {
+        id: 'c1',
+        pagbank_charge_id: 'CHAR_1001',
+        payment_method: 'PIX',
+        amount_cents: 15000,
+        status: 'PAID',
+        created_at: '2026-10-19T20:00:00Z',
+      },
+    ],
+    error: null,
+  }),
+});
+
+/**
+ * Builds the browser-client shape the component consumes. `overrides` lets a
+ * test inject a failing RPC and/or failing table queries while keeping every
+ * other call on the happy path.
+ */
+const buildClient = ({ rpcImpl, fromImpl } = {}) => ({
+  auth: {
+    getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+    onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+  },
+  rpc: rpcImpl ?? rpcSpy,
+  from: fromImpl ?? defaultFrom,
+  functions: {
+    invoke: invokeSpy,
+  },
+});
+
+/**
+ * Builds a table-aware `from` mock: the query against `failTable` resolves
+ * with `error`, all other tables resolve with an empty (but successful) result.
+ * Terminal methods differ per query in the component — charges/audit end at
+ * `.limit()`, sellers ends at `.order()` — so both are provided on every chain.
+ */
+const buildFromFailing = (failTable, error) =>
+  vi.fn((table) => {
+    const isTarget = table === failTable;
+    const chain = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: 'c1',
-            pagbank_charge_id: 'CHAR_1001',
-            payment_method: 'PIX',
-            amount_cents: 15000,
-            status: 'PAID',
-            created_at: '2026-10-19T20:00:00Z',
-          },
-        ],
-        error: null,
-      }),
-    }),
-    functions: {
-      invoke: invokeSpy,
-    },
-  }),
+      limit: vi.fn(),
+    };
+    const result = isTarget ? { data: null, error } : { data: [], error: null };
+    // The sellers query awaits the `.order()` result directly (no `.limit()`).
+    // Make `order` return a thenable chain so both call patterns resolve.
+    chain.order = vi.fn(() => ({
+      ...chain,
+      then: (resolve) => resolve(result),
+    }));
+    chain.limit = vi.fn().mockResolvedValue(result);
+    return chain;
+  });
+
+// Mock Supabase browser client functions
+vi.mock('../lib/supabase.client', () => ({
+  getSupabaseBrowserClient: vi.fn(() => buildClient()),
 }));
+
+import { getSupabaseBrowserClient } from '../lib/supabase.client';
+
+beforeEach(() => {
+  vi.mocked(getSupabaseBrowserClient).mockImplementation(() => buildClient());
+});
 
 describe('PaymentManagementPage UI & PagBank Integration', () => {
   test('renders page header, KPI tiles, and functional tabs', async () => {
@@ -179,5 +222,119 @@ describe('quote-first billing contract (directive §9: browser sends quoteId, ne
     expect(orderCall).toBeTruthy();
     expect(orderCall[1].body).not.toHaveProperty('amountCents');
     expect(orderCall[1].body).not.toHaveProperty('amount_cents');
+  });
+});
+
+/**
+ * PR #7 zero-mock rule: a FAILED load must render an explicit error
+ * (InlineNotification) and must NEVER render fabricated zero KPI values as if
+ * they were real. Each test below forces a different backend call to fail and
+ * asserts the same contract: error notification visible, zero-looking KPI
+ * strings absent.
+ */
+describe('PaymentManagementPage load error states (zero-mock rule)', () => {
+  // The KPI strings that would appear only if zeros were rendered as real data.
+  const fabricatedZeroSelectors = ['R$ 0.00'];
+
+  const assertErrorState = async () => {
+    // 1. The explicit error notification appears.
+    await waitFor(() => {
+      expect(screen.getByText('Could not load payments data')).toBeInTheDocument();
+    });
+
+    // 2. No fabricated zero KPI values are rendered as if real.
+    for (const text of fabricatedZeroSelectors) {
+      expect(screen.queryByText(text)).not.toBeInTheDocument();
+    }
+
+    // 3. The KPI value placeholders (SkeletonText) must also be gone — the
+    //    grid is replaced by the notification, not left in a loading state.
+    expect(document.querySelector('.cs--payment-management__kpi-value')).toBeNull();
+  };
+
+  test('(a) KPI RPC error -> error notification, no fabricated zeros', async () => {
+    vi.mocked(getSupabaseBrowserClient).mockImplementation(() =>
+      buildClient({
+        rpcImpl: vi.fn().mockResolvedValue({ data: null, error: { message: 'kpi rpc exploded' } }),
+      }),
+    );
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantProvider>
+          <PaymentManagementPage />
+        </TenantProvider>
+      </MemoryRouter>,
+    );
+    await assertErrorState();
+    await waitFor(() => {
+      expect(screen.getByText(/kpi rpc exploded/i)).toBeInTheDocument();
+    });
+  });
+
+  test('(b) charges query error -> error notification, no fabricated zeros', async () => {
+    const failingFrom = buildFromFailing('payment_charges', { message: 'charges table denied' });
+    vi.mocked(getSupabaseBrowserClient).mockImplementation(() => buildClient({ fromImpl: failingFrom }));
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantProvider>
+          <PaymentManagementPage />
+        </TenantProvider>
+      </MemoryRouter>,
+    );
+    await assertErrorState();
+    await waitFor(() => {
+      expect(screen.getByText(/charges table denied/i)).toBeInTheDocument();
+    });
+  });
+
+  test('(c) sellers query error -> error notification, no fabricated zeros', async () => {
+    const failingFrom = buildFromFailing('connected_seller_accounts', { message: 'sellers read failed' });
+    vi.mocked(getSupabaseBrowserClient).mockImplementation(() => buildClient({ fromImpl: failingFrom }));
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantProvider>
+          <PaymentManagementPage />
+        </TenantProvider>
+      </MemoryRouter>,
+    );
+    await assertErrorState();
+    await waitFor(() => {
+      expect(screen.getByText(/sellers read failed/i)).toBeInTheDocument();
+    });
+  });
+
+  test('(d) audit query error -> error notification, no fabricated zeros', async () => {
+    const failingFrom = buildFromFailing('audit_actions', { message: 'audit log unavailable' });
+    vi.mocked(getSupabaseBrowserClient).mockImplementation(() => buildClient({ fromImpl: failingFrom }));
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantProvider>
+          <PaymentManagementPage />
+        </TenantProvider>
+      </MemoryRouter>,
+    );
+    await assertErrorState();
+    await waitFor(() => {
+      expect(screen.getByText(/audit log unavailable/i)).toBeInTheDocument();
+    });
+  });
+
+  test('(e) unexpected exception (rpc throws) -> error notification, no fabricated zeros', async () => {
+    vi.mocked(getSupabaseBrowserClient).mockImplementation(() =>
+      buildClient({
+        rpcImpl: vi.fn().mockRejectedValue(new Error('network unreachable')),
+      }),
+    );
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantProvider>
+          <PaymentManagementPage />
+        </TenantProvider>
+      </MemoryRouter>,
+    );
+    await assertErrorState();
+    await waitFor(() => {
+      expect(screen.getByText(/network unreachable/i)).toBeInTheDocument();
+    });
   });
 });

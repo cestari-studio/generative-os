@@ -109,4 +109,18 @@ describe('useOnboardingReadiness (Fase C)', () => {
     });
     expect(r.status).toBe('unknown');
   });
+
+  test('malformed RPC payload (no error, unrecognized decision) -> unknown, NOT allow or fabricated ready', async () => {
+    // A malformed payload must never be coerced into allow/ready — it is
+    // normalized to `unknown` so the caller cannot treat it as cleared.
+    rpcMock.mockResolvedValue({ data: { unexpected: 'shape' }, error: null });
+    const { result } = renderHook(() => useOnboardingReadiness({ isAuthenticated: authed }));
+    let r;
+    await act(async () => {
+      r = await result.current.resolve();
+    });
+    expect(r.status).toBe('unknown');
+    expect(r.decision).toBeNull();
+    expect(r).not.toHaveProperty('nextStepKey');
+  });
 });
