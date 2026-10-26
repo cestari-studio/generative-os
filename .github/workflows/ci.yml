@@ -90,6 +90,9 @@ jobs:
       - name: Spec Control Plane — deterministic generation gate
         run: npm run spec:check
 
+      - name: RPC grant exposure guard (no anon/PUBLIC EXECUTE outside allowlist)
+        run: npm run check:rpc-grant-exposure
+
       - name: Build client and SSR bundles
         run: npm run build
 
@@ -340,6 +343,14 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
         run: npm run test:provision-tenant-sql
+
+      - name: Run onboarding-delegation (actor/subject) SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:onboarding-delegation-sql
 
   browser-smoke:
     name: browser-smoke
