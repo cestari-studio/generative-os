@@ -55,9 +55,10 @@ task envelopes + derived artifacts. A **CI gate** blocks code changes whose spec
 2. **No second source of truth.** The repo holds the canonical specs. The DB holds only _published,
    validated, hashed_ snapshots of them (Camada B), linked by `spec_key`, `spec_version`, `spec_hash`,
    `generator_version`, `commit_sha`, `workflow_run_id`, `approval`, `status`.
-3. **Fail-closed honesty.** A spec referencing a missing field/operation/role/component/binding is
-   **invalid** → `BLOCKED`/`NEEDS_REVIEW`, never `VERIFIED`. `NORMATIVE_ONLY` stays `NORMATIVE_ONLY`
-   until a real, tested binding exists.
+3. **Fail-closed honesty.** Validity ≠ maturity (§3.1). A missing field/operation/role/route is
+   `BLOCKED`; an unproven grant/binding is `NEEDS_REVIEW`; a false availability claim is `BLOCKED`.
+   A `NORMATIVE_ONLY` spec may be `VALID` — absence of a binding blocks **availability claims**, not
+   normative authorship. Absence of evidence is never read as success (§3.4).
 4. **Code never executes arbitrary DB content.** The DB stores declarative config (keys, versions,
    hashes, predicates) — never JSX/JS/SQL/URLs that become an execution channel (matches the existing
    Phase 2 publication validator).
@@ -337,57 +338,122 @@ surface, evidence, envelope). Draft-07, `additionalProperties:false`, every obje
 ### 2.6 `surface.schema.json` + `evidence.schema.json` + `envelope.schema.json`
 
 - **`surface.schema.json`**: `{spec_key, spec_version, spec_hash, surface_key, route_ref∈ROUTE_ALLOWLIST, template_ref∈COMPONENT_REGISTRY, allowed_components[] (must be in registry), operation_ref?, states[] (ready|loading|empty|forbidden|unavailable|failed)}`. Routes may only come from the **physical** allowlist (`/`, `/dashboard`, `/dashboard/:id`, `/products`, `/knowledge`, `/payments`, `/settings`, `/onboarding`, `/reset-password`, `*`).
-- **`evidence.schema.json`**: `{spec_key, spec_version, spec_hash, generator_version, commit_sha, workflow_run_id, test_results{}, migration_set[], deployment_id?, approval?, status, blockers[], recorded_at}`.
+- **`evidence.schema.json`** — required: `{spec_key, spec_version, spec_hash, generator_version, commit_sha, evidence_class∈{validation.local,validation.ci,integration,e2e,approval.human}, verdicts{}, maturity, blockers[], recorded_at}`. **Optional (only when they exist):** `workflow_run_id?`, `deployment_id?`, `approval?{approver,decision,at}`, `test_results?{}`, `migration_set?[]`. Absence of an optional class is recorded as its own state (§3.4) and is **never** treated as success.
 - **`envelope.schema.json`** (agent task envelope): `{task_id, target{repository,branch,baseline_sha}, specs[], mode: local_changes_only, allowed[], forbidden[], required_evidence[], acceptance_criteria[], stop_conditions[]}` — `forbidden` always includes `mutate_remote_database, change_remote_auth_or_rls, push_or_merge, deploy_or_promote, modify_protected_identity_record`.
 
 ---
 
 ## 3. Deterministic validation criteria (the G1 gate)
 
-`spec-validate.mjs` must **fail (exit 1)** on any of:
+### 3.1 Result model — separate _spec validity_ from _operational maturity_
 
-| #   | Rule                                                                                                                                                                                                                 | Why                        |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| V1  | Every spec validates against its JSON Schema (`ajv@6.15.0`).                                                                                                                                                         | Well-formedness.           |
-| V2  | Every `*_ref` resolves to an existing spec (`step_ref`, `field`, `operation`, `policy`, `surface`, `template`, `route`, `predicate`).                                                                                | No dangling references.    |
-| V3  | `operation.endpoint.target` exists in the **live baseline** (RPC in `pg_proc`, edge fn in `runtime-registries.ENDPOINT_ALLOWLIST`, projection table in `pg_tables`) OR is explicitly `client_auth`/`client_session`. | No invented endpoints.     |
-| V4  | `field.data.path` resolves against the live schema (introspected columns) or is marked `verified_binding_required` (→ `NEEDS_REVIEW`, not VERIFIED).                                                                 | No invented bindings.      |
-| V5  | `policy.roles_ref[]` ⊆ the real role registry (`organization_members.role_name` values + platform roles).                                                                                                            | No invented roles.         |
-| V6  | `surface.route_ref` ⊆ physical ROUTE_ALLOWLIST; `surface.template_ref` + `allowed_components[]` ⊆ COMPONENT_REGISTRY.                                                                                                | No new routes/components.  |
-| V7  | Every `operation` has ≥1 `tests[]`; every journey step has a `completion.predicate_ref`.                                                                                                                             | No untested operations.    |
-| V8  | No spec may assert `status: WIRED                                                                                                                                                                                    | INTEGRATION_VERIFIED       | E2E_VERIFIED`or`configured` for a binding/surface while the corresponding DB row count is 0 (NORMATIVE_ONLY). | No availability-without-binding. |
-| V9  | `field.privacy.classification ∈ {confidential,restricted}` ⇒ the field must appear in `step.persist.redact[]` or have a canonical entity (never a generic PII dump).                                                 | PII minimization (FS/PII). |
-| V10 | `spec_hash` recomputed == stored; duplicate `spec_key` across files → fail.                                                                                                                                          | Integrity + uniqueness.    |
+The validator **never collapses** these two axes. Each spec gets a **validity** verdict, and
+maturity is a separate, evidence-bound state — never inferred from validity.
+
+**Validity verdicts (spec as a contract):**
+
+| Verdict        | Meaning                                                                                                                                                        | Gate behavior                                                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `VALID`        | Structurally consistent: schema OK, all `*_ref` resolve, no rule violated.                                                                                     | proceed                                                                            |
+| `NEEDS_REVIEW` | A dependency or decision is pending (unresolved binding, over-exposed grant, unproven API, `verified_binding_required`).                                       | proceed **flagged**; recorded; blocks any maturity claim above `MAPPED_UNVERIFIED` |
+| `BLOCKED`      | A mandatory prerequisite is absent or a rule is violated (missing required ref, schema failure, invented endpoint/role/route, PII rule broken, hash mismatch). | **exit 1** — does not reach the generator                                          |
+
+**Operational maturity (separate axis, evidence-bound):**
+`NORMATIVE_ONLY → MAPPED_UNVERIFIED → CONFIGURED → WIRED → INTEGRATION_VERIFIED → E2E_VERIFIED`.
+A `NORMATIVE_ONLY` spec **can be `VALID`** — a binding's absence blocks **availability claims**, not
+the authorship of a normative spec. Maturity states require their own evidence (§3.4) and are never
+granted by the spec validator.
+
+### 3.2 Rules V1–V10
+
+`spec-validate.mjs` emits structured output per finding: `{spec_key, rule, verdict, evidence, fix}`.
+Exit codes: `0` = all `VALID`; `2` = ≥1 `NEEDS_REVIEW` (no `BLOCKED`); `1` = ≥1 `BLOCKED`.
+
+| #   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                              | Verdict on violation                                          | Why                           |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------- |
+| V1  | Every spec validates against its JSON Schema (`ajv@6.15.0`).                                                                                                                                                                                                                                                                                                                                                                      | `BLOCKED`                                                     | Well-formedness.              |
+| V2  | Every `*_ref` resolves to an existing spec (`step`, `field`, `operation`, `policy`, `surface`, `template`, `route`, `predicate`).                                                                                                                                                                                                                                                                                                 | `BLOCKED`                                                     | No dangling references.       |
+| V3a | `operation.endpoint.target` **exists** in the live baseline (RPC in `pg_proc`, edge fn in `ENDPOINT_ALLOWLIST`, projection table in `pg_tables`) OR is explicitly `client_auth`/`client_session`.                                                                                                                                                                                                                                 | `BLOCKED`                                                     | No invented endpoints.        |
+| V3b | For each existing endpoint, check **privilege + auth context** (`EXECUTE` grants, `anon` exposure, DEFINER/INVOKER, expected auth). A target that exists but is **over-exposed** for the declared `operation.auth` (e.g. `save_onboarding_progress` `EXECUTE` to `anon`, or an unproven external API) is **not** auto-approved by a body-level `auth.uid()` check.                                                                | `NEEDS_REVIEW` (or `BLOCKED` if the security policy marks it) | Existence ≠ authorization.    |
+| V3c | Every privileged/mutating operation has a **negative authorization test** declared in `tests[]` (e.g. cross-tenant / anon denial).                                                                                                                                                                                                                                                                                                | `NEEDS_REVIEW`                                                | No unverified privileged ops. |
+| V4  | `field.data.path` resolves against the live schema (introspected columns) **and** the resolved table's RLS/grants permit the declared access; otherwise `verified_binding_required`.                                                                                                                                                                                                                                              | `NEEDS_REVIEW`                                                | No invented bindings.         |
+| V5  | `policy.roles_ref[]` ⊆ the real role registry (`organization_members.role_name` values + platform roles).                                                                                                                                                                                                                                                                                                                         | `BLOCKED`                                                     | No invented roles.            |
+| V6  | `surface.route_ref` ⊆ physical ROUTE_ALLOWLIST; `surface.template_ref` + `allowed_components[]` ⊆ COMPONENT_REGISTRY.                                                                                                                                                                                                                                                                                                             | `BLOCKED`                                                     | No new routes/components.     |
+| V7  | Every `operation` has ≥1 `tests[]`; every journey step has a `completion.predicate_ref`.                                                                                                                                                                                                                                                                                                                                          | `NEEDS_REVIEW`                                                | No untested operations.       |
+| V8  | **Availability honesty (maturity axis, not validity).** A spec may _author_ `NORMATIVE_ONLY`. A spec may **not** assert `CONFIGURED                                                                                                                                                                                                                                                                                               | WIRED                                                         | INTEGRATION_VERIFIED          | E2E_VERIFIED`for a binding/surface while its evidence axis is empty (DB row count 0 / no tested binding). Asserting availability without evidence =`BLOCKED`; merely being unimplemented = the spec stays `VALID`+`NORMATIVE_ONLY`. | `BLOCKED` only on false availability claim | No availability-without-binding, but normative authorship allowed. |
+| V9  | **Privacy (classification + purpose + minimization + persistence policy).** Every field with `privacy.classification ∈ {confidential,restricted}` must declare `purpose`, a `minimization` note, and a `persistence` policy (canonical entity + retention/TTL). Such fields are **never** allowed in a generic/free payload. Binding to a canonical entity does **not** waive authorization, minimization, or retention controls. | `BLOCKED`                                                     | PII minimization (FS/PII).    |
+| V10 | Hash integrity: recomputed `spec_hash` == stored (per §3.3); duplicate `spec_key` across files.                                                                                                                                                                                                                                                                                                                                   | `BLOCKED`                                                     | Integrity + uniqueness.       |
 
 Cross-checks reuse (not duplicate) the existing gates: `check:matrices`, `check:carbon-patterns`,
 `registry:check`. V6 shells out to `registry:check` for allowlist drift.
 
+### 3.3 Reproducible hash chain (`spec_hash`)
+
+`spec_hash` is **computed by the validator, not required beforehand**:
+
+1. **Canonicalization:** serialize the spec with sorted object keys, stable list order preserved,
+   UTF-8, LF newlines, no trailing whitespace. (Deterministic across platforms.)
+2. **Exclusion:** the `spec_hash` field itself is removed before hashing (a spec never hashes its own hash).
+3. **Algorithm:** `sha256` over the canonical bytes, hex.
+4. **Cross-spec references:** references are by `spec_key` (logical), **not** embedded content, so a
+   referenced spec's hash change does not silently rewrite the referrer; a `--lock` mode can pin
+   `ref@spec_version` when immutability is required.
+5. **Authoring flow:** authors omit `spec_hash`; `spec-validate --write` computes and writes it; CI
+   uses `--check` to verify recomputed == stored (mismatch = V10 `BLOCKED`).
+
+### 3.4 Evidence classes (separate; absence ≠ success)
+
+| Class              | Meaning                                                 | Required fields                                          |
+| ------------------ | ------------------------------------------------------- | -------------------------------------------------------- |
+| `validation.local` | G1 ran locally and its verdict                          | `commit_sha`, `spec_hash`, `generator_version`, verdicts |
+| `validation.ci`    | G1 ran in CI on a SHA                                   | + `workflow_run_id`                                      |
+| `integration`      | operation/binding tested against a real, authorized env | + env ref, test ids, result                              |
+| `e2e`              | browser/journey E2E on a specific deployment            | + `deployment_id`, run ids                               |
+| `approval.human`   | a human reviewed and approved                           | + `approval{approver,decision,at}`                       |
+
+`workflow_run_id`, `deployment_id`, `approval` are **optional and only present when they exist**.
+**Absence of evidence is never read as success** — a missing class maps to the corresponding
+`NORMATIVE_ONLY`/`MAPPED_UNVERIFIED` state, and maturity above that requires the matching class.
+
 ---
 
-## 4. Proof of concept — `onboarding.person` (read/plan-only)
+## 4. Proof of concept — `onboarding.person` (declarative generation only)
 
 **Goal:** prove the mechanism end-to-end on the smallest real slice, **without changing app behavior**.
+Scope is **declarative generation only** — the generator emits data/artifacts, **never** React
+components, and **never** alters application behavior in this phase.
 
 1. **Author** (plan → spec, on implementation):
    - `specs/journeys/onboarding.person.yaml` — steps 1,2,4,5 (PF path of the current wizard).
    - `specs/steps/*` for each, referencing `specs/fields/*` (full_name, tax_id, national_identity, birth_date, address.*, country, language).
-   - `specs/operations/onboarding.save-progress.yaml` → `endpoint {kind: rpc, target: save_onboarding_progress}`, `auth: authenticated`, `idempotency {strategy: key}`.
+   - `specs/operations/onboarding.save-progress.yaml` → `endpoint {kind: rpc, target: save_onboarding_progress}`, `auth: authenticated`, `idempotency {strategy: key}`, plus a declared **anon-denial negative test** (V3c).
    - `specs/policies/onboarding.readiness.yaml` → `effect: require_step`, `predicate` over person+membership.
    - `specs/surfaces/onboarding.person.yaml` → `route_ref: /onboarding`, `template_ref: carbon.wizard.progress-indicator`.
-2. **Validate** — run G1; expected findings (from Fase 0):
-   - `save_onboarding_progress` is `anon`-executable → **flag** (V3-note: present but over-exposed; `NEEDS_REVIEW`).
-   - Persistence entity = `persons.additional_property.onboarding` (JSON blob, no run/step ledger) → **flag** (not a canonical ledger; `NEEDS_REVIEW` toward the ADR `onboarding_runs`/`onboarding_step_states`).
-   - `field.data.path` for fiscal/PII fields → `verified_binding_required` until canonical entity is decided by the tenancy ADR.
-3. **Generate** — the deterministic generator emits: TS types, a `form-definition` for the PF step, a
-   traceability row set, a task **envelope**, and a **validation test list** — all into `generated/`.
+2. **Validate** — run G1; expected findings (from Fase 0), each emitted as `{spec_key, rule, verdict, evidence, fix}`:
+   - `save_onboarding_progress` is `anon`-executable → **V3b `NEEDS_REVIEW`** (exists but over-exposed for `auth: authenticated`).
+   - Persistence entity = `persons.additional_property.onboarding` (JSON blob, no run/step ledger) → **V4 `NEEDS_REVIEW`** (not a canonical ledger; points to the ADR `onboarding_runs`/`onboarding_step_states`).
+   - `field.data.path` for fiscal/PII fields → `verified_binding_required` (`NEEDS_REVIEW`) until the tenancy ADR picks the canonical entity; PII fields must satisfy V9 (purpose + minimization + persistence, never in the generic payload).
+3. **Generate (declarative only)** — the deterministic generator emits into `generated/`:
+   **TS types**, a **declarative `form-definition`** (JSON describing fields/labels/validators — _not
+   executable UI_, **no React**), a **traceability row set**, a task **envelope**, and a **validation
+   test list**. Nothing here imports or renders a component.
 4. **Check** — `spec-check-generated.mjs --check` passes (no hand edits to `generated/`).
-5. **Record** — `evidence-record.mjs` appends an entry linking `spec_hash`, `generator_version`,
-   `commit_sha`, validator result, and `status: NORMATIVE_ONLY` (no app change, no DB publish).
+5. **Record** — `evidence-record.mjs` appends an `validation.local` entry linking `spec_hash`,
+   `generator_version`, `commit_sha`, verdicts, and `maturity: NORMATIVE_ONLY` (no app change, no DB publish).
 
-**PoC acceptance:** (a) G1 passes or flags exactly the known Fase-0 gaps (no silent unknowns);
-(b) generator output is byte-reproducible (`--check` green); (c) **zero** changes to runtime code,
-DB, or the PR; (d) `TenantContext.jsx` uncommitted change and the passkey plan doc are **untouched**;
-(e) evidence entry written.
+**PoC acceptance:** (a) G1 exits with the expected codes (`2` for the flagged `NEEDS_REVIEW` items,
+no unexpected `BLOCKED`); (b) findings are structured with `spec_key`/`rule`/`evidence`/`fix`;
+(c) generator output is byte-reproducible (`--check` green); (d) **zero** changes to runtime code,
+DB, or the PR; (e) `TenantContext.jsx` uncommitted change and the passkey plan doc are **untouched**;
+(f) evidence entry written.
+
+### 4.1 CI integration (no rule duplication)
+
+`spec-validate.mjs` runs as a **new step in the existing `quality` job**, placed **before** the
+build/test steps so an invalid spec blocks code early. It reuses — never re-implements — the existing
+gates (`check:matrices`, `check:carbon-patterns`, `registry:check`); V6 shells out to `registry:check`.
+Output is structured (JSON lines `{spec_key, rule, verdict, evidence, fix}`) with deterministic exit
+codes (`0`/`2`/`1` per §3.2), so the job can surface findings without guessing.
 
 ---
 
@@ -399,12 +465,28 @@ DB, or the PR; (d) `TenantContext.jsx` uncommitted change and the passkey plan d
 - Bindings/surfaces/settings-map remain **NORMATIVE_ONLY**; nothing is declared implemented.
 - `cestari-studio/genOS` stays read-only.
 
-## 6. Deliverables to review before implementation
+## 6. Review outcome (2026-10-25) — approved with 4 mandatory adjustments + 2 refinements
 
-1. This ADR (§1) — approve/amend the architecture.
-2. The 8 schemas (§2) — approve field/required sets and patterns.
-3. The G1 validation rules V1–V10 (§3) — approve strictness (esp. V8 availability honesty).
-4. The `onboarding.person` PoC plan (§4) — approve scope + acceptance.
+The architecture was **approved with adjustments**. All 4 mandatory adjustments and both refinements
+are incorporated into this document:
 
-**On approval,** implementation begins with §1.5 layout + `spec-validate.mjs` (G1) + the PoC —
-still with **no** remote mutation and **no** app-behavior change.
+| Adjustment                                                                                                                                                                                                                                                                                                                                          | Where applied                                                                                                             |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **1. V8 — separate spec validity from operational maturity.** A `NORMATIVE_ONLY` spec can be `VALID`; absence of a binding blocks availability claims, not authorship.                                                                                                                                                                              | §3.1 (result model: `VALID`/`NEEDS_REVIEW`/`BLOCKED` validity vs `NORMATIVE_ONLY→…→E2E_VERIFIED` maturity), V8 rewritten. |
+| **2. V3/V5 — distinguish existence from authorization.** RPC existence ≠ safe ≠ callable by the expected user; check `EXECUTE` grants, `anon` exposure, DEFINER/INVOKER, and require negative authorization tests. `save_onboarding_progress` `anon`-executable → `NEEDS_REVIEW`/`BLOCKED`, never auto-approved by a body-level `auth.uid()` check. | V3 split into V3a (existence), V3b (privilege+auth context), V3c (negative auth test).                                    |
+| **3. V9 — privacy is classification + purpose + minimization + persistence policy.** Canonical-entity binding does **not** waive authorization/minimization/retention. Restricted fields never enter generic payloads.                                                                                                                              | V9 rewritten.                                                                                                             |
+| **4. Reproducible hash chain + evidence classes.** `spec_hash` is validator-computed (canonicalize → exclude self → sha256 → logical refs); evidence split into `validation.local/ci`, `integration`, `e2e`, `approval.human`; `workflow_run_id`/`deployment_id`/`approval` optional and **absence ≠ success**.                                     | §3.3 (hash chain), §3.4 (evidence classes), §2.6 evidence schema.                                                         |
+| **Refinement 1 — PoC scope:** declarative generation only (types, traceability, envelope, test list); `form-definition` is declarative JSON, **no React**, **no** app-behavior change.                                                                                                                                                              | §4.                                                                                                                       |
+| **Refinement 2 — CI integration:** reuse existing gates without duplicating rules; structured output `{spec_key, rule, verdict, evidence, fix}` + deterministic exit codes `0`/`2`/`1`.                                                                                                                                                             | §3.2, §4.1.                                                                                                               |
+
+## 7. Remaining deliverables before implementation
+
+1. ~~ADR~~ — **approved with adjustments** (incorporated above).
+2. The 8 schemas (§2) — fields/hashes updated per adjustment 4; final field-set sign-off.
+3. The G1 rules V1–V10 (§3.2) — as revised (V3a/b/c, V8, V9).
+4. The `onboarding.person` PoC plan (§4) — declarative-only, per refinement 1.
+
+**On formal sign-off of §7 items 2–4,** implementation begins with §1.5 layout + `spec-validate.mjs`
+(G1) + the PoC — still with **no** remote mutation and **no** app-behavior change. The validator is
+**not** implemented yet; the application and remote DB are unchanged; uncommitted passkey changes
+(`TenantContext.jsx`) and the passkey plan doc are preserved.
