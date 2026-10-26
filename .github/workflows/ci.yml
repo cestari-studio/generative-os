@@ -376,6 +376,14 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:readiness-concurrency-race
 
+      - name: Run red-team P1-fix SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:red-team-p1-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

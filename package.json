@@ -51,6 +51,7 @@
     "test:provision-adversarial-sql": "./scripts/test-provision-adversarial-sql.sh",
     "test:readiness-blocked-sql": "./scripts/test-readiness-blocked-sql.sh",
     "test:readiness-concurrency-race": "./scripts/test-readiness-concurrency-race.sh",
+    "test:red-team-p1-sql": "./scripts/test-red-team-p1-sql.sh",
     "check:rpc-grant-exposure": "node scripts/check-rpc-grant-exposure.mjs",
     "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",
