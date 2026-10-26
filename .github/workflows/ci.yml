@@ -306,6 +306,14 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:org-hierarchy-sql
 
+      - name: Run journey-ledger SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:journey-ledger-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

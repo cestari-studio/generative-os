@@ -742,6 +742,55 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
    * context (HTTPS or localhost); callers surface the browser's errors
    * honestly (unsupported browser, user cancel, no platform authenticator).
    */
+  /**
+   * Authoritative passkey list — via Supabase Auth's NATIVE WebAuthn store.
+   *
+   * The legacy `public.passkey_credentials` table is NOT written by native
+   * registration (native Supabase Auth stores credentials in the auth schema,
+   * surfaced via `auth.passkey.list()`). Reading the public table would always
+   * report "no passkey" even for users who registered — so detection MUST use
+   * the native list.
+   *
+   * Returns a DISCRIMINATED result, never a collapsed error (Fase E / the plan's
+   * P0 fix): a list failure is NOT the same as "no credentials", and a caller
+   * must be able to tell them apart.
+   *   { status: 'ready', passkeys: [...] }   — list succeeded (possibly empty)
+   *   { status: 'unknown' }                  — list failed (network/RLS/API); NOT "no credentials"
+   *   { status: 'unsupported' }              — passkey API absent in this client/context
+   *   { status: 'unauthenticated' }          — no signed-in user
+   */
+  const listPasskeys = useCallback(async () => {
+    if (!userRef.current?.id) return { status: 'unauthenticated', passkeys: [] };
+    let supabase;
+    try {
+      supabase = getSupabaseBrowserClient();
+    } catch {
+      return { status: 'unknown', passkeys: [] };
+    }
+    if (typeof supabase.auth?.passkey?.list !== 'function') {
+      return { status: 'unsupported', passkeys: [] };
+    }
+    try {
+      const { data, error } = await supabase.auth.passkey.list();
+      if (error) return { status: 'unknown', passkeys: [], error: error.message };
+      const list = Array.isArray(data) ? data : (data?.passkeys ?? []);
+      return { status: 'ready', passkeys: list };
+    } catch (err) {
+      return { status: 'unknown', passkeys: [], error: err instanceof Error ? err.message : 'list failed' };
+    }
+  }, []);
+
+  /** Refresh the `passkeys` state from the authoritative native store.
+   * Only overwrites state on a 'ready' result; an 'unknown'/'unsupported' result
+   * is returned for the caller to surface honestly (never rendered as "no passkey"). */
+  const refreshPasskeys = useCallback(async () => {
+    const result = await listPasskeys();
+    if (result.status === 'ready') {
+      setPasskeys(result.passkeys);
+    }
+    return result;
+  }, [listPasskeys]);
+
   const registerPasskey = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
     const currentUser = userRef.current;
@@ -755,22 +804,15 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       setStatusMessage(error.message);
       throw error;
     }
-    // Refresh the credential list from the server (never assume success).
+    // Refresh from the authoritative native store (never assume success).
     try {
-      const { data: creds } = await supabase
-        .from('passkey_credentials')
-        .select('*')
-        .eq('person_id', currentUser.id)
-        .order('created_at', { ascending: false });
-      if (Array.isArray(creds)) {
-        setPasskeys(creds);
-      }
+      await refreshPasskeys();
     } catch {
       // Non-fatal: the registration succeeded; the list will refresh on next load.
     }
     setStatusMessage('Passkey registered');
     return data;
-  }, []);
+  }, [refreshPasskeys]);
 
   const authenticateWithPasskey = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
@@ -848,6 +890,8 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       signInWithOtp,
       requestPasswordReset,
       signOut,
+      listPasskeys,
+      refreshPasskeys,
       registerPasskey,
       authenticateWithPasskey,
       refreshTenantData,
@@ -896,6 +940,8 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       signInWithOtp,
       requestPasswordReset,
       signOut,
+      listPasskeys,
+      refreshPasskeys,
       registerPasskey,
       authenticateWithPasskey,
       refreshTenantData,

@@ -6,6 +6,7 @@
  */
 
 import PropTypes from 'prop-types';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button, Column, Grid, InlineNotification, Layer, Loading, Stack, Tag, Tile } from '@carbon/react';
@@ -15,11 +16,38 @@ import { PageHeader } from '@carbon/ibm-products';
 import { useTenant } from '../../context/useTenant';
 import { PageLayout } from '../../layouts/page-layout';
 import { TENANT_SETTINGS_CATEGORIES } from '../../routes/config';
+import { useOnboardingReadiness } from '../../data/useOnboardingReadiness';
 
 export const ProtectedRoute = ({ children, category }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, loading, openSignInModal } = useTenant();
+  const { user, loading, openSignInModal, openOnboardingFlow } = useTenant();
+
+  // Server-authoritative onboarding readiness (ADR 0001 / Fase C). The gate asks
+  // the server whether required steps are incomplete; it never infers completion
+  // from account_type/name/counts/plan_tier. When the backend RPC is not yet
+  // deployed, the adapter surfaces `unavailable_backend` and we keep the
+  // session-only gate (the recorded dependency), never a fabricated local readiness.
+  const { readiness, resolve } = useOnboardingReadiness({
+    isAuthenticated: () => Boolean(user),
+    requiredStepKeys: [],
+  });
+
+  useEffect(() => {
+    if (user) {
+      resolve();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Server says required steps are incomplete -> route to the onboarding flow at
+  // the next required step (not the dashboard). This closes FS4's direct-route bypass.
+  useEffect(() => {
+    if (readiness?.status === 'ready' && readiness.decision === 'require_steps') {
+      openOnboardingFlow(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readiness]);
 
   if (loading) {
     return (
@@ -30,6 +58,9 @@ export const ProtectedRoute = ({ children, category }) => {
   }
 
   if (user) {
+    // Readiness still resolving, or resolved to allow / unavailable_backend
+    // (dependency recorded): render children. `require_steps` triggers the
+    // onboarding flow via the effect above.
     return children;
   }
 
