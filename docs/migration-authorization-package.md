@@ -173,9 +173,9 @@ For EACH authorized migration, in chronological order:
 
 ## Residual-risk tracking — legacy `create_or_update_corporate_tenant` (open until Stage 2)
 
-**`BLK-provisioning-takeover` is OPEN, not closed.** The safe successor `provision_corporate_tenant` (Stage 1, `140000`) provides a safe provisioning _path_, but it does NOT deactivate the vulnerable legacy RPC. Until Stage 2's `210000` is applied **and** its negative privilege tests pass, the following hold and are tracked explicitly:
+**`BLK-provisioning-takeover` is OPEN, not closed.** The safe successor `provision_corporate_tenant` (Stage 1, `140000`) provides a safe provisioning _path_, but it does NOT deactivate the vulnerable legacy RPC. Until Stage 2's `210000` is applied **and** its negative privilege tests pass, the following hold and are tracked explicitly. **Threat-model refinement (Onda-6 independent audit, `docs/red-team-audit-onda1-security.md`, 2026-10-26):** this is a **latent code defect, not a historically live-exploitable takeover** — on the hardened live RLS surface the conflict-path UPDATE dies at 42501 for a non-member; the full multi-effect takeover (data overwrite + legal-rep replacement + org_owner promotion) is proven only against a synthetic permissive policy surface (BEFORE 7/7). `210000`'s grant-layer closure is the correct remediation shape regardless of which live policy reading is true. The residual risk is therefore **code-latent + defense-in-depth**, not an active live exploit — but the blocker stays OPEN until `210000` is applied and verified.
 
-- The legacy RPC remains **executable by `authenticated`** — the authenticated-takeover defect (DEFECT B in `docs/release-evidence-ledger.md`) is **not remediated**.
+- The legacy RPC remains **executable by `authenticated`** — the authenticated-takeover defect (DEFECT B in `docs/release-evidence-ledger.md`) is **not remediated** (see the threat-model refinement above: code-latent, bounded by live RLS).
 - The application MUST NOT rely on the legacy RPC as a safe provisioning path (no consumer does — verified — but the RPC remains invocable by any authenticated session).
 - The takeover remediation is **complete only when** `210000` is applied AND the C1–C5 negative tests pass against the live remote.
 
