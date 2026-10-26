@@ -522,6 +522,7 @@
     "kpiPending": "保留中の請求",
     "kpiSellers": "接続済み販売者 (分割)",
     "kpiTotal": "総取引額",
+    "loadErrorTitle": "支払いデータを読み込めませんでした",
     "methodBoleto": "Boleto Bancário (銀行振込票)",
     "methodCard": "クレジットカード",
     "methodLegend": "決済方法",

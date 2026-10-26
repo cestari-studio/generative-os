@@ -539,6 +539,7 @@
     "kpiPending": "待处理账单",
     "kpiSellers": "已关联商户 (分账)",
     "kpiTotal": "总交易流水",
+    "loadErrorTitle": "无法加载支付数据",
     "methodBoleto": "Boleto Bancário (巴西银行汇款单)",
     "methodCard": "信用卡",
     "methodLegend": "付款途径",

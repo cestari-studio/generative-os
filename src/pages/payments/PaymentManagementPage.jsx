@@ -16,6 +16,7 @@ import {
   Modal,
   RadioButton,
   RadioButtonGroup,
+  SkeletonText,
   Tab,
   TabList,
   TabPanel,
@@ -59,13 +60,11 @@ export default function PaymentManagementPage() {
   const workspaceId = activeWorkspace?.id || null;
   const projectId = activeProject?.id || null;
 
-  // KPIs
-  const [kpis, setKpis] = useState({
-    total_transacted_cents: 0,
-    paid_charges_count: 0,
-    pending_charges_count: 0,
-    active_sellers_count: 0,
-  });
+  // KPIs. `null` = not yet loaded (loading); a failed load sets `loadError` and
+  // must NOT silently render the zero defaults (zero-mock rule).
+  const [kpis, setKpis] = useState(null);
+  const [loadState, setLoadState] = useState('loading'); // 'loading' | 'ready' | 'error'
+  const [loadError, setLoadError] = useState('');
 
   // Data collections
   const [charges, setCharges] = useState([]);
@@ -88,100 +87,61 @@ export default function PaymentManagementPage() {
 
   // Fetch KPI metrics and recent charges
   const loadPaymentData = useCallback(async () => {
+    setLoadState('loading');
+    setLoadError('');
     try {
       const supabase = getSupabaseBrowserClient();
 
-      // Load KPIs
-      const { data: kpiData, error: kpiErr } = await supabase.rpc('get_tenant_payment_kpis', {
-        p_organization_id: organizationId,
-      });
-      if (!kpiErr && kpiData) {
-        setKpis(kpiData);
-      }
-
-      // Load Charges
-      const { data: chargesData, error: chargesErr } = await supabase
-        .from('payment_charges')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (!chargesErr && chargesData) {
-        setCharges(chargesData);
-      }
-
-      // Load Connected Sellers
-      const { data: sellersData, error: sellersErr } = await supabase
-        .from('connected_seller_accounts')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .order('created_at', { ascending: false });
-
-      if (!sellersErr && sellersData) {
-        setSellers(sellersData);
-      }
-
-      // Load Audit Actions for Payments
-      const { data: auditData, error: auditErr } = await supabase
-        .from('audit_actions')
-        .select('*')
-        .eq('organization_id', organizationId)
-        .in('object_type', ['Order', 'PaymentCharge', 'ConnectedSellerAccount'])
-        .order('start_time', { ascending: false })
-        .limit(10);
-
-      if (!auditErr && auditData) {
-        setAuditEvents(auditData);
-      }
-    } catch (err) {
-      console.error('Failed to load payments data', err);
-    }
-  }, [organizationId]);
-
-  useEffect(() => {
-    let ignore = false;
-    const fetchInitialData = async () => {
-      try {
-        const supabase = getSupabaseBrowserClient();
-        const { data: kpiData } = await supabase.rpc('get_tenant_payment_kpis', {
-          p_organization_id: organizationId,
-        });
-        if (!ignore && kpiData) setKpis(kpiData);
-
-        const { data: chargesData } = await supabase
+      const [kpiRes, chargesRes, sellersRes, auditRes] = await Promise.all([
+        supabase.rpc('get_tenant_payment_kpis', { p_organization_id: organizationId }),
+        supabase
           .from('payment_charges')
           .select('*')
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: false })
-          .limit(20);
-        if (!ignore && chargesData) setCharges(chargesData);
-
-        const { data: sellersData } = await supabase
+          .limit(20),
+        supabase
           .from('connected_seller_accounts')
           .select('*')
           .eq('organization_id', organizationId)
-          .order('created_at', { ascending: false });
-        if (!ignore && sellersData) setSellers(sellersData);
-
-        const { data: auditData } = await supabase
+          .order('created_at', { ascending: false }),
+        supabase
           .from('audit_actions')
           .select('*')
           .eq('organization_id', organizationId)
           .in('object_type', ['Order', 'PaymentCharge', 'ConnectedSellerAccount'])
           .order('start_time', { ascending: false })
-          .limit(10);
-        if (!ignore && auditData) setAuditEvents(auditData);
-      } catch (err) {
-        console.error('Failed to fetch initial payment data', err);
-      }
-    };
+          .limit(10),
+      ]);
 
-    fetchInitialData();
-    return () => {
-      ignore = true;
-    };
+      // A failed KPI load is an error state, never a silent zero (PR #7 review).
+      const firstError = kpiRes.error || chargesRes.error || sellersRes.error || auditRes.error;
+      if (firstError) {
+        setLoadState('error');
+        setLoadError(firstError.message || 'Failed to load payments data.');
+        return;
+      }
+
+      if (kpiRes.data) setKpis(kpiRes.data);
+      if (chargesRes.data) setCharges(chargesRes.data);
+      if (sellersRes.data) setSellers(sellersRes.data);
+      if (auditRes.data) setAuditEvents(auditRes.data);
+      setLoadState('ready');
+    } catch (err) {
+      setLoadState('error');
+      setLoadError(err instanceof Error && err.message ? err.message : 'Failed to load payments data.');
+    }
   }, [organizationId]);
+
+  useEffect(() => {
+    // Defer to a microtask so the loader's initial setState('loading') does not
+    // run synchronously inside the effect body (react-hooks lint: no cascading
+    // renders). Cleanup is a no-op; loadPaymentData is memoized on organizationId.
+    const id = setTimeout(() => {
+      loadPaymentData();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [loadPaymentData]);
 
   // Handle Instant Charge Creation
   // Flow: (1) the server issues an audited quote for the operator-entered
@@ -366,39 +326,66 @@ export default function PaymentManagementPage() {
         />
       )}
 
-      {/* KPI Tiles */}
-      <Grid className="cs--payment-management__kpi-grid">
-        <Column sm={4} md={2} lg={4}>
-          <Tile className="cs--payment-management__kpi-tile">
-            <span className="cs--payment-management__kpi-label">
-              {t('payments.kpiTotal', 'Total Transacted Volume')}
-            </span>
-            <span className="cs--payment-management__kpi-value">
-              R$ {((kpis.total_transacted_cents || 0) / 100).toFixed(2)}
-            </span>
-          </Tile>
-        </Column>
-        <Column sm={4} md={2} lg={4}>
-          <Tile className="cs--payment-management__kpi-tile">
-            <span className="cs--payment-management__kpi-label">{t('payments.kpiPaid', 'Paid Charges')}</span>
-            <span className="cs--payment-management__kpi-value">{kpis.paid_charges_count || 0}</span>
-          </Tile>
-        </Column>
-        <Column sm={4} md={2} lg={4}>
-          <Tile className="cs--payment-management__kpi-tile">
-            <span className="cs--payment-management__kpi-label">{t('payments.kpiPending', 'Pending Charges')}</span>
-            <span className="cs--payment-management__kpi-value">{kpis.pending_charges_count || 0}</span>
-          </Tile>
-        </Column>
-        <Column sm={4} md={2} lg={4}>
-          <Tile className="cs--payment-management__kpi-tile">
-            <span className="cs--payment-management__kpi-label">
-              {t('payments.kpiSellers', 'Connected Sellers (Split)')}
-            </span>
-            <span className="cs--payment-management__kpi-value">{kpis.active_sellers_count || 0}</span>
-          </Tile>
-        </Column>
-      </Grid>
+      {/* KPI Tiles — loading / error / ready states (a failed load must NOT
+          render fabricated zeros — PR #7 review comment). */}
+      {loadState === 'error' ? (
+        <InlineNotification
+          kind="error"
+          lowContrast
+          title={t('payments.loadErrorTitle', 'Could not load payments data')}
+          subtitle={loadError}
+          className="cs--payment-management__notification"
+        />
+      ) : (
+        <Grid className="cs--payment-management__kpi-grid">
+          <Column sm={4} md={2} lg={4}>
+            <Tile className="cs--payment-management__kpi-tile">
+              <span className="cs--payment-management__kpi-label">
+                {t('payments.kpiTotal', 'Total Transacted Volume')}
+              </span>
+              {loadState === 'loading' || !kpis ? (
+                <SkeletonText heading width="60%" />
+              ) : (
+                <span className="cs--payment-management__kpi-value">
+                  R$ {((kpis.total_transacted_cents || 0) / 100).toFixed(2)}
+                </span>
+              )}
+            </Tile>
+          </Column>
+          <Column sm={4} md={2} lg={4}>
+            <Tile className="cs--payment-management__kpi-tile">
+              <span className="cs--payment-management__kpi-label">{t('payments.kpiPaid', 'Paid Charges')}</span>
+              {loadState === 'loading' || !kpis ? (
+                <SkeletonText heading width="40%" />
+              ) : (
+                <span className="cs--payment-management__kpi-value">{kpis.paid_charges_count || 0}</span>
+              )}
+            </Tile>
+          </Column>
+          <Column sm={4} md={2} lg={4}>
+            <Tile className="cs--payment-management__kpi-tile">
+              <span className="cs--payment-management__kpi-label">{t('payments.kpiPending', 'Pending Charges')}</span>
+              {loadState === 'loading' || !kpis ? (
+                <SkeletonText heading width="40%" />
+              ) : (
+                <span className="cs--payment-management__kpi-value">{kpis.pending_charges_count || 0}</span>
+              )}
+            </Tile>
+          </Column>
+          <Column sm={4} md={2} lg={4}>
+            <Tile className="cs--payment-management__kpi-tile">
+              <span className="cs--payment-management__kpi-label">
+                {t('payments.kpiSellers', 'Connected Sellers (Split)')}
+              </span>
+              {loadState === 'loading' || !kpis ? (
+                <SkeletonText heading width="40%" />
+              ) : (
+                <span className="cs--payment-management__kpi-value">{kpis.active_sellers_count || 0}</span>
+              )}
+            </Tile>
+          </Column>
+        </Grid>
+      )}
 
       {/* Active Instant Payment Detail Card (QR Code or Boleto) */}
       {activePaymentResult?.pix && (

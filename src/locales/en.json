@@ -514,6 +514,7 @@
     "kpiPending": "Pending Charges",
     "kpiSellers": "Connected Sellers (Split)",
     "kpiTotal": "Total Transacted Volume",
+    "loadErrorTitle": "Could not load payments data",
     "methodBoleto": "Boleto Bancario",
     "methodCard": "Credit Card",
     "methodLegend": "Payment Method",

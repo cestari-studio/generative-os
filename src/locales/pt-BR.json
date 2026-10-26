@@ -560,6 +560,7 @@
     "kpiPending": "Cobranças Pendentes",
     "kpiSellers": "Vendedores Conectados (Split)",
     "kpiTotal": "Volume Total Transacionado",
+    "loadErrorTitle": "Não foi possível carregar os dados de pagamentos",
     "methodBoleto": "Boleto Bancário",
     "methodCard": "Cartão de Crédito",
     "methodLegend": "Método de Pagamento",

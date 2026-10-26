@@ -522,6 +522,7 @@
     "kpiPending": "Ausstehende Rechnungen",
     "kpiSellers": "Verbundene Verkäufer (Split)",
     "kpiTotal": "Gesamtes Transaktionsvolumen",
+    "loadErrorTitle": "Zahlungsdaten konnten nicht geladen werden",
     "methodBoleto": "Boleto Bancário",
     "methodCard": "Kreditkarte",
     "methodLegend": "Zahlungsart",
