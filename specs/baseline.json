@@ -1,6 +1,6 @@
 {
-  "comment": "Fase 0 read-only baseline snapshot (docs/fase0-preflight-report.md, SHA a919bc0). Deterministic, offline. RPC/edge/table names from the live introspection captured in Fase 0. endpoints_anon = INVOKER RPCs EXECUTE-exposed to anon (Fase 0 §1.4).",
-  "captured_from": "fase0-preflight-report.md @ a919bc0",
+  "comment": "Fase 0 read-only baseline snapshot (docs/fase0-preflight-report.md, SHA a919bc0), extended with RPCs/tables from the local migration tree applied after that capture (create_workspace, mark_notification_read, provision_corporate_tenant per migration 20261026140000). Deterministic, offline. endpoints_anon = INVOKER RPCs EXECUTE-exposed to anon (Fase 0 §1.4; provision_corporate_tenant is granted to authenticated only, NOT anon).",
+  "captured_from": "fase0-preflight-report.md @ a919bc0 + local migrations 20261023000000, 20261023010000, 20261026140000",
   "rpc": [
     "save_onboarding_progress",
     "create_or_update_corporate_tenant",
@@ -18,7 +18,8 @@
     "create_workspace",
     "mark_notification_read",
     "switch_active_context",
-    "match_knowledge_chunks"
+    "match_knowledge_chunks",
+    "provision_corporate_tenant"
   ],
   "edge_functions": [
     "pagbank-connect",

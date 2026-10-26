@@ -1,0 +1,27 @@
+{
+  "spec_key": "operation.provisioning.create-tenant",
+  "spec_version": "1.0.0",
+  "operation_key": "provisioning.create-tenant",
+  "endpoint": { "kind": "rpc", "target": "provision_corporate_tenant" },
+  "auth": "authenticated",
+  "tenant_context": "none (creates the first corporate tenant context for the caller)",
+  "idempotency": { "strategy": "natural", "key_field": "identifier" },
+  "errors": {
+    "401": "forbidden",
+    "42501": "forbidden",
+    "22023": "failed",
+    "23505": "failed",
+    "5xx": "unavailable",
+    "timeout": "unavailable",
+    "rls_denied": "forbidden",
+    "identifier_conflict_non_admin": "forbidden",
+    "identifier_conflict_admin": "ready"
+  },
+  "tests": [
+    "planned:provision_corporate_tenant.anon-denial",
+    "planned:provision_corporate_tenant.takeover-denial-cross-tenant",
+    "planned:provision_corporate_tenant.conflict-no-promotion",
+    "planned:provision_corporate_tenant.fresh-create-grants-owner",
+    "planned:provision_corporate_tenant.idempotent-read-back"
+  ]
+}

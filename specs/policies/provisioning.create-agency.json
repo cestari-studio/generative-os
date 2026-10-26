@@ -1,0 +1,8 @@
+{
+  "spec_key": "policy.provisioning.create-agency",
+  "spec_version": "1.0.0",
+  "policy_key": "provisioning.create-agency",
+  "effect": "allow",
+  "predicate": "actor.has_session AND actor.has_role('org_owner', parent_tenant) AND parent_tenant.template_allows('agency') AND entitlement.has_capability(parent_tenant, 'delegated_provisioning') AND actor.authority_level_is_server_derived",
+  "roles_ref": ["org_owner"]
+}

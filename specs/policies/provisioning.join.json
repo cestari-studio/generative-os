@@ -1,0 +1,8 @@
+{
+  "spec_key": "policy.provisioning.join",
+  "spec_version": "1.0.0",
+  "policy_key": "provisioning.join",
+  "effect": "allow",
+  "predicate": "actor.has_session AND invitation.token_valid AND NOT invitation.token_expired AND NOT invitation.token_consumed AND invitation.identity_matches(actor) AND NOT actor.has_membership(invitation.target_tenant)",
+  "roles_ref": ["org_member"]
+}

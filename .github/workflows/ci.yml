@@ -352,6 +352,30 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:onboarding-delegation-sql
 
+      - name: Run provisioning adversarial SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:provision-adversarial-sql
+
+      - name: Run readiness blocked-decision SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:readiness-blocked-sql
+
+      - name: Run readiness two-session concurrency race
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:readiness-concurrency-race
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest

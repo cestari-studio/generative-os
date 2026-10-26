@@ -1,0 +1,8 @@
+{
+  "spec_key": "policy.provisioning.create-tenant",
+  "spec_version": "1.0.0",
+  "policy_key": "provisioning.create-tenant",
+  "effect": "allow",
+  "predicate": "actor.has_session AND (tenant.identifier_is_new OR actor.has_role('org_owner', conflicting_tenant) OR actor.has_role('org_admin', conflicting_tenant))",
+  "roles_ref": ["org_owner", "org_admin"]
+}

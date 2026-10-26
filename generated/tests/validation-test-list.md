@@ -1,4 +1,14 @@
 # GENERATED validation test list (declarative; not executed UI)
 - [ ] onboarding.save-progress: OnboardingFullPage.test.jsx::persists step progress
 - [ ] onboarding.save-progress: planned:save_onboarding_progress.anon-denial
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.anon-denial
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.takeover-denial-cross-tenant
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.conflict-no-promotion
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.fresh-create-grants-owner
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.idempotent-read-back
 - [ ] policy onboarding.readiness: positive + negative authorization
+- [ ] policy provisioning.create-agency: positive + negative authorization
+- [ ] policy provisioning.create-tenant: positive + negative authorization
+- [ ] policy provisioning.invite: positive + negative authorization
+- [ ] policy provisioning.join: positive + negative authorization
+- [ ] policy provisioning.request-access: positive + negative authorization
