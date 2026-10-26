@@ -9,7 +9,9 @@ This package is the owner's decision record for **staged, conditional authorizat
 >
 > **(1) Stage-1 security scope corrected.** The original package revoked only `anon`/`PUBLIC` from `create_or_update_corporate_tenant`, which left the **authenticated-takeover** vector open (the exact attack `provision_corporate_tenant` prevents). A new migration `20261026210000_legacy_corporate_tenant_restrict.sql` now revokes `PUBLIC`/`anon`/`authenticated`/`service_role` from the legacy RPC — no role retains EXECUTE (consumer inventory: zero runtime consumers; full drop remains a separate owner decision). Acceptance criteria C1–C5 are enforced by `supabase/tests/legacy_corporate_tenant_restrict.sql`.
 >
-> **(2) Explicit chronological application order + partition.** Across three owner reviews the ordering was corrected to a **single strictly-chronological sequence across all 11 migrations**, partitioned into two contiguous stages: **Stage 1 = `120000…160000`**, **Stage 2 = `170000…210000`**. Stage boundaries are pauses for re-authorization + read-only verification, never reordering. The earlier partition that ended Stage 1 at `210000` was self-contradictory (it would have run `210000` before `170000–200000`) and is corrected here — no migration renamed or silently reordered. §"Application order" below specifies the per-migration ledger conferral, the stop-procedure, and the read-only post-apply verification. Approval-by-stage is a **risk grouping**; the **operational application is one chronological sequence**. No out-of-order exception, no generic `db push`.
+> **(2) Explicit chronological application order + partition.** Across the owner reviews the ordering was corrected to a **single strictly-chronological sequence across all 11 migrations**, partitioned into two contiguous stages: **Stage 1 = `120000…180000` (8 migrations)**, **Stage 2 = `190000…210000` (3 migrations)**. Stage boundaries are pauses for re-authorization + read-only verification, never reordering. §"Application order" below specifies the per-migration ledger conferral, the stop-procedure, and the read-only post-apply verification. Approval-by-stage is a **risk grouping**; the **operational application is one chronological sequence**. No out-of-order exception, no generic `db push`.
+>
+> **(3) `180000` reassigned to Stage 1 (Master Directive v2.1 §2.1 P0 / `BLK-MANIFEST-STAGE1`).** `180000` encodes the owner-decided P3 sensitive-declaration set (`onboarding.tenant.subject_step_keys = {identity, organization}`, ADR §6.1/§6.2) — a decision recorded as a Stage-1 gate. Analysis of real content: (a) `180000` is chronologically between `170000` and `190000`, so including it in Stage 1 reorders nothing; (b) no Stage-1 migration depends on `180000`; (c) `180000` IS required for the Stage-1 deliverable "the actor/subject + P3 decision is encoded, not vacuous". Reassigned with justification — not renamed, not excluded. See §"The single chronological sequence".
 
 ---
 
@@ -23,7 +25,7 @@ This package is the owner's decision record for **staged, conditional authorizat
 
 ## Gate 2 — migration integrity (CLOSED, validated)
 
-The 10 pending migrations, in application order, with SHA-256 checksums at `4a9ea5c`. Dependencies: each stage depends on the stages above it **and** on the already-applied remote base (≤ `20261025142026`). The grant-revocation migrations (130000, 130100, 160000) additionally depend on functions created by the already-applied remote migrations (`20261022053203` billing, `20261018225420` onboarding, `20261017231645` settings) — they do NOT create those functions, only tighten their grants.
+The 11 pending migrations, in application order, with SHA-256 checksums reconciled to the current checkout. Dependencies: each migration depends on those above it **and** on the already-applied remote base (≤ `20261025142026`). The grant-revocation migrations (130000, 130100, 160000, 210000) additionally depend on functions created by the already-applied remote migrations (`20261022053203` billing, `20261018225420` onboarding, `20261017231645` settings) — they do NOT create those functions, only tighten their grants. **Stage assignment:** Stage 1 = `120000…180000` (8); Stage 2 = `190000…210000` (3).
 
 | #   | Migration                                            | SHA-256 (first 16) | Creates / changes                                                                                                                                                                             | Depends on                                   |
 | --- | ---------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
@@ -95,16 +97,16 @@ All 11 migrations apply in this exact order (chronological = dependency = applic
 
 ```
 120000 → 130000 → 130100 → 140000 → 150000 → 160000 → 170000 → 180000 → 190000 → 200000 → 210000
-└────────────── Stage 1 (6 migrations) ──────────────┘└────────── Stage 2 (5 migrations) ──────────┘
+└──────────────────── Stage 1 (8 migrations) ─────────────────────┘└──── Stage 2 (3 migrations) ────┘
 ```
 
-> **Partition correction (owner review #3):** a prior revision ended Stage 1 at `210000` while Stage 2 held `170000–200000`, which contradicted the declared chronological rule (applying the stages in order would have run `210000` before `170000–200000`). `210000`'s dependency on `140000` does NOT require it to precede the intermediate migrations — only that `140000` (and `130100`) be applied first, which they are. `210000` is chronologically last, so it now ends **Stage 2**. Stage 1 = `120000…160000`; Stage 2 = `170000…210000`. No migration was renamed or silently reordered.
+> **Partition corrections across reviews:** (review #3) the earlier partition that ended Stage 1 at `210000` was self-contradictory — corrected so `210000` is last. (Master Directive v2.1 §2.1 P0 / `BLK-MANIFEST-STAGE1`) `180000` was moved into **Stage 1** because it encodes the owner-decided P3 sensitive-declaration set — a Stage-1 deliverable; it is chronologically between `170000` and `190000` (no reorder), no Stage-1 migration depends on it, and it IS required for the Stage-1 "P3 encoded, not vacuous" deliverable. No migration renamed, excluded, or silently reordered. Verified on disposable PG 17.11: the full 11-migration sequence applies in order and P3 reads back `{identity, organization}` after `180000`.
 
-### Stage 1 — tenancy foundation + critical security grant-revocations (6 migrations)
+### Stage 1 — tenancy foundation + actor/subject & P3 encoding + critical security grant-revocations (8 migrations)
 
-Apply in order: `120000` → `130000` → `130100` → `140000` → `150000` → `160000`.
+Apply in order: `120000` → `130000` → `130100` → `140000` → `150000` → `160000` → `170000` → `180000`.
 
-This closes the bulk of the live exposure and lays the tenancy foundation. `140000` creates `provision_corporate_tenant` (the authorized path the C3/C5 criteria need). `120000` (chronologically first, no dependency on any later file) opens the sequence so there is no out-of-order gap and the ledger stays consistent.
+This closes the bulk of the live exposure, lays the tenancy foundation, and encodes the owner-decided actor/subject + P3 sensitive-declaration model. `140000` creates `provision_corporate_tenant` (the authorized path the C3/C5 criteria need). `180000` encodes P3 (`subject_step_keys = {identity, organization}`). `120000` (chronologically first) opens the sequence so there is no out-of-order gap and the ledger stays consistent.
 
 - `20261026120000_journey_ledger_onboarding_runs` (readiness ledger + `resolve_onboarding_readiness`)
 - `20261026130000_pagbank_rpc_service_role_only` (PagBank RPCs → service_role only)
@@ -112,36 +114,38 @@ This closes the bulk of the live exposure and lays the tenancy foundation. `1400
 - `20261026140000_provision_corporate_tenant_safe` (**`provision_corporate_tenant`** — the authorized path)
 - `20261026150000_onboarding_actor_subject_delegation` (actor/subject, delegation)
 - `20261026160000_helper_rpc_anon_revocation` (11 helper/mutating functions → remove anon)
+- `20261026170000_readiness_blocked_decision` (blocked + `onboarding.tenant` seed)
+- `20261026180000_red_team_p1_fixes` (P1 guards + **P3 encoding: `subject_step_keys = {identity, organization}`**)
 
 **Per-migration conferral (read-only, after each single migration):** the version appears in the ledger in the correct position; the migration's specific effect took place; no error, no unexpected grant, no missing dependency. Stop on any deviation (see §4 above).
 
 **Stage-1 post-apply verification (Coordinator runs, READ-ONLY, before proposing Stage 2):**
 
-- Ledger: exactly the 6 new versions present, in chronological order, none missing, none extra; the last-applied is `20261026160000`.
+- Ledger: exactly the 8 new versions present, in chronological order, none missing, none extra; the last-applied is `20261026180000`.
 - For each of the 14 baseline-exposed functions, assert `anon_exec=false` (and `authenticated` retained ONLY where the browser is the legitimate consumer: `save_onboarding_progress`, `create_workspace`, `mark_notification_read`, `switch_active_context`; `provision_corporate_tenant`).
 - PagBank RPCs `claim_pagbank_order`/`attach_psp_idempotency`: `authenticated=false, anon=false, service_role=true`.
 - Safe provisioning: `provision_corporate_tenant` present with `authenticated=true, anon=false`; a fresh provision succeeds; a non-admin identifier conflict → 42501 (no promotion, no ownership transfer, org data unchanged).
-- Readiness foundation: `onboarding_runs`/`onboarding_step_states`/`onboarding_delegations` exist with RLS enabled; `resolve_onboarding_readiness` present.
+- Readiness foundation: `onboarding_runs`/`onboarding_step_states`/`onboarding_delegations` exist with RLS enabled; `resolve_onboarding_readiness` present; `onboarding.tenant` v1.0.0 seeded `published`.
+- **P3 encoded (ADR §6.1):** `onboarding_journey_definitions.subject_step_keys = {identity, organization}` for `onboarding.tenant` v1.0.0 (P3-CONFIG assertion live); the subject-only guard engages for those steps.
+- **Actor/subject semantics (ADR §2.7–§2.10 + §6.1):** deployed behavior matches the documented semantics — `onboarding.tenant` mode `self_service` (actor==subject enforced), `completed_by`/`completion_type` server-derived.
 - Note: the legacy `create_or_update_corporate_tenant` is still `authenticated`-executable after Stage 1 (only its anon/PUBLIC grant was removed by `130100`). **Its full restriction (C1–C5) lands in Stage 2 via `210000`** — flagged here so Stage 1 is not misread as closing the authenticated-takeover path.
 
-### Stage 2 — readiness decisions + hardening + legacy-RPC restriction (5 migrations, depends on Stage 1)
+### Stage 2 — readiness org-scoping + P2 hardening + legacy-RPC restriction (3 migrations, depends on Stage 1)
 
-Apply in order: `170000` → `180000` → `190000` → `200000` → `210000`.
+Apply in order: `190000` → `200000` → `210000`.
 
-- `20261026170000_readiness_blocked_decision` (blocked + `onboarding.tenant` seed)
-- `20261026180000_red_team_p1_fixes` (subject_step_keys, guards)
-- `20261026190000_readiness_org_scoping` (org-scoped readiness)
+- `20261026190000_readiness_org_scoping` (org-scoped readiness, merged body)
 - `20261026200000_p2_time_state_integrity` (completed_at, sweep, clock_timestamp)
 - `20261026210000_legacy_corporate_tenant_restrict` (**legacy `create_or_update_corporate_tenant` → revoke PUBLIC/anon/authenticated/service_role**; re-assert `provision_corporate_tenant` authenticated-only)
 
 **Post-apply verification (READ-ONLY):**
 
-- `resolve_onboarding_readiness` is the org-scoped merged body (org filter + determinism + clock_timestamp); `onboarding.tenant` v1.0.0 seeded `published` with `scope='organizational'` (per Gate-1 decision); `subject_step_keys` column present; cross-org readiness probe (completed org-A run, evaluate in org-B context) → NOT allow; full decision matrix (allow/require_steps/blocked/unavailable) per context.
+- `resolve_onboarding_readiness` is the org-scoped merged body (org filter + determinism + clock_timestamp); `onboarding.tenant` v1.0.0 seeded `published` with `scope='organizational'` (per Gate-1 decision); `subject_step_keys = {identity, organization}` present (from Stage-1 `180000`); cross-org readiness probe (completed org-A run, evaluate in org-B context) → NOT allow; full decision matrix (allow/require_steps/blocked/unavailable) per context.
 - **C1–C5 against the live remote:** legacy `create_or_update_corporate_tenant` → `anon_exec=false`, `auth_exec=false`, `service_role_exec=false`, no PUBLIC EXECUTE (empty-grantee aclitem absent); `provision_corporate_tenant` → `authenticated=true`, `anon=false`, no PUBLIC.
 - Takeover negative test (live): an authenticated non-admin invoking the legacy RPC → 42501; org A's data/legal-rep/memberships/context unchanged afterward.
-- Ledger: exactly the 5 new versions present, in chronological order; the last-applied is `20261026210000`; the full 11-migration sequence is now contiguous with no gap.
+- Ledger: exactly the 3 new versions present, in chronological order; the last-applied is `20261026210000`; the full 11-migration sequence is now contiguous with no gap.
 
-**Stage-2 readiness semantics gate (owner condition):** before accepting the delegated-completion contract (`can_complete_step`, `subject_step_keys`, org-scoped readiness), the **actor/subject semantics** that govern who may complete a step and who a decision certifies are documented in `docs/adr-tenancy-and-journey-persistence.md` §2.7–§2.13 (self_service vs delegated modes, `completed_by`/`completion_type` server-derivation, the org-scope contract, and the P2 hardening decisions). Stage 2's verification confirms the _deployed_ behavior matches that documented semantics — server-authoritative decision, valid published definition, fail-closed on any failure. The delegation _policy content_ (which steps are delegable per wizard, ADR P2) and the sensitive-declaration set (ADR P3) remain owner decisions, flagged in Gate 3 — they do not block Stage 2's deployment of the mechanism, but they gate declaring any specific delegated wizard "complete".
+**Stage-2 readiness semantics gate (owner condition):** before accepting the delegated-completion contract (`can_complete_step`, `subject_step_keys`, org-scoped readiness), the **actor/subject semantics** that govern who may complete a step and who a decision certifies are documented in `docs/adr-tenancy-and-journey-persistence.md` §2.7–§2.13 + §6.1 (self_service vs delegated modes, `completed_by`/`completion_type` server-derivation, the org-scope contract, the P2 hardening decisions, and the owner-decided `onboarding.tenant` mode/P3 set). Stage 2's verification confirms the _deployed_ behavior matches that documented semantics — server-authoritative decision, valid published definition, fail-closed on any failure.
 
 ---
 
