@@ -9,7 +9,7 @@ This package is the owner's decision record for **staged, conditional authorizat
 >
 > **(1) Stage-1 security scope corrected.** The original package revoked only `anon`/`PUBLIC` from `create_or_update_corporate_tenant`, which left the **authenticated-takeover** vector open (the exact attack `provision_corporate_tenant` prevents). A new migration `20261026210000_legacy_corporate_tenant_restrict.sql` now revokes `PUBLIC`/`anon`/`authenticated`/`service_role` from the legacy RPC — no role retains EXECUTE (consumer inventory: zero runtime consumers; full drop remains a separate owner decision). Acceptance criteria C1–C5 are enforced by `supabase/tests/legacy_corporate_tenant_restrict.sql`.
 >
-> **(2) Explicit chronological application order.** The original risk-based stages did not follow the migrations' chronological/dependency order — and a further review caught that the Stage-1 subset (`130000→130100→160000→210000`) **omitted `140000`** even though `210000`'s C3/C5 criteria require `provision_corporate_tenant` (created by `140000`) to exist and function. §"Application order" below now specifies the **single strictly-chronological sequence across all 11 migrations**, the per-migration ledger registration/conferral, the stop-procedure, and the read-only post-apply verification. Approval-by-stage is a **risk/approval grouping**; the **operational application is one chronological sequence**. There is no out-of-order exception, and no generic `db push`.
+> **(2) Explicit chronological application order + partition.** Across three owner reviews the ordering was corrected to a **single strictly-chronological sequence across all 11 migrations**, partitioned into two contiguous stages: **Stage 1 = `120000…160000`**, **Stage 2 = `170000…210000`**. Stage boundaries are pauses for re-authorization + read-only verification, never reordering. The earlier partition that ended Stage 1 at `210000` was self-contradictory (it would have run `210000` before `170000–200000`) and is corrected here — no migration renamed or silently reordered. §"Application order" below specifies the per-migration ledger conferral, the stop-procedure, and the read-only post-apply verification. Approval-by-stage is a **risk grouping**; the **operational application is one chronological sequence**. No out-of-order exception, no generic `db push`.
 
 ---
 
@@ -64,10 +64,10 @@ The readiness chain is not yet deployed, so the seeded `onboarding.tenant` v1.0.
 
 Presented honestly as **open**, not resolved:
 
-| Item                                           | Class                    | Status                                                                                                                                                                                                                                                                                                                                                                                           | Decision needed                                                                                                                              |
-| ---------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Legacy RPC `create_or_update_corporate_tenant` | **Deprecation strategy** | **0 runtime consumers** (TenantContext/FullPage/Tearsheet all on `provision_corporate_tenant`), but the RPC is still **invocable** (`anon_exec=true`, `auth_exec=true` live). Existence of the successor ≠ the legacy surface is closed. **RESOLVED for Stage 1:** migration `20261026210000` revokes EXECUTE from PUBLIC/anon/authenticated/service_role — no role retains it (C1–C5 enforced). | The remaining decision is **full drop** (removal of the function) — separate, after a confirmation window post-Stage-1. NOT part of Stage 1. |
-| P2 residual (auditor)                          | hardening                | 2 remaining P2 items from `docs/red-team-audit-org-scoping-p2-cycle.md` beyond F1 (fixed).                                                                                                                                                                                                                                                                                                       | Review the audit report; decide whether to schedule or accept. Not blockers to the security stages.                                          |
+| Item                                           | Class                    | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Decision needed                                                                                                                                   |
+| ---------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Legacy RPC `create_or_update_corporate_tenant` | **Deprecation strategy** | **0 runtime consumers** (TenantContext/FullPage/Tearsheet all on `provision_corporate_tenant`), but the RPC is still **invocable** (`anon_exec=true`, `auth_exec=true` live). Existence of the successor ≠ the legacy surface is closed. **Stage 1** removes only its anon/PUBLIC grant (via `130100`); the **full restriction lands in Stage 2** via `20261026210000` (revokes PUBLIC/anon/authenticated/service_role — no role retains it; C1–C5 enforced). | The remaining decision is **full drop** (removal of the function) — separate, after a confirmation window post-Stage-2. NOT part of either stage. |
+| P2 residual (auditor)                          | hardening                | 2 remaining P2 items from `docs/red-team-audit-org-scoping-p2-cycle.md` beyond F1 (fixed).                                                                                                                                                                                                                                                                                                                                                                    | Review the audit report; decide whether to schedule or accept. Not blockers to the security stages.                                               |
 
 **Live exposure baseline (verified 2026-10-26)** — 14 functions currently `anon_exec=true` that the pending migrations revoke: `create_or_update_corporate_tenant`, `save_onboarding_progress`, `resolve_effective_settings`, `create_workspace`, `mark_notification_read`, `switch_active_context`, `set_updated_at`, `enforce_scoped_setting_lock`, `jsonb_cascade_merge`, `to_schema_org_jsonld`, `enforce_surface_template_allowlist`, `enforce_surface_revision_publication`, `enforce_operation_binding_evidence`, `enforce_setting_map_none_has_no_terms`. (`match_knowledge_chunks` stays public-by-design, allowlisted.) This is the surface the security stages close.
 
@@ -91,48 +91,57 @@ Presented honestly as **open**, not resolved:
 
 ### The single chronological sequence
 
-All 11 migrations apply in this exact order (chronological = dependency = application order). Stage boundaries are **pauses for owner re-authorization and verification**, never reordering:
+All 11 migrations apply in this exact order (chronological = dependency = application order). Stage boundaries are **pauses for owner re-authorization and read-only verification** — they never reorder. The stage partition respects the sequence: each stage is a contiguous slice of the chronological list.
 
 ```
 120000 → 130000 → 130100 → 140000 → 150000 → 160000 → 170000 → 180000 → 190000 → 200000 → 210000
+└────────────── Stage 1 (6 migrations) ──────────────┘└────────── Stage 2 (5 migrations) ──────────┘
 ```
 
-### Stage 1 — tenancy foundation + critical security grant-revocations
+> **Partition correction (owner review #3):** a prior revision ended Stage 1 at `210000` while Stage 2 held `170000–200000`, which contradicted the declared chronological rule (applying the stages in order would have run `210000` before `170000–200000`). `210000`'s dependency on `140000` does NOT require it to precede the intermediate migrations — only that `140000` (and `130100`) be applied first, which they are. `210000` is chronologically last, so it now ends **Stage 2**. Stage 1 = `120000…160000`; Stage 2 = `170000…210000`. No migration was renamed or silently reordered.
 
-Apply in order: `120000` → `130000` → `130100` → `140000` → `150000` → `160000` → `210000`.
+### Stage 1 — tenancy foundation + critical security grant-revocations (6 migrations)
 
-This closes the live exposure AND satisfies the C3/C5 precondition: `140000` creates `provision_corporate_tenant` before `210000` re-asserts its grants and restricts the legacy RPC. `120000` (chronologically first, no dependency on any later file) is included so the sequence is strictly chronological with no out-of-order gap and the ledger stays consistent.
+Apply in order: `120000` → `130000` → `130100` → `140000` → `150000` → `160000`.
+
+This closes the bulk of the live exposure and lays the tenancy foundation. `140000` creates `provision_corporate_tenant` (the authorized path the C3/C5 criteria need). `120000` (chronologically first, no dependency on any later file) opens the sequence so there is no out-of-order gap and the ledger stays consistent.
 
 - `20261026120000_journey_ledger_onboarding_runs` (readiness ledger + `resolve_onboarding_readiness`)
 - `20261026130000_pagbank_rpc_service_role_only` (PagBank RPCs → service_role only)
-- `20261026130100_rpc_grants_remove_anon_excess` (3 RPCs → remove anon)
-- `20261026140000_provision_corporate_tenant_safe` (**`provision_corporate_tenant`** — the authorized path; required by `210000` C3/C5)
+- `20261026130100_rpc_grants_remove_anon_excess` (3 RPCs → remove anon, incl. legacy create_or_update_corporate_tenant anon)
+- `20261026140000_provision_corporate_tenant_safe` (**`provision_corporate_tenant`** — the authorized path)
 - `20261026150000_onboarding_actor_subject_delegation` (actor/subject, delegation)
 - `20261026160000_helper_rpc_anon_revocation` (11 helper/mutating functions → remove anon)
-- `20261026210000_legacy_corporate_tenant_restrict` (**legacy `create_or_update_corporate_tenant` → revoke PUBLIC/anon/authenticated/service_role**; re-assert `provision_corporate_tenant` authenticated-only)
 
 **Per-migration conferral (read-only, after each single migration):** the version appears in the ledger in the correct position; the migration's specific effect took place; no error, no unexpected grant, no missing dependency. Stop on any deviation (see §4 above).
 
 **Stage-1 post-apply verification (Coordinator runs, READ-ONLY, before proposing Stage 2):**
 
-- Ledger: exactly the 7 new versions present, in chronological order, none missing, none extra.
+- Ledger: exactly the 6 new versions present, in chronological order, none missing, none extra; the last-applied is `20261026160000`.
 - For each of the 14 baseline-exposed functions, assert `anon_exec=false` (and `authenticated` retained ONLY where the browser is the legitimate consumer: `save_onboarding_progress`, `create_workspace`, `mark_notification_read`, `switch_active_context`; `provision_corporate_tenant`).
-- **C1–C5 against the live remote:** legacy `create_or_update_corporate_tenant` → `anon_exec=false`, `auth_exec=false`, `service_role_exec=false`, no PUBLIC EXECUTE (empty-grantee aclitem absent); `provision_corporate_tenant` → `authenticated=true`, `anon=false`, no PUBLIC.
 - PagBank RPCs `claim_pagbank_order`/`attach_psp_idempotency`: `authenticated=false, anon=false, service_role=true`.
+- Safe provisioning: `provision_corporate_tenant` present with `authenticated=true, anon=false`; a fresh provision succeeds; a non-admin identifier conflict → 42501 (no promotion, no ownership transfer, org data unchanged).
 - Readiness foundation: `onboarding_runs`/`onboarding_step_states`/`onboarding_delegations` exist with RLS enabled; `resolve_onboarding_readiness` present.
-- Takeover negative test (live): an authenticated non-admin invoking the legacy RPC → 42501; org A's data/legal-rep/memberships/context unchanged afterward.
-- Functional spot-check (authenticated session): TenantContext `switch_active_context`, notifications read, a fresh `provision_corporate_tenant` call, and the takeover guard (non-admin identifier conflict → 42501) all behave as expected.
+- Note: the legacy `create_or_update_corporate_tenant` is still `authenticated`-executable after Stage 1 (only its anon/PUBLIC grant was removed by `130100`). **Its full restriction (C1–C5) lands in Stage 2 via `210000`** — flagged here so Stage 1 is not misread as closing the authenticated-takeover path.
 
-### Stage 2 — readiness decisions + hardening (depends on Stage 1)
+### Stage 2 — readiness decisions + hardening + legacy-RPC restriction (5 migrations, depends on Stage 1)
 
-Apply in order: `170000` → `180000` → `190000` → `200000`.
+Apply in order: `170000` → `180000` → `190000` → `200000` → `210000`.
 
 - `20261026170000_readiness_blocked_decision` (blocked + `onboarding.tenant` seed)
 - `20261026180000_red_team_p1_fixes` (subject_step_keys, guards)
 - `20261026190000_readiness_org_scoping` (org-scoped readiness)
 - `20261026200000_p2_time_state_integrity` (completed_at, sweep, clock_timestamp)
+- `20261026210000_legacy_corporate_tenant_restrict` (**legacy `create_or_update_corporate_tenant` → revoke PUBLIC/anon/authenticated/service_role**; re-assert `provision_corporate_tenant` authenticated-only)
 
-**Post-apply verification:** `resolve_onboarding_readiness` is the org-scoped merged body (org filter + determinism + clock_timestamp); `onboarding.tenant` v1.0.0 seeded `published` with `scope='organizational'` (per Gate-1 decision); `subject_step_keys` column present; cross-org readiness probe (completed org-A run, evaluate in org-B context) → NOT allow; ledger updated in order; full decision matrix (allow/require_steps/blocked/unavailable) per context.
+**Post-apply verification (READ-ONLY):**
+
+- `resolve_onboarding_readiness` is the org-scoped merged body (org filter + determinism + clock_timestamp); `onboarding.tenant` v1.0.0 seeded `published` with `scope='organizational'` (per Gate-1 decision); `subject_step_keys` column present; cross-org readiness probe (completed org-A run, evaluate in org-B context) → NOT allow; full decision matrix (allow/require_steps/blocked/unavailable) per context.
+- **C1–C5 against the live remote:** legacy `create_or_update_corporate_tenant` → `anon_exec=false`, `auth_exec=false`, `service_role_exec=false`, no PUBLIC EXECUTE (empty-grantee aclitem absent); `provision_corporate_tenant` → `authenticated=true`, `anon=false`, no PUBLIC.
+- Takeover negative test (live): an authenticated non-admin invoking the legacy RPC → 42501; org A's data/legal-rep/memberships/context unchanged afterward.
+- Ledger: exactly the 5 new versions present, in chronological order; the last-applied is `20261026210000`; the full 11-migration sequence is now contiguous with no gap.
+
+**Stage-2 readiness semantics gate (owner condition):** before accepting the delegated-completion contract (`can_complete_step`, `subject_step_keys`, org-scoped readiness), the **actor/subject semantics** that govern who may complete a step and who a decision certifies are documented in `docs/adr-tenancy-and-journey-persistence.md` §2.7–§2.13 (self_service vs delegated modes, `completed_by`/`completion_type` server-derivation, the org-scope contract, and the P2 hardening decisions). Stage 2's verification confirms the _deployed_ behavior matches that documented semantics — server-authoritative decision, valid published definition, fail-closed on any failure. The delegation _policy content_ (which steps are delegable per wizard, ADR P2) and the sensitive-declaration set (ADR P3) remain owner decisions, flagged in Gate 3 — they do not block Stage 2's deployment of the mechanism, but they gate declaring any specific delegated wizard "complete".
 
 ---
 
