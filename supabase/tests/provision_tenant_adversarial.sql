@@ -80,6 +80,51 @@ BEGIN
   v_assert := v_assert + 1;
   RAISE NOTICE 'OK %: T1 A org data intact after denied takeover', v_assert;
 
+  -- T1d. Directive §7.2 path 4: A's LEGAL REPRESENTATIVE was NOT replaced by B.
+  -- organizations.legal_representative_id must still be A, never B. Read with
+  -- privilege (defense in depth against RLS filtering the leaked state).
+  RESET ROLE;
+  PERFORM 1 FROM public.organizations
+    WHERE id = v_a_org AND legal_representative_id = v_a;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'ASSERTION FAILED (T1d): A legal_representative_id was replaced (must stay A)';
+  END IF;
+  PERFORM 1 FROM public.organizations
+    WHERE id = v_a_org AND legal_representative_id = v_b;
+  IF FOUND THEN
+    RAISE EXCEPTION 'ASSERTION FAILED (T1d): legal_representative_id was replaced with the ATTACKER B';
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: T1d A legal representative intact (not replaced by B)', v_assert;
+  -- T1e. Directive §7.2 path 6: B's ACTIVE CONTEXT was NOT bound to A's org by
+  -- the denied takeover attempt.
+  PERFORM 1 FROM public.persons
+    WHERE id = v_b AND (
+      active_organization_id = v_a_org
+      OR active_workspace_id IN (SELECT id FROM public.workspaces WHERE organization_id = v_a_org)
+      OR active_project_id IN (SELECT id FROM public.projects WHERE organization_id = v_a_org)
+      OR works_for_id = v_a_org
+    );
+  IF FOUND THEN
+    RAISE EXCEPTION 'ASSERTION FAILED (T1e): B active context was bound to A org by the denied takeover';
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: T1e B active context NOT bound to A org (persons untouched)', v_assert;
+  -- T1f. No partial org/workspace was created for B by the denied takeover:
+  -- exactly ONE org with A's identifier exists, and B owns NO org.
+  SELECT count(*) INTO v_count FROM public.organizations WHERE identifier = 'acme-corp';
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'ASSERTION FAILED (T1f): expected exactly 1 org for acme-corp, found %', v_count;
+  END IF;
+  PERFORM 1 FROM public.organizations o
+    JOIN public.organization_members om ON om.organization_id = o.id AND om.member_id = v_b;
+  IF FOUND THEN
+    RAISE EXCEPTION 'ASSERTION FAILED (T1f): a partial org was created for B by the denied takeover';
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: T1f no partial org/workspace created for B (exactly one org for the identifier)', v_assert;
+  SET ROLE authenticated;
+
   -- =========================================================================
   -- TEST 2: B attempts takeover with a DIFFERENT name but SAME identifier.
   -- Proves the identifier (not the name) is the attack vector being guarded.
@@ -293,6 +338,12 @@ BEGIN
   SELECT public.provision_corporate_tenant('Acme Corp','acme-corp','Acme Legal','TAX-A','BR','MICRO',NULL,NULL,NULL,'{}','en','Core','Main') INTO v_result;
   IF (v_result->>'already_existed')::boolean IS NOT TRUE OR (v_result->>'provisioned')::boolean IS NOT FALSE THEN
     RAISE EXCEPTION 'ASSERTION FAILED (T7a): second call not a read-back: %', v_result;
+  END IF;
+  -- Replay identity: the replayed request returns the SAME org/workspace/project
+  -- ids as the original provision (a true read-back, not a shadow duplicate).
+  IF (v_result->>'organization_id')::uuid IS DISTINCT FROM v_a_org THEN
+    RAISE EXCEPTION 'ASSERTION FAILED (T7a): replay returned a DIFFERENT organization_id (% vs %)',
+      v_result->>'organization_id', v_a_org;
   END IF;
   SELECT count(*) INTO v_count FROM public.organizations WHERE identifier = 'acme-corp';
   IF v_count <> 1 THEN

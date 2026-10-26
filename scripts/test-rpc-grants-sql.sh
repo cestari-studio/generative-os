@@ -16,8 +16,8 @@ MIGRATION="supabase/migrations/20261026130100_rpc_grants_remove_anon_excess.sql"
 
 echo ">> Recreating disposable database ${PGDATABASE} on ${PGHOST}:${PGPORT}"
 psql -d postgres -q -c "DROP DATABASE IF EXISTS ${PGDATABASE};" -c "CREATE DATABASE ${PGDATABASE};"
-echo ">> Applying prerequisites (stub RPCs + pre-fix anon grants)"
-psql -d "${PGDATABASE}" -q -v ON_ERROR_STOP=1 -f supabase/tests/_prereq_rpc_grants.sql
+echo ">> Applying prerequisites (stub RPCs + pre-fix anon grants, permissive surface the positive assertions assume)"
+psql -d "${PGDATABASE}" -q -v ON_ERROR_STOP=1 -v alter_policies=true -f supabase/tests/_prereq_rpc_grants.sql
 echo ">> Applying grant migration under test"
 psql -d "${PGDATABASE}" -q -v ON_ERROR_STOP=1 -f "${MIGRATION}"
 echo ">> Running 3 anon-RPC grant assertions"

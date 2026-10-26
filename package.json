@@ -55,6 +55,8 @@
     "test:readiness-org-scoping-sql": "./scripts/test-readiness-org-scoping-sql.sh",
     "test:p2-time-state-sql": "./scripts/test-p2-time-state-sql.sh",
     "test:legacy-corporate-restrict-sql": "./scripts/test-legacy-corporate-restrict-sql.sh",
+    "test:provision-concurrency-race-sql": "./scripts/test-provision-concurrency-race-sql.sh",
+    "test:legacy-corporate-takeover-proof-sql": "./scripts/test-legacy-corporate-takeover-proof-sql.sh",
     "check:rpc-grant-exposure": "node scripts/check-rpc-grant-exposure.mjs",
     "check:carbon-patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",

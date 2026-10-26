@@ -24,8 +24,12 @@ RESTRICT_MIGRATION="supabase/migrations/20261026210000_legacy_corporate_tenant_r
 echo ">> Recreating disposable database ${PGDATABASE} on ${PGHOST}:${PGPORT}"
 psql -d postgres -q -c "DROP DATABASE IF EXISTS ${PGDATABASE};" -c "CREATE DATABASE ${PGDATABASE};"
 
-echo ">> Applying rpc-grants prerequisites (stub RPCs + live pre-fix grants)"
-psql -d "${PGDATABASE}" -q -v ON_ERROR_STOP=1 -f supabase/tests/_prereq_rpc_grants.sql
+echo ">> Applying rpc-grants prerequisites (behavioral legacy stub + live pre-fix grants, hardened policy surface)"
+psql -d "${PGDATABASE}" -q -v ON_ERROR_STOP=1 -v alter_policies=false \
+  -f supabase/tests/_prereq_rpc_grants.sql
+
+echo ">> Applying the takeover-safe provision RPC (20261026140000 — C5 runs the REAL body)"
+psql -d "${PGDATABASE}" -q -v ON_ERROR_STOP=1 -f supabase/migrations/20261026140000_provision_corporate_tenant_safe.sql
 
 echo ">> Applying 130100 anon-revocation (Stage-1 baseline state)"
 psql -d "${PGDATABASE}" -q -v ON_ERROR_STOP=1 -f "${ANON_MIGRATION}"

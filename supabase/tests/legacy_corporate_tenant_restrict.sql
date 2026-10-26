@@ -57,6 +57,11 @@ BEGIN
   RAISE NOTICE 'C3 PASS: provision_corporate_tenant executable by authenticated only (not anon/PUBLIC)';
 END $$;
 
+-- C4/C5 use a dedicated caller identity; the REAL provision RPC writes a
+-- persons/organization_members row, so the identity must exist (FK).
+INSERT INTO auth.users (id) VALUES ('11111111-1111-1111-1111-111111111111') ON CONFLICT DO NOTHING;
+INSERT INTO public.persons (id) VALUES ('11111111-1111-1111-1111-111111111111') ON CONFLICT DO NOTHING;
+
 -- C4 — behavioral denial: an authenticated caller invoking the legacy RPC gets a
 -- permission error (the grant layer closes the takeover vector before any body
 -- runs; the stub body would otherwise return a fake organization_id).
