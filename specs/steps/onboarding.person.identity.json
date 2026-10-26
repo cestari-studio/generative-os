@@ -1,0 +1,20 @@
+{
+  "spec_key": "step.onboarding.person.identity",
+  "spec_version": "1.0.0",
+  "step_key": "onboarding.person.identity",
+  "title": "Identity & Fiscal Registration",
+  "surface_ref": "surface.onboarding.person",
+  "fields": ["field.person.full-name", "field.person.tax-id", "field.person.birth-date"],
+  "persist": {
+    "operation_ref": "operation.onboarding.save-progress",
+    "entity": "persons",
+    "payload_allowlist": ["person.full_name"],
+    "redact": ["person.tax_id", "person.birth_date"],
+    "ttl_seconds": 2592000
+  },
+  "completion": {
+    "predicate_ref": "policy.onboarding.readiness",
+    "server_authoritative": true
+  },
+  "transitions": [{ "to": "onboarding.person.address", "when": "step_completed" }]
+}

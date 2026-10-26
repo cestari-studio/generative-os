@@ -1,0 +1,28 @@
+{
+  "spec_key": "journey.onboarding.person",
+  "spec_version": "1.0.0",
+  "journey_key": "onboarding.person",
+  "title": "Individual (PF) Onboarding",
+  "audience": ["person_pf"],
+  "steps": [
+    {
+      "step_key": "onboarding.person.identity",
+      "ref": "step.onboarding.person.identity",
+      "required_for_dashboard": true
+    },
+    {
+      "step_key": "onboarding.person.address",
+      "ref": "step.onboarding.person.address",
+      "required_for_dashboard": true
+    },
+    {
+      "step_key": "onboarding.person.workspace-security",
+      "ref": "step.onboarding.person.workspace-security",
+      "required_for_dashboard": false
+    }
+  ],
+  "readiness": {
+    "decision_values": ["allow", "require_steps", "blocked", "unavailable"],
+    "required_steps": ["onboarding.person.identity", "onboarding.person.address"]
+  }
+}

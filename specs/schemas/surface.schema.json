@@ -1,0 +1,21 @@
+{
+  "$id": "https://genos.cestari.studio/specs/surface.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_key", "spec_version", "surface_key", "route_ref", "template_ref", "states"],
+  "properties": {
+    "spec_key": { "type": "string", "pattern": "^surface\\.[a-z0-9_.-]+$" },
+    "spec_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "spec_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "surface_key": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+    "route_ref": { "type": "string", "description": "physical route from ROUTE_ALLOWLIST only" },
+    "template_ref": { "type": "string", "description": "component registry template key" },
+    "allowed_components": { "type": "array", "items": { "type": "string" } },
+    "operation_ref": { "type": "string", "pattern": "^operation\\.[a-z0-9_.-]+$" },
+    "states": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["ready", "loading", "empty", "forbidden", "unavailable", "failed", "partial"] }
+    }
+  }
+}

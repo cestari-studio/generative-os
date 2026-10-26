@@ -1,0 +1,18 @@
+{
+  "spec_key": "field.person.tax-id",
+  "spec_version": "1.0.0",
+  "field_key": "person.tax_id",
+  "data": { "entity": "persons", "path": "tax_id", "type": "string", "binding": "verified_binding_required" },
+  "ui": { "component": "TextInput", "label_key": "onboarding.taxId.label", "help_key": "onboarding.taxId.help" },
+  "rules": { "required_when": "jurisdiction_requires", "validation": "country_tax_id_contract" },
+  "privacy": {
+    "classification": "restricted",
+    "purpose": "fiscal_identity_verification",
+    "minimization": "only the jurisdiction-required tax identifier is collected; never a secondary document unless legally required",
+    "persistence": {
+      "entity": "person_fiscal",
+      "retention": "retain while membership is active; purge on account deletion"
+    }
+  },
+  "tests": ["renders_label", "validates_country_format", "rejects_unauthorized_read"]
+}

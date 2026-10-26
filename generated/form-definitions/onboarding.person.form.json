@@ -1,0 +1,46 @@
+{
+  "generated_by": "spec-generate@1.0.0",
+  "forms": [
+    {
+      "step_key": "onboarding.person.address",
+      "title": "Official Address",
+      "surface_ref": "surface.onboarding.person",
+      "fields": [
+        {
+          "field_key": "field.person.full-name",
+          "unresolved": true
+        }
+      ]
+    },
+    {
+      "step_key": "onboarding.person.identity",
+      "title": "Identity & Fiscal Registration",
+      "surface_ref": "surface.onboarding.person",
+      "fields": [
+        {
+          "field_key": "field.person.full-name",
+          "unresolved": true
+        },
+        {
+          "field_key": "field.person.tax-id",
+          "unresolved": true
+        },
+        {
+          "field_key": "field.person.birth-date",
+          "unresolved": true
+        }
+      ]
+    },
+    {
+      "step_key": "onboarding.person.workspace-security",
+      "title": "Workspace & Security",
+      "surface_ref": "surface.onboarding.person",
+      "fields": [
+        {
+          "field_key": "field.person.full-name",
+          "unresolved": true
+        }
+      ]
+    }
+  ]
+}

@@ -257,13 +257,42 @@ surface, evidence, envelope). Draft-07, `additionalProperties:false`, every obje
       "required": ["classification", "purpose"],
       "properties": {
         "classification": { "enum": ["public", "internal", "confidential", "restricted"] },
-        "purpose": { "type": "string" }
+        "purpose": { "type": "string", "minLength": 1 },
+        "minimization": { "type": "string", "description": "why only the minimum necessary data is collected" },
+        "persistence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entity", "retention"],
+          "properties": {
+            "entity": { "type": "string", "description": "canonical entity key (never a generic/free payload)" },
+            "retention": { "type": "string", "description": "retention/TTL policy" }
+          }
+        }
       }
     },
     "tests": { "type": "array", "items": { "type": "string" } }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "privacy": { "properties": { "classification": { "enum": ["confidential", "restricted"] } } } },
+        "required": ["privacy"]
+      },
+      "then": {
+        "properties": {
+          "privacy": { "required": ["minimization", "persistence"] }
+        }
+      }
+    }
+  ]
 }
 ```
+
+**V9 conditional validation (AJV 6.15.0-compatible):** the `allOf/if/then` construct above is
+draft-07 and supported by `ajv@6.15.0`. When `privacy.classification ∈ {confidential,restricted}`,
+`minimization` and `persistence` become required — schema-level, not just a V9 rule note. A restricted
+field missing either fails schema validation (V1 `BLOCKED`) before V9 even runs; V9 then separately
+verifies the field is not referenced by any `step.persist.payload_allowlist` or generic payload.
 
 ### 2.4 `operation.schema.json`
 
@@ -369,20 +398,20 @@ granted by the spec validator.
 `spec-validate.mjs` emits structured output per finding: `{spec_key, rule, verdict, evidence, fix}`.
 Exit codes: `0` = all `VALID`; `2` = ≥1 `NEEDS_REVIEW` (no `BLOCKED`); `1` = ≥1 `BLOCKED`.
 
-| #   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                              | Verdict on violation                                          | Why                           |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------- |
-| V1  | Every spec validates against its JSON Schema (`ajv@6.15.0`).                                                                                                                                                                                                                                                                                                                                                                      | `BLOCKED`                                                     | Well-formedness.              |
-| V2  | Every `*_ref` resolves to an existing spec (`step`, `field`, `operation`, `policy`, `surface`, `template`, `route`, `predicate`).                                                                                                                                                                                                                                                                                                 | `BLOCKED`                                                     | No dangling references.       |
-| V3a | `operation.endpoint.target` **exists** in the live baseline (RPC in `pg_proc`, edge fn in `ENDPOINT_ALLOWLIST`, projection table in `pg_tables`) OR is explicitly `client_auth`/`client_session`.                                                                                                                                                                                                                                 | `BLOCKED`                                                     | No invented endpoints.        |
-| V3b | For each existing endpoint, check **privilege + auth context** (`EXECUTE` grants, `anon` exposure, DEFINER/INVOKER, expected auth). A target that exists but is **over-exposed** for the declared `operation.auth` (e.g. `save_onboarding_progress` `EXECUTE` to `anon`, or an unproven external API) is **not** auto-approved by a body-level `auth.uid()` check.                                                                | `NEEDS_REVIEW` (or `BLOCKED` if the security policy marks it) | Existence ≠ authorization.    |
-| V3c | Every privileged/mutating operation has a **negative authorization test** declared in `tests[]` (e.g. cross-tenant / anon denial).                                                                                                                                                                                                                                                                                                | `NEEDS_REVIEW`                                                | No unverified privileged ops. |
-| V4  | `field.data.path` resolves against the live schema (introspected columns) **and** the resolved table's RLS/grants permit the declared access; otherwise `verified_binding_required`.                                                                                                                                                                                                                                              | `NEEDS_REVIEW`                                                | No invented bindings.         |
-| V5  | `policy.roles_ref[]` ⊆ the real role registry (`organization_members.role_name` values + platform roles).                                                                                                                                                                                                                                                                                                                         | `BLOCKED`                                                     | No invented roles.            |
-| V6  | `surface.route_ref` ⊆ physical ROUTE_ALLOWLIST; `surface.template_ref` + `allowed_components[]` ⊆ COMPONENT_REGISTRY.                                                                                                                                                                                                                                                                                                             | `BLOCKED`                                                     | No new routes/components.     |
-| V7  | Every `operation` has ≥1 `tests[]`; every journey step has a `completion.predicate_ref`.                                                                                                                                                                                                                                                                                                                                          | `NEEDS_REVIEW`                                                | No untested operations.       |
-| V8  | **Availability honesty (maturity axis, not validity).** A spec may _author_ `NORMATIVE_ONLY`. A spec may **not** assert `CONFIGURED                                                                                                                                                                                                                                                                                               | WIRED                                                         | INTEGRATION_VERIFIED          | E2E_VERIFIED`for a binding/surface while its evidence axis is empty (DB row count 0 / no tested binding). Asserting availability without evidence =`BLOCKED`; merely being unimplemented = the spec stays `VALID`+`NORMATIVE_ONLY`. | `BLOCKED` only on false availability claim | No availability-without-binding, but normative authorship allowed. |
-| V9  | **Privacy (classification + purpose + minimization + persistence policy).** Every field with `privacy.classification ∈ {confidential,restricted}` must declare `purpose`, a `minimization` note, and a `persistence` policy (canonical entity + retention/TTL). Such fields are **never** allowed in a generic/free payload. Binding to a canonical entity does **not** waive authorization, minimization, or retention controls. | `BLOCKED`                                                     | PII minimization (FS/PII).    |
-| V10 | Hash integrity: recomputed `spec_hash` == stored (per §3.3); duplicate `spec_key` across files.                                                                                                                                                                                                                                                                                                                                   | `BLOCKED`                                                     | Integrity + uniqueness.       |
+| #   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Verdict on violation                                          | Why                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------- |
+| V1  | Every spec validates against its JSON Schema (`ajv@6.15.0`).                                                                                                                                                                                                                                                                                                                                                                                            | `BLOCKED`                                                     | Well-formedness.              |
+| V2  | Every `*_ref` resolves to an existing spec (`step`, `field`, `operation`, `policy`, `surface`, `template`, `route`, `predicate`).                                                                                                                                                                                                                                                                                                                       | `BLOCKED`                                                     | No dangling references.       |
+| V3a | `operation.endpoint.target` **exists** in the live baseline (RPC in `pg_proc`, edge fn in `ENDPOINT_ALLOWLIST`, projection table in `pg_tables`) OR is explicitly `client_auth`/`client_session`.                                                                                                                                                                                                                                                       | `BLOCKED`                                                     | No invented endpoints.        |
+| V3b | For each existing endpoint, check **privilege + auth context** (`EXECUTE` grants, `anon` exposure, DEFINER/INVOKER, expected auth). A target that exists but is **over-exposed** for the declared `operation.auth` (e.g. `save_onboarding_progress` `EXECUTE` to `anon`, or an unproven external API) is **not** auto-approved by a body-level `auth.uid()` check.                                                                                      | `NEEDS_REVIEW` (or `BLOCKED` if the security policy marks it) | Existence ≠ authorization.    |
+| V3c | Every privileged/mutating operation has a **negative authorization test** declared in `tests[]` (e.g. cross-tenant / anon denial).                                                                                                                                                                                                                                                                                                                      | `NEEDS_REVIEW`                                                | No unverified privileged ops. |
+| V4  | `field.data.path` resolves against the live schema (introspected columns) **and** the resolved table's RLS/grants permit the declared access; otherwise `verified_binding_required`.                                                                                                                                                                                                                                                                    | `NEEDS_REVIEW`                                                | No invented bindings.         |
+| V5  | `policy.roles_ref[]` ⊆ the real role registry (`organization_members.role_name` values + platform roles).                                                                                                                                                                                                                                                                                                                                               | `BLOCKED`                                                     | No invented roles.            |
+| V6  | `surface.route_ref` ⊆ physical ROUTE_ALLOWLIST; `surface.template_ref` + `allowed_components[]` ⊆ COMPONENT_REGISTRY.                                                                                                                                                                                                                                                                                                                                   | `BLOCKED`                                                     | No new routes/components.     |
+| V7  | **Test declaration ≠ test execution.** Every `operation` must declare ≥1 resolvable test in `tests[]` (a test file/case id that resolves in the repo, or an explicitly `planned:`-prefixed id). A **required** test id that does not resolve is a finding. A test that exists but **has not been executed** is a **maturity/evidence** gap (§3.4), **not** a validity finding — it never blocks spec validity, only maturity above `MAPPED_UNVERIFIED`. | `NEEDS_REVIEW`                                                | No untested operations.       |
+| V8  | **Availability honesty (maturity axis, not validity).** A spec may _author_ `NORMATIVE_ONLY`. A spec may **not** assert `CONFIGURED                                                                                                                                                                                                                                                                                                                     | WIRED                                                         | INTEGRATION_VERIFIED          | E2E_VERIFIED`for a binding/surface while its evidence axis is empty (DB row count 0 / no tested binding). Asserting availability without evidence =`BLOCKED`; merely being unimplemented = the spec stays `VALID`+`NORMATIVE_ONLY`. | `BLOCKED` only on false availability claim | No availability-without-binding, but normative authorship allowed. |
+| V9  | **Privacy (classification + purpose + minimization + persistence policy).** Every field with `privacy.classification ∈ {confidential,restricted}` must declare `purpose`, a `minimization` note, and a `persistence` policy (canonical entity + retention/TTL). Such fields are **never** allowed in a generic/free payload. Binding to a canonical entity does **not** waive authorization, minimization, or retention controls.                       | `BLOCKED`                                                     | PII minimization (FS/PII).    |
+| V10 | Hash integrity: recomputed `spec_hash` == stored (per §3.3); duplicate `spec_key` across files.                                                                                                                                                                                                                                                                                                                                                         | `BLOCKED`                                                     | Integrity + uniqueness.       |
 
 Cross-checks reuse (not duplicate) the existing gates: `check:matrices`, `check:carbon-patterns`,
 `registry:check`. V6 shells out to `registry:check` for allowlist drift.
@@ -447,13 +476,24 @@ no unexpected `BLOCKED`); (b) findings are structured with `spec_key`/`rule`/`ev
 DB, or the PR; (e) `TenantContext.jsx` uncommitted change and the passkey plan doc are **untouched**;
 (f) evidence entry written.
 
-### 4.1 CI integration (no rule duplication)
+### 4.1 CI integration (no rule duplication) — explicit exit-code policy
 
 `spec-validate.mjs` runs as a **new step in the existing `quality` job**, placed **before** the
 build/test steps so an invalid spec blocks code early. It reuses — never re-implements — the existing
 gates (`check:matrices`, `check:carbon-patterns`, `registry:check`); V6 shells out to `registry:check`.
 Output is structured (JSON lines `{spec_key, rule, verdict, evidence, fix}`) with deterministic exit
 codes (`0`/`2`/`1` per §3.2), so the job can surface findings without guessing.
+
+**Exit-code policy by context (no masking of blocks):**
+
+| Context                                                | `0` (all VALID) | `2` (≥1 NEEDS_REVIEW)                                                                                                                                           | `1` (≥1 BLOCKED) |
+| ------------------------------------------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **PoC / planning mode** (this phase, `SPEC_MODE=plan`) | pass            | **pass + report** (PoC explicitly expects known Fase-0 gaps)                                                                                                    | **fail**         |
+| **CI gate** (`SPEC_MODE=gate`, the quality job)        | pass            | **fail** unless the finding's `spec_key`+`rule` is on the reviewed, versioned **allowlist** (`specs/needs-review-allowlist.json` with owner sign-off per entry) | **fail**         |
+
+The gate must **never** convert a `BLOCKED` into a pass, and a `2` only passes when every finding is
+individually allowlisted with an owner decision recorded. The allowlist is itself a versioned spec
+(audited by the same hash chain), so a rubber-stamp allowlist is a reviewable diff, not a silent bypass.
 
 ---
 
@@ -479,14 +519,23 @@ are incorporated into this document:
 | **Refinement 1 — PoC scope:** declarative generation only (types, traceability, envelope, test list); `form-definition` is declarative JSON, **no React**, **no** app-behavior change.                                                                                                                                                              | §4.                                                                                                                       |
 | **Refinement 2 — CI integration:** reuse existing gates without duplicating rules; structured output `{spec_key, rule, verdict, evidence, fix}` + deterministic exit codes `0`/`2`/`1`.                                                                                                                                                             | §3.2, §4.1.                                                                                                               |
 
-## 7. Remaining deliverables before implementation
+## 7. Final review (2026-10-25) — approved for local implementation with 3 P0 adjustments
 
-1. ~~ADR~~ — **approved with adjustments** (incorporated above).
-2. The 8 schemas (§2) — fields/hashes updated per adjustment 4; final field-set sign-off.
-3. The G1 rules V1–V10 (§3.2) — as revised (V3a/b/c, V8, V9).
-4. The `onboarding.person` PoC plan (§4) — declarative-only, per refinement 1.
+Items 2–4 **approved** with three final mandatory adjustments (all incorporated):
 
-**On formal sign-off of §7 items 2–4,** implementation begins with §1.5 layout + `spec-validate.mjs`
-(G1) + the PoC — still with **no** remote mutation and **no** app-behavior change. The validator is
-**not** implemented yet; the application and remote DB are unchanged; uncommitted passkey changes
-(`TenantContext.jsx`) and the passkey plan doc are preserved.
+| #        | Adjustment                                                                                                                                                                                                                                                                             | Where applied                         |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| **P0-1** | **V7 — test declaration ≠ test execution.** An operation with **no declared** tests (or an unresolvable required test id) is a finding; a test that exists but is unexecuted is a **maturity/evidence** gap (§3.4), never a validity block.                                            | §3.2 V7 rewritten.                    |
+| **P0-2** | **Exit-code policy explicit by context.** `2` passes only in PoC/plan mode (`SPEC_MODE=plan`); the CI gate (`SPEC_MODE=gate`) fails `2` unless each finding is on the reviewed, versioned `specs/needs-review-allowlist.json`. `1` always fails.                                       | §4.1 exit-code policy table.          |
+| **P0-3** | **V9 enforced at the schema.** `purpose`/`minimization`/`persistence` required for `confidential`/`restricted` via draft-07 `allOf/if/then` (verified working under `ajv@6.15.0`: positive/negative/control all correct); restricted fields also excluded from generic payloads by V9. | §2.3 field schema + conditional note. |
+
+**Implementation conditions (from the reviewer):**
+
+1. The 8 schemas must compile and validate positive + negative examples (missing refs, bad hashes, disallowed properties).
+2. G1 V1–V10 must have fixtures covering each rule and each verdict (`VALID`, `NEEDS_REVIEW`, `BLOCKED`).
+3. The `onboarding.person` PoC must produce reproducible declarative artifacts and record real gaps without declaring non-existent integration.
+4. Baseline confirmed (target SHA + local change state) before starting; `TenantContext.jsx` and the passkey doc preserved.
+5. Local-only changes: specs, scripts, generated artifacts, and the tests needed for Fase −1. **No** app-behavior change, remote DB, deploy, or PR #7 change.
+
+**Scope of this approval:** local Fase −1 implementation only. It does **not** authorize migrations,
+DB publish, merge, push, or deploy.

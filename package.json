@@ -47,7 +47,11 @@
     "carbon:patterns": "node scripts/carbon-pattern-conformance.mjs",
     "carbon:patterns:regen": "node scripts/regen-carbon-patterns.mjs",
     "registry:sync": "node scripts/generate-registry-allowlist-sql.mjs",
-    "registry:check": "node scripts/generate-registry-allowlist-sql.mjs --check"
+    "registry:check": "node scripts/generate-registry-allowlist-sql.mjs --check",
+    "spec:validate": "node scripts/spec-validate.mjs",
+    "spec:generate": "node scripts/spec-generate.mjs",
+    "spec:check": "node scripts/spec-generate.mjs --check",
+    "spec:evidence": "node scripts/evidence-record.mjs"
   },
   "dependencies": {
     "@carbon-labs/react-theme-settings": "^0.30.0",

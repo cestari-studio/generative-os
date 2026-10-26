@@ -1,0 +1,44 @@
+{
+  "$id": "https://genos.cestari.studio/specs/journey.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_key", "spec_version", "journey_key", "title", "steps", "readiness"],
+  "properties": {
+    "spec_key": { "type": "string", "pattern": "^journey\\.[a-z0-9_.-]+$" },
+    "spec_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "spec_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "journey_key": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "audience": {
+      "type": "array",
+      "items": { "enum": ["person_pf", "person_pj", "member", "tenant_admin", "agency_admin", "master"] }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step_key", "ref"],
+        "properties": {
+          "step_key": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+          "ref": { "type": "string", "pattern": "^step\\.[a-z0-9_.-]+$" },
+          "required_for_dashboard": { "type": "boolean", "default": false },
+          "include_when": { "type": "string", "description": "predicate ref (policy.*) gating conditional steps" }
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_values"],
+      "properties": {
+        "decision_values": {
+          "type": "array",
+          "items": { "enum": ["allow", "require_steps", "blocked", "unavailable"] }
+        },
+        "required_steps": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

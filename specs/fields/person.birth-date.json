@@ -1,0 +1,19 @@
+{
+  "spec_key": "field.person.birth-date",
+  "spec_version": "1.0.0",
+  "field_key": "person.birth_date",
+  "data": { "entity": "persons", "path": "birth_date", "type": "date" },
+  "ui": {
+    "component": "DatePicker",
+    "label_key": "onboarding.birthDate.label",
+    "help_key": "onboarding.birthDate.help"
+  },
+  "rules": { "required_when": "jurisdiction_requires" },
+  "privacy": {
+    "classification": "confidential",
+    "purpose": "legal_age_and_identity",
+    "minimization": "collected only where jurisdiction or legal verification requires it",
+    "persistence": { "entity": "persons", "retention": "retain while membership is active; purge on account deletion" }
+  },
+  "tests": ["renders_label", "validates_date_format"]
+}

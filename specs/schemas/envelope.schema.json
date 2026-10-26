@@ -1,0 +1,48 @@
+{
+  "$id": "https://genos.cestari.studio/specs/envelope.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "target",
+    "specs",
+    "mode",
+    "allowed",
+    "forbidden",
+    "required_evidence",
+    "acceptance_criteria",
+    "stop_conditions"
+  ],
+  "properties": {
+    "task_id": { "type": "string" },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "branch", "baseline_sha"],
+      "properties": {
+        "repository": { "type": "string" },
+        "branch": { "type": "string" },
+        "baseline_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "specs": { "type": "array", "items": { "type": "string" } },
+    "mode": { "const": "local_changes_only" },
+    "allowed": { "type": "array", "items": { "type": "string" } },
+    "forbidden": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "mutate_remote_database",
+          "change_remote_auth_or_rls",
+          "push_or_merge",
+          "deploy_or_promote",
+          "modify_protected_identity_record"
+        ]
+      },
+      "minItems": 5
+    },
+    "required_evidence": { "type": "array", "items": { "type": "string" } },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+    "stop_conditions": { "type": "array", "items": { "type": "string" } }
+  }
+}

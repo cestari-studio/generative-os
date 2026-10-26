@@ -1,0 +1,19 @@
+{
+  "spec_key": "step.onboarding.person.workspace-security",
+  "spec_version": "1.0.0",
+  "step_key": "onboarding.person.workspace-security",
+  "title": "Workspace & Security",
+  "surface_ref": "surface.onboarding.person",
+  "fields": ["field.person.full-name"],
+  "persist": {
+    "operation_ref": "operation.onboarding.save-progress",
+    "entity": "persons",
+    "payload_allowlist": ["person.full_name"],
+    "ttl_seconds": 2592000
+  },
+  "completion": {
+    "predicate_ref": "policy.onboarding.readiness",
+    "server_authoritative": true
+  },
+  "transitions": []
+}

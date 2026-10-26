@@ -1,0 +1,38 @@
+{
+  "$id": "https://genos.cestari.studio/specs/operation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_key", "spec_version", "operation_key", "endpoint", "auth", "idempotency", "errors", "tests"],
+  "properties": {
+    "spec_key": { "type": "string", "pattern": "^operation\\.[a-z0-9_.-]+$" },
+    "spec_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "spec_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "operation_key": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "target"],
+      "properties": {
+        "kind": { "enum": ["rpc", "edge_function", "public_projection", "client_auth"] },
+        "target": { "type": "string" }
+      }
+    },
+    "auth": { "type": "string", "description": "e.g. authenticated+membership, jwt_gateway, client_session" },
+    "tenant_context": { "type": "string" },
+    "idempotency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy"],
+      "properties": {
+        "strategy": { "enum": ["none", "key", "claim", "quote", "natural"] },
+        "key_field": { "type": "string" }
+      }
+    },
+    "errors": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "failure_map: error class -> carbon state (ready|empty|forbidden|unavailable|failed|partial)"
+    },
+    "tests": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+  }
+}

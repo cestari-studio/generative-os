@@ -1,0 +1,44 @@
+{
+  "$id": "https://genos.cestari.studio/specs/evidence.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "spec_key",
+    "spec_version",
+    "generator_version",
+    "commit_sha",
+    "evidence_class",
+    "verdicts",
+    "maturity",
+    "blockers",
+    "recorded_at"
+  ],
+  "properties": {
+    "spec_key": { "type": "string", "pattern": "^[a-z]+\\.[a-z0-9_.-]+$" },
+    "spec_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "spec_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "generator_version": { "type": "string" },
+    "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "evidence_class": { "enum": ["validation.local", "validation.ci", "integration", "e2e", "approval.human"] },
+    "verdicts": { "type": "object" },
+    "maturity": {
+      "enum": ["NORMATIVE_ONLY", "MAPPED_UNVERIFIED", "CONFIGURED", "WIRED", "INTEGRATION_VERIFIED", "E2E_VERIFIED"]
+    },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "recorded_at": { "type": "string" },
+    "workflow_run_id": { "type": "string" },
+    "deployment_id": { "type": "string" },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approver", "decision", "at"],
+      "properties": {
+        "approver": { "type": "string" },
+        "decision": { "type": "string" },
+        "at": { "type": "string" }
+      }
+    },
+    "test_results": { "type": "object" },
+    "migration_set": { "type": "array", "items": { "type": "string" } }
+  }
+}

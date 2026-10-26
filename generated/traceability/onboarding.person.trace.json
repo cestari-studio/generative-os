@@ -1,0 +1,29 @@
+{
+  "generated_by": "spec-generate@1.0.0",
+  "rows": [
+    {
+      "journey_key": "onboarding.person",
+      "step_key": "onboarding.person.identity",
+      "required_for_dashboard": true,
+      "operation_ref": "operation.onboarding.save-progress",
+      "completion_predicate": "policy.onboarding.readiness",
+      "surface_ref": "surface.onboarding.person"
+    },
+    {
+      "journey_key": "onboarding.person",
+      "step_key": "onboarding.person.address",
+      "required_for_dashboard": true,
+      "operation_ref": "operation.onboarding.save-progress",
+      "completion_predicate": "policy.onboarding.readiness",
+      "surface_ref": "surface.onboarding.person"
+    },
+    {
+      "journey_key": "onboarding.person",
+      "step_key": "onboarding.person.workspace-security",
+      "required_for_dashboard": false,
+      "operation_ref": "operation.onboarding.save-progress",
+      "completion_predicate": "policy.onboarding.readiness",
+      "surface_ref": "surface.onboarding.person"
+    }
+  ]
+}

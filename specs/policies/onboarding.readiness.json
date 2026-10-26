@@ -1,0 +1,8 @@
+{
+  "spec_key": "policy.onboarding.readiness",
+  "spec_version": "1.0.0",
+  "policy_key": "onboarding.readiness",
+  "effect": "require_step",
+  "predicate": "actor.has_session AND person.has_valid_membership AND NOT person.onboarding_completed",
+  "roles_ref": ["org_member"]
+}

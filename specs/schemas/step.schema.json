@@ -1,0 +1,48 @@
+{
+  "$id": "https://genos.cestari.studio/specs/step.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_key", "spec_version", "step_key", "title", "fields", "completion"],
+  "properties": {
+    "spec_key": { "type": "string", "pattern": "^step\\.[a-z0-9_.-]+$" },
+    "spec_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "spec_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "step_key": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "surface_ref": { "type": "string", "pattern": "^surface\\.[a-z0-9_.-]+$" },
+    "fields": { "type": "array", "items": { "type": "string", "pattern": "^field\\.[a-z0-9_.-]+$" } },
+    "persist": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation_ref": { "type": "string", "pattern": "^operation\\.[a-z0-9_.-]+$" },
+        "entity": { "type": "string", "description": "canonical entity/table key" },
+        "payload_allowlist": { "type": "array", "items": { "type": "string" } },
+        "redact": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "PII keys never stored in the generic payload"
+        },
+        "ttl_seconds": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["predicate_ref"],
+      "properties": {
+        "predicate_ref": { "type": "string", "pattern": "^policy\\.[a-z0-9_.-]+$" },
+        "server_authoritative": { "type": "boolean", "const": true }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["to"],
+        "properties": { "to": { "type": "string" }, "when": { "type": "string" } }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$id": "https://genos.cestari.studio/specs/policy.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_key", "spec_version", "policy_key", "effect", "predicate"],
+  "properties": {
+    "spec_key": { "type": "string", "pattern": "^policy\\.[a-z0-9_.-]+$" },
+    "spec_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "spec_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "policy_key": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+    "effect": { "enum": ["allow", "deny", "require_step", "step_up"] },
+    "predicate": {
+      "type": "string",
+      "description": "declarative predicate over actor/context/entitlement — resolved server-side, never browser-trusted"
+    },
+    "roles_ref": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "real registry roles only (org_owner/org_admin/org_member/workspace_admin/project_owner/...)"
+    }
+  }
+}
