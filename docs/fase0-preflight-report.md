@@ -175,7 +175,6 @@ Onboarding progress lives in `persons.additional_property.onboarding` (generic J
 | Gap / risk                                                                      | Confidence | Evidence                     | Decision needed                                                                   |
 | ------------------------------------------------------------------------------- | ---------- | ---------------------------- | --------------------------------------------------------------------------------- |
 | PR #7 lacks human review; Vercel bot `COMMENTED` only                           | **High**   | `gh pr view 7`               | Human review required before merge.                                               |
-| `browser-smoke` pending on `a919bc0` at capture                                 | Medium     | `gh pr checks 7`             | Confirm green before any merge ask.                                               |
 | `anon EXECUTE` on 3 INVOKER RPCs                                                | **High**   | RPC grant query              | Review per-function; tightening = additive migration (owner).                     |
 | No `tenant_kind`/`authority_level` columns                                      | **High**   | `organizations` column query | ADR §4 + additive migration.                                                      |
 | No journey run/step ledger                                                      | **High**   | workflow-table query (none)  | ADR §4 + additive migration.                                                      |
