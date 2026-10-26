@@ -325,6 +325,14 @@ jobs:
           PGPASSWORD: postgres
         run: npm run test:pagbank-grants-sql
 
+      - name: Run RPC grants (no-anon) SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:rpc-grants-sql
+
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest
