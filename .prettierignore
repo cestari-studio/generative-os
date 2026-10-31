@@ -2,3 +2,4 @@ node_modules/
 dist/
 cspell.json
 docs/ui-rebuild/axe
+generated/

@@ -1,0 +1,17 @@
+{
+  "spec_key": "operation.onboarding.save-progress",
+  "spec_version": "1.0.0",
+  "operation_key": "onboarding.save-progress",
+  "endpoint": { "kind": "rpc", "target": "save_onboarding_progress" },
+  "auth": "authenticated",
+  "tenant_context": "person",
+  "idempotency": { "strategy": "key", "key_field": "run_id" },
+  "errors": {
+    "401": "forbidden",
+    "403": "forbidden",
+    "5xx": "unavailable",
+    "timeout": "unavailable",
+    "rls_denied": "forbidden"
+  },
+  "tests": ["OnboardingFullPage.test.jsx::persists step progress", "planned:save_onboarding_progress.anon-denial"]
+}

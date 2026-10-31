@@ -1,0 +1,78 @@
+{
+  "$id": "https://genos.cestari.studio/specs/field.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec_key", "spec_version", "field_key", "data", "ui", "rules", "privacy"],
+  "properties": {
+    "spec_key": { "type": "string", "pattern": "^field\\.[a-z0-9_.-]+$" },
+    "spec_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "spec_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "field_key": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity", "type"],
+      "properties": {
+        "entity": { "type": "string" },
+        "path": { "type": "string", "description": "column or canonical data path" },
+        "type": { "enum": ["string", "text", "boolean", "integer", "date", "enum", "jsonb"] },
+        "binding": { "type": "string", "description": "verified_binding_required until resolved against live schema" }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component", "label_key"],
+      "properties": {
+        "component": {
+          "enum": ["TextInput", "PasswordInput", "Select", "Checkbox", "ContentSwitcher", "DatePicker", "TextArea"]
+        },
+        "label_key": { "type": "string" },
+        "help_key": { "type": "string" }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required_when": { "type": "string" },
+        "visible_when": { "type": "string" },
+        "read_only_when": { "type": "string" },
+        "validation": { "type": "string" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "purpose"],
+      "properties": {
+        "classification": { "enum": ["public", "internal", "confidential", "restricted"] },
+        "purpose": { "type": "string", "minLength": 1 },
+        "minimization": { "type": "string", "description": "why only the minimum necessary data is collected" },
+        "persistence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entity", "retention"],
+          "properties": {
+            "entity": { "type": "string", "description": "canonical entity key (never a generic/free payload)" },
+            "retention": { "type": "string", "description": "retention/TTL policy" }
+          }
+        }
+      }
+    },
+    "tests": { "type": "array", "items": { "type": "string" } }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "privacy": { "properties": { "classification": { "enum": ["confidential", "restricted"] } } } },
+        "required": ["privacy"]
+      },
+      "then": {
+        "properties": {
+          "privacy": { "required": ["minimization", "persistence"] }
+        }
+      }
+    }
+  ]
+}

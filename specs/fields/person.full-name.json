@@ -1,0 +1,10 @@
+{
+  "spec_key": "field.person.full-name",
+  "spec_version": "1.0.0",
+  "field_key": "person.full_name",
+  "data": { "entity": "persons", "path": "name", "type": "string" },
+  "ui": { "component": "TextInput", "label_key": "onboarding.fullName.label", "help_key": "onboarding.fullName.help" },
+  "rules": { "required_when": "always" },
+  "privacy": { "classification": "internal", "purpose": "person_legal_identity" },
+  "tests": ["renders_label", "validates_required"]
+}

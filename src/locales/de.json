@@ -312,6 +312,7 @@
       "colId": "Personen-ID",
       "roleOwner": "Inhaber / Administrator",
       "roleMember": "Arbeitsbereichsmitglied",
+      "notReported": "Nicht gemeldet",
       "unnamed": "Anonyme Person",
       "inviteUnavailableTitle": "Mitgliedereinladung noch nicht verfügbar — der Einladungsablauf ist für diese Organisation nicht bereitgestellt.",
       "inviteUnavailableNote": "Die Mitgliedereinladung ist für diese Organisation noch nicht bereitgestellt. Verwalten Sie Mitglieder direkt im Organisationsregister."
@@ -521,6 +522,7 @@
     "kpiPending": "Ausstehende Rechnungen",
     "kpiSellers": "Verbundene Verkäufer (Split)",
     "kpiTotal": "Gesamtes Transaktionsvolumen",
+    "loadErrorTitle": "Zahlungsdaten konnten nicht geladen werden",
     "methodBoleto": "Boleto Bancário",
     "methodCard": "Kreditkarte",
     "methodLegend": "Zahlungsart",

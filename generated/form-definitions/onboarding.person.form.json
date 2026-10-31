@@ -1,0 +1,66 @@
+{
+  "generated_by": "spec-generate@1.0.0",
+  "forms": [
+    {
+      "step_key": "onboarding.person.address",
+      "title": "Official Address",
+      "surface_ref": "surface.onboarding.person",
+      "fields": [
+        {
+          "ref": "field.person.full-name",
+          "field_key": "person.full_name",
+          "component": "TextInput",
+          "label_key": "onboarding.fullName.label",
+          "required": "always",
+          "classification": "internal"
+        }
+      ]
+    },
+    {
+      "step_key": "onboarding.person.identity",
+      "title": "Identity & Fiscal Registration",
+      "surface_ref": "surface.onboarding.person",
+      "fields": [
+        {
+          "ref": "field.person.full-name",
+          "field_key": "person.full_name",
+          "component": "TextInput",
+          "label_key": "onboarding.fullName.label",
+          "required": "always",
+          "classification": "internal"
+        },
+        {
+          "ref": "field.person.tax-id",
+          "field_key": "person.tax_id",
+          "component": "TextInput",
+          "label_key": "onboarding.taxId.label",
+          "required": "jurisdiction_requires",
+          "classification": "restricted"
+        },
+        {
+          "ref": "field.person.birth-date",
+          "field_key": "person.birth_date",
+          "component": "DatePicker",
+          "label_key": "onboarding.birthDate.label",
+          "required": "jurisdiction_requires",
+          "classification": "confidential"
+        }
+      ]
+    },
+    {
+      "step_key": "onboarding.person.workspace-security",
+      "title": "Workspace & Security",
+      "surface_ref": "surface.onboarding.person",
+      "fields": [
+        {
+          "ref": "field.person.full-name",
+          "field_key": "person.full_name",
+          "component": "TextInput",
+          "label_key": "onboarding.fullName.label",
+          "required": "always",
+          "classification": "internal"
+        }
+      ]
+    }
+  ]
+}

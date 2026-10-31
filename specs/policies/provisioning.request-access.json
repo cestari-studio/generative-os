@@ -1,0 +1,8 @@
+{
+  "spec_key": "policy.provisioning.request-access",
+  "spec_version": "1.0.0",
+  "policy_key": "provisioning.request-access",
+  "effect": "allow",
+  "predicate": "actor.has_session AND NOT actor.has_membership(target_tenant) AND NOT actor.has_pending_request(target_tenant)",
+  "roles_ref": ["org_member"]
+}

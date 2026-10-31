@@ -1,0 +1,7 @@
+# Local execution state — never versioned (decision C, condition 5)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.ledger/
+__pycache__/

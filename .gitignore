@@ -38,3 +38,6 @@ docs/ui-rebuild/benchmark/
 
 # Owner's external privacy-policy drafts (not product content) — keep untracked
 PRIVACY_POLICY*
+
+# Scratch outputs
+tmp_*

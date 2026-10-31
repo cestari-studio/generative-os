@@ -1,0 +1,22 @@
+# GENERATED validation test list (declarative; not executed UI)
+- [ ] onboarding.resolve-readiness: supabase/tests/readiness_org_scoping.sql::core-p1-orgA-run-never-allows-orgB
+- [ ] onboarding.resolve-readiness: supabase/tests/readiness_org_scoping.sql::delegated-run-orgA-never-allows-orgB
+- [ ] onboarding.resolve-readiness: supabase/tests/readiness_org_scoping.sql::personal-scope-evaluates-globally
+- [ ] onboarding.resolve-readiness: supabase/tests/readiness_org_scoping.sql::org-context-missing-unavailable
+- [ ] onboarding.resolve-readiness: supabase/tests/readiness_org_scoping.sql::org-membership-required-blocked
+- [ ] onboarding.resolve-readiness: supabase/tests/readiness_org_scoping.sql::ambiguous-runs-unavailable
+- [ ] onboarding.resolve-readiness: supabase/tests/readiness_org_scoping.sql::null-target-never-wildcard
+- [ ] onboarding.resolve-readiness: planned:resolve_onboarding_readiness.anon-denial
+- [ ] onboarding.save-progress: OnboardingFullPage.test.jsx::persists step progress
+- [ ] onboarding.save-progress: planned:save_onboarding_progress.anon-denial
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.anon-denial
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.takeover-denial-cross-tenant
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.conflict-no-promotion
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.fresh-create-grants-owner
+- [ ] provisioning.create-tenant: planned:provision_corporate_tenant.idempotent-read-back
+- [ ] policy onboarding.readiness: positive + negative authorization
+- [ ] policy provisioning.create-agency: positive + negative authorization
+- [ ] policy provisioning.create-tenant: positive + negative authorization
+- [ ] policy provisioning.invite: positive + negative authorization
+- [ ] policy provisioning.join: positive + negative authorization
+- [ ] policy provisioning.request-access: positive + negative authorization

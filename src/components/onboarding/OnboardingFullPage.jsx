@@ -163,6 +163,8 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
     applySettingCascade,
     saveOnboardingProgress,
     loadOnboardingProgress,
+    recordTenantOnboardingStep,
+    completeTenantOnboardingRun,
     createOrUpdateCorporateTenant,
     registerPasskey,
   } = useTenant();
@@ -341,6 +343,7 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
         : { corporate_name: legalName, trade_name: tradeName, tax_id: pjTaxId, registration_number: pjSecId };
 
     await persistStep(2, stepData);
+    await recordTenantOnboardingStep('identity');
   };
 
   const handleStep3Next = async () => {
@@ -451,6 +454,10 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
           projectId: targetPrjId,
         });
       }
+
+      await recordTenantOnboardingStep('organization');
+      await recordTenantOnboardingStep('workspace');
+      await completeTenantOnboardingRun();
 
       if (user && preferredLanguage) {
         applySettingCascade({
@@ -731,7 +738,6 @@ export const OnboardingFullPage = ({ className, standalone = false }) => {
             <TextInput
               id="pj-rep-name"
               labelText={t('signInModal.repName', 'Legal Representative Full Name')}
-              placeholder="Jane Doe"
               value={repName}
               onChange={(e) => setRepName(e.target.value)}
             />

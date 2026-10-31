@@ -313,6 +313,7 @@
       "colId": "ID da Pessoa",
       "roleOwner": "Proprietário / Administrador",
       "roleMember": "Membro do Workspace",
+      "notReported": "Não informado",
       "unnamed": "Pessoa Anônima",
       "inviteUnavailableTitle": "Convite de membros ainda não disponível — o fluxo de convite não está provisionado para esta organização.",
       "inviteUnavailableNote": "O convite de membros ainda não está provisionado para esta organização. Gerencie membros diretamente no quadro da organização."
@@ -559,6 +560,7 @@
     "kpiPending": "Cobranças Pendentes",
     "kpiSellers": "Vendedores Conectados (Split)",
     "kpiTotal": "Volume Total Transacionado",
+    "loadErrorTitle": "Não foi possível carregar os dados de pagamentos",
     "methodBoleto": "Boleto Bancário",
     "methodCard": "Cartão de Crédito",
     "methodLegend": "Método de Pagamento",

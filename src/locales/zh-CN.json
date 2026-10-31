@@ -312,6 +312,7 @@
       "colId": "用户 ID",
       "roleOwner": "租户所有者 / 管理员",
       "roleMember": "工作区成员",
+      "notReported": "未报告",
       "unnamed": "匿名用户",
       "inviteUnavailableTitle": "成员邀请尚不可用 — 该组织尚未配置邀请流程。",
       "inviteUnavailableNote": "该组织尚未配置成员邀请。请直接在组织名册中管理成员。"
@@ -538,6 +539,7 @@
     "kpiPending": "待处理账单",
     "kpiSellers": "已关联商户 (分账)",
     "kpiTotal": "总交易流水",
+    "loadErrorTitle": "无法加载支付数据",
     "methodBoleto": "Boleto Bancário (巴西银行汇款单)",
     "methodCard": "信用卡",
     "methodLegend": "付款途径",

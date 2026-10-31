@@ -1,0 +1,14 @@
+{
+  "$schema": "./rpc-grant-allowlist.schema.json",
+  "comment": "Justified exceptions to the anon/PUBLIC EXECUTE guard (scripts/check-rpc-grant-exposure.mjs). Each entry is a public SQL function INTENTIONALLY executable by anon or PUBLIC without an explicit per-migration revocation, with the reason. Reviewed and versioned — adding a function here is a deliberate security decision, not a convenience.",
+  "version": 1,
+  "functions": ["match_knowledge_chunks"],
+  "notes": [
+    "save_onboarding_progress, create_or_update_corporate_tenant, resolve_effective_settings are NOT allowlisted — they were over-exposed by pg_default_acl + PG PUBLIC default and are corrected by 20261026130100_rpc_grants_remove_anon_excess.sql (anon/PUBLIC revoked).",
+    "claim_pagbank_order, attach_psp_idempotency are service_role-only by 20261026130000_pagbank_rpc_service_role_only.sql.",
+    "create_organization_hierarchy, provision_corporate_tenant are authenticated-only by their migrations (revoked from PUBLIC/anon).",
+    "resolve_onboarding_readiness is authenticated-only by 20261026120000_journey_ledger_onboarding_runs.sql.",
+    "The 13 SECURITY DEFINER billing functions (apply_setting_cascade, attach_psp_idempotency, claim_pagbank_order, consume_quote, create_organization_hierarchy, create_pagbank_order, get_tenant_payment_kpis, has_platform_role, issue_manual_quote, issue_quote, record_media_object, record_usage_event, release_consumed_quote) have anon/PUBLIC revoked by earlier hardening migrations (verified live by Worker D).",
+    "app_private.* functions are NOT in the public schema and are out of scope for this anon/PUBLIC guard (they have their own app_private revocation discipline)."
+  ]
+}

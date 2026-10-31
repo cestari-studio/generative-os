@@ -1,0 +1,56 @@
+{
+  "task_id": "GENOS-FASE1-POC",
+  "target": {
+    "repository": "cestari-studio/generative-os",
+    "branch": "feat/complete-carbon-page-rebuild",
+    "baseline_sha": "0000000000000000000000000000000000000000"
+  },
+  "specs": [
+    "field.person.birth-date",
+    "field.person.full-name",
+    "field.person.tax-id",
+    "journey.onboarding.person",
+    "operation.onboarding.resolve-readiness",
+    "operation.onboarding.save-progress",
+    "operation.provisioning.create-tenant",
+    "policy.onboarding.readiness",
+    "policy.provisioning.create-agency",
+    "policy.provisioning.create-tenant",
+    "policy.provisioning.invite",
+    "policy.provisioning.join",
+    "policy.provisioning.request-access",
+    "step.onboarding.person.address",
+    "step.onboarding.person.identity",
+    "step.onboarding.person.workspace-security",
+    "surface.onboarding.person"
+  ],
+  "mode": "local_changes_only",
+  "allowed": [
+    "inspect_source",
+    "edit_code",
+    "generate_artifacts",
+    "run_local_tests",
+    "propose_migrations"
+  ],
+  "forbidden": [
+    "mutate_remote_database",
+    "change_remote_auth_or_rls",
+    "push_or_merge",
+    "deploy_or_promote",
+    "modify_protected_identity_record"
+  ],
+  "required_evidence": [
+    "source_references",
+    "generated_diff",
+    "test_results",
+    "unresolved_gaps"
+  ],
+  "acceptance_criteria": [
+    "G1 exit 0/2 with only allowlisted NEEDS_REVIEW",
+    "generated/ reproducible via --check"
+  ],
+  "stop_conditions": [
+    "any BLOCKED finding",
+    "unexpected remote mutation requirement"
+  ]
+}

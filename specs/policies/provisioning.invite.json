@@ -1,0 +1,8 @@
+{
+  "spec_key": "policy.provisioning.invite",
+  "spec_version": "1.0.0",
+  "policy_key": "provisioning.invite",
+  "effect": "allow",
+  "predicate": "actor.has_session AND actor.has_membership(target_tenant) AND (actor.has_role('org_owner', target_tenant) OR actor.has_role('org_admin', target_tenant)) AND invited_role_is_not_above(actor.authority_level) AND invited_role IN ('org_member', 'workspace_admin', 'workspace_member', 'project_owner', 'project_editor', 'project_member')",
+  "roles_ref": ["org_owner", "org_admin"]
+}

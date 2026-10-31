@@ -87,6 +87,12 @@ jobs:
       - name: Carbon component-pattern conformance gate
         run: npm run check:carbon-patterns
 
+      - name: Spec Control Plane — deterministic generation gate
+        run: npm run spec:check
+
+      - name: RPC grant exposure guard (no anon/PUBLIC EXECUTE outside allowlist)
+        run: npm run check:rpc-grant-exposure
+
       - name: Build client and SSR bundles
         run: npm run build
 
@@ -217,7 +223,7 @@ jobs:
           }
 
           check_route "/" "Cestari Studio"
-          check_route "/dashboard" "Effective Cascade Governance"
+          check_route "/dashboard" "Tenant Dashboard"
           check_route "/settings" "Multi-Tenant Cascade Settings"
           check_route "/knowledge" "Knowledge Base"
 
@@ -305,6 +311,118 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
         run: npm run test:org-hierarchy-sql
+
+      - name: Run journey-ledger SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:journey-ledger-sql
+
+      - name: Run pagbank service_role-only grant SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:pagbank-grants-sql
+
+      - name: Run RPC grants (no-anon) SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:rpc-grants-sql
+
+      - name: Run safe-provisioning (takeover-safe) SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:provision-tenant-sql
+
+      - name: Run onboarding-delegation (actor/subject) SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:onboarding-delegation-sql
+
+      - name: Run provisioning adversarial SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:provision-adversarial-sql
+
+      - name: Run readiness blocked-decision SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:readiness-blocked-sql
+
+      - name: Run readiness two-session concurrency race
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:readiness-concurrency-race
+
+      - name: Run red-team P1-fix SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:red-team-p1-sql
+
+      - name: Run readiness org-scoping SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:readiness-org-scoping-sql
+
+      - name: Run P2 time/state-integrity SQL tests (authenticated role, RLS enforced)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:p2-time-state-sql
+
+      - name: Run legacy corporate-tenant restrict SQL tests (Stage-1 scope correction)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:legacy-corporate-restrict-sql
+
+      - name: Run provisioning concurrency-race SQL tests (two real sessions)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:provision-concurrency-race-sql
+
+      - name: Run legacy corporate-tenant takeover BEFORE+AFTER SQL tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: npm run test:legacy-corporate-takeover-proof-sql
 
   browser-smoke:
     name: browser-smoke

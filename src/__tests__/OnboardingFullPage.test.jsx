@@ -18,6 +18,7 @@ describe('OnboardingFullPage (Carbon Multistep Fullscreen Onboarding)', () => {
   const mockCloseFlow = vi.fn();
   const mockSwitchContext = vi.fn();
   const mockSaveOnboarding = vi.fn().mockResolvedValue({});
+  const mockRecordTenantStep = vi.fn().mockResolvedValue({ runId: 'run-1' });
   const mockCreateCorporate = vi.fn().mockResolvedValue({});
   const mockRegisterPasskey = vi.fn().mockResolvedValue({});
 
@@ -25,6 +26,7 @@ describe('OnboardingFullPage (Carbon Multistep Fullscreen Onboarding)', () => {
     mockCloseFlow.mockReset();
     mockSwitchContext.mockReset();
     mockSaveOnboarding.mockReset();
+    mockRecordTenantStep.mockReset();
     mockCreateCorporate.mockReset();
     mockRegisterPasskey.mockReset();
   });
@@ -104,6 +106,34 @@ describe('OnboardingFullPage (Carbon Multistep Fullscreen Onboarding)', () => {
     });
   });
 
+  test('records the identity ledger step only after legacy identity persistence succeeds', async () => {
+    const user = userEvent.setup();
+    const contextValue = {
+      ...DEFAULT_CONTEXT_VALUE,
+      user: { id: 'user-1' },
+      isOnboardingOpen: true,
+      saveOnboardingProgress: mockSaveOnboarding,
+      recordTenantOnboardingStep: mockRecordTenantStep,
+    };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={contextValue}>
+          <OnboardingFullPage />
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(mockSaveOnboarding).toHaveBeenCalledTimes(1));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+
+    await waitFor(() => expect(mockRecordTenantStep).toHaveBeenCalledWith('identity'));
+    expect(mockRecordTenantStep.mock.invocationCallOrder[0]).toBeGreaterThan(
+      mockSaveOnboarding.mock.invocationCallOrder[1],
+    );
+  });
+
   test('switches to PJ and displays corporate fields including company size and representative', async () => {
     const user = userEvent.setup();
     const contextValue = {
@@ -136,6 +166,7 @@ describe('OnboardingFullPage (Carbon Multistep Fullscreen Onboarding)', () => {
       expect(screen.getByLabelText('Legal Business Name')).toBeInTheDocument();
       expect(screen.getByLabelText('Brand / Trade Name')).toBeInTheDocument();
       expect(screen.getByLabelText('CNPJ (Cadastro Nacional da Pessoa Jurídica)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Legal Representative Full Name')).not.toHaveAttribute('placeholder');
     });
   });
 

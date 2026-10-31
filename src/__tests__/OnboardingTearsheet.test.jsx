@@ -63,6 +63,8 @@ describe('OnboardingTearsheet (Carbon preview__Tearsheet Architecture)', () => {
     expect(screen.getByText('Configure Tenant DNA & Identity')).toBeInTheDocument();
     expect(screen.getByLabelText(/Organization Name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Legal Registered Name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Organization Name/i)).not.toHaveAttribute('placeholder');
+    expect(screen.getByLabelText(/Legal Registered Name/i)).not.toHaveAttribute('placeholder');
   });
 
   test('navigates through steps using Back and Next buttons', async () => {
@@ -102,6 +104,86 @@ describe('OnboardingTearsheet (Carbon preview__Tearsheet Architecture)', () => {
     await waitFor(() => {
       expect(screen.getByText('Configure Tenant DNA & Identity')).toBeInTheDocument();
     });
+  });
+
+  test('FS2: does NOT provision at step 0; provisions only at step-3 confirm', async () => {
+    const contextValue = {
+      ...DEFAULT_CONTEXT_VALUE,
+      isOnboardingOpen: true,
+      onboardingInitialStep: 0,
+      closeOnboardingFlow: mockCloseFlow,
+      saveOnboardingProgress: mockSaveOnboarding,
+      createOrUpdateCorporateTenant: mockCreateCorporate,
+      refreshTenantData: vi.fn().mockResolvedValue({}),
+    };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={contextValue}>
+          <OnboardingTearsheet />
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText(/Organization Name/i), { target: { value: 'Acme Cloud' } });
+
+    // Step 0 -> 1: must NOT provision
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(screen.getByText('Provision Workspaces & Projects')).toBeInTheDocument());
+    expect(mockCreateCorporate).not.toHaveBeenCalled();
+
+    // Step 1 -> 2 -> 3
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(screen.getByText('Index Vector Knowledge & Documents')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(screen.getByText('Activate Subscription & FinOps')).toBeInTheDocument());
+    expect(mockCreateCorporate).not.toHaveBeenCalled();
+
+    // Step 3 "Finish" -> provisions exactly once
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+    await waitFor(() => expect(mockCreateCorporate).toHaveBeenCalledTimes(1));
+    expect(mockCreateCorporate).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Acme Cloud', identifier: 'acme-cloud' }),
+    );
+  });
+
+  test('FS2: takeover-denial (42501) at confirm surfaces an honest identifier-taken message', async () => {
+    mockCreateCorporate.mockRejectedValueOnce(
+      Object.assign(new Error('provision_corporate_tenant: identifier conflict'), { code: '42501' }),
+    );
+    const contextValue = {
+      ...DEFAULT_CONTEXT_VALUE,
+      isOnboardingOpen: true,
+      onboardingInitialStep: 0,
+      closeOnboardingFlow: mockCloseFlow,
+      saveOnboardingProgress: mockSaveOnboarding,
+      createOrUpdateCorporateTenant: mockCreateCorporate,
+      refreshTenantData: vi.fn().mockResolvedValue({}),
+    };
+
+    renderWithoutProviders(
+      <MemoryRouter>
+        <TenantContext.Provider value={contextValue}>
+          <OnboardingTearsheet />
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText(/Organization Name/i), { target: { value: 'Acme Cloud' } });
+    // Navigate to the final confirm step (step 3)
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(screen.getByText('Provision Workspaces & Projects')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(screen.getByText('Index Vector Knowledge & Documents')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => expect(screen.getByText('Activate Subscription & FinOps')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/This organization identifier is already in use/i)).toBeInTheDocument(),
+    );
+    // The flow stays open (no silent close on failure)
+    expect(mockCloseFlow).not.toHaveBeenCalled();
   });
 
   test('invokes closeOnboardingFlow when Cancel is clicked', () => {

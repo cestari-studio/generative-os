@@ -1,0 +1,15 @@
+{
+  "spec_key": "surface.onboarding.person",
+  "spec_version": "1.0.0",
+  "surface_key": "onboarding.person",
+  "route_ref": "/onboarding",
+  "template_ref": "carbon.wizard.progress-indicator",
+  "allowed_components": [
+    "carbon.wizard.progress-indicator",
+    "carbon.state.loading-skeleton",
+    "carbon.state.forbidden",
+    "carbon.state.unavailable"
+  ],
+  "operation_ref": "operation.onboarding.save-progress",
+  "states": ["ready", "loading", "empty", "forbidden", "unavailable"]
+}

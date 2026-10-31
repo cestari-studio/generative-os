@@ -1,0 +1,42 @@
+{
+  "blockers": [],
+  "commit_sha": "f966167a935bd93cd79e9bf910b2ccd36644b48f",
+  "evidence_class": "validation.local",
+  "generator_version": "orchestration/0.1.0",
+  "maturity": "NORMATIVE_ONLY",
+  "recorded_at": "2026-10-31T09:23:04.025Z",
+  "spec_key": "judge.switch.answerability",
+  "spec_version": "0.1.0",
+  "verdicts": {
+    "config_version": "ollama-raw/q4_k_m/num_ctx=32768/temp=0/v3",
+    "findings": [
+      {
+        "adapter": "answerability",
+        "error_class": null,
+        "eval_count": 5,
+        "fixture_id": "GENOS-ANSW-PASSKEY-POS",
+        "latency_ms": 902,
+        "score_value": "answerable",
+        "verdict": "PASS"
+      },
+      {
+        "adapter": "answerability",
+        "error_class": null,
+        "eval_count": 6,
+        "fixture_id": "GENOS-ANSW-OUTSCOPE-NEG",
+        "latency_ms": 323,
+        "score_value": "unanswerable",
+        "verdict": "FAIL"
+      }
+    ],
+    "model_id": "granite-switch:3b-preview-q4",
+    "model_revision": "301a328cc3fb-q4_k_m-from-9e52f1c054d0",
+    "run_id": "run-20261031-052950",
+    "summary": {
+      "ERROR": 0,
+      "FAIL": 1,
+      "PASS": 1,
+      "UNCERTAIN": 0
+    }
+  }
+}
