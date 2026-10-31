@@ -2,6 +2,8 @@
 
 genOS is Cestari Studio's generative operational system. This repository contains the Carbon Design System web application, Supabase-backed product services, and the local execution and evidence tooling used to build the system.
 
+The web application builds on IBM's Carbon Design System and the Carbon React Router starter. Preserve upstream notices and the Apache-2.0 terms in [`LICENSE`](LICENSE) when adapting starter-derived code.
+
 The repository is under active development. The current release candidate is PR [#7](https://github.com/cestari-studio/generative-os/pull/7), which remains a draft. See [the current handoff](docs/handoff-current-state.md) before continuing work.
 
 ## Run locally
