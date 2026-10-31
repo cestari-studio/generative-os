@@ -18,7 +18,7 @@ This is a handoff for continued implementation and review. It does not claim rel
 
 ### GitHub
 
-- PR #7 is draft and targets `main`; head SHA is `b94b9acc2b8825f48621a20ac3267ecb43829720`.
+- At the cross-service readback, PR #7 was draft and targeted `main` at `b94b9acc2b8825f48621a20ac3267ecb43829720`. This handoff adds documentation-only changes after that readback; inspect the current GitHub head before starting follow-up work.
 - The code changes were last verified at `2f07c3f59a851a5c86bedd01ff5bb026d5a3cdeb`; `b94b9ac` adds only documentation.
 - Keep the PR draft until the lower stack, current CI, human review, and route acceptance evidence are complete.
 
