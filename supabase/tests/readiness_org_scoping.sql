@@ -29,6 +29,8 @@ DO $$
 DECLARE
   v_assert int := 0;
   v_decision jsonb;
+  v_scope text;
+  v_rows bigint;
   v_run_id uuid;
   v_run_b uuid;
   v_subject uuid := '11111111-1111-1111-1111-111111111111'::uuid;  -- member of A + B
@@ -50,6 +52,34 @@ BEGIN
     (v_org_b, v_subject),
     (v_org_a, v_delegate)
   ON CONFLICT DO NOTHING;
+  SELECT scope INTO v_scope
+    FROM public.onboarding_journey_definitions
+   WHERE wizard_key = 'onboarding.tenant' AND wizard_version = '1.0.0';
+  IF v_scope IS DISTINCT FROM 'personal' THEN
+    RAISE EXCEPTION 'ASSERTION FAILED: owner-decided onboarding.tenant scope expected personal, got %', v_scope;
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: onboarding.tenant uses owner-decided personal scope', v_assert;
+
+  -- Keep the cross-organization isolation assertions on an explicitly
+  -- organizational fixture. onboarding.tenant is intentionally personal per
+  -- the owner decision and must evaluate globally for this user's setup flow.
+  INSERT INTO public.onboarding_journey_definitions (wizard_key, wizard_version, required_step_keys, status, scope)
+  VALUES (
+    'onboarding.org-scoped',
+    '1.0.0',
+    ARRAY[
+      'onboarding.tenant.identity',
+      'onboarding.tenant.organization',
+      'onboarding.tenant.workspace'
+    ],
+    'published',
+    'organizational'
+  )
+  ON CONFLICT (wizard_key, wizard_version) DO UPDATE
+    SET scope = EXCLUDED.scope,
+        required_step_keys = EXCLUDED.required_step_keys;
+
   -- personal-scope journey definition (service-managed normative config).
   INSERT INTO public.onboarding_journey_definitions (wizard_key, wizard_version, required_step_keys, status, scope)
   VALUES ('onboarding.profile', '1.0.0', ARRAY['onboarding.profile.identity'], 'published', 'personal')
@@ -67,13 +97,13 @@ BEGIN
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key)
-  VALUES ('onboarding.tenant', v_subject, v_subject, v_org_a, 'orgA-complete') RETURNING id INTO v_run_id;
+  VALUES ('onboarding.org-scoped', v_subject, v_subject, v_org_a, 'orgA-complete') RETURNING id INTO v_run_id;
   INSERT INTO public.onboarding_step_states (run_id, step_key, state, completed_at, verified_at, validation_state) VALUES
     (v_run_id, 'onboarding.tenant.identity', 'completed', now(), now(), 'verified'),
     (v_run_id, 'onboarding.tenant.organization', 'completed', now(), now(), 'verified'),
     (v_run_id, 'onboarding.tenant.workspace', 'completed', now(), now(), 'verified');
   -- Sanity: in org A context the completed active run DOES allow (positive control).
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'allow' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: org A context with completed org-A run expected allow, got %', v_decision;
   END IF;
@@ -86,7 +116,7 @@ BEGIN
   UPDATE public.persons SET active_organization_id = v_org_b WHERE id = v_subject;
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' = 'allow' THEN
     RAISE EXCEPTION 'ASSERTION FAILED (CORE P1): org B context ALLOWED because of org A run -> cross-org leak! %', v_decision;
   END IF;
@@ -105,7 +135,7 @@ BEGIN
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key)
-  VALUES ('onboarding.tenant', v_delegate, v_subject, v_org_a, 'orgA-delegated') RETURNING id INTO v_run_id;
+  VALUES ('onboarding.org-scoped', v_delegate, v_subject, v_org_a, 'orgA-delegated') RETURNING id INTO v_run_id;
   -- The SUBJECT completes their own steps in the delegated run (subject always
   -- may per can_complete_step); the delegate has no delegation grant here.
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
@@ -119,7 +149,7 @@ BEGIN
   UPDATE public.persons SET active_organization_id = v_org_b WHERE id = v_subject;
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' = 'allow' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: delegated org-A run leaked allow into org B: %', v_decision;
   END IF;
@@ -133,7 +163,7 @@ BEGIN
   UPDATE public.persons SET active_organization_id = v_org_b WHERE id = v_delegate;
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' = 'allow' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: non-member of org B was allowed: %', v_decision;
   END IF;
@@ -161,10 +191,71 @@ BEGIN
   v_assert := v_assert + 1;
   RAISE NOTICE 'OK %: scope=personal evaluates globally (no org context required) -> allow', v_assert;
 
+  -- The tenant flow's personal-scope run remains active after its required
+  -- steps are completed because this resolver offers a fresh run for terminal
+  -- rows. The authenticated subject writes only minimal self-service states;
+  -- attribution and completion timestamps must be derived by database triggers.
+  INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key)
+  VALUES ('onboarding.tenant', v_subject, v_subject, NULL, 'tenant-personal-flow') RETURNING id INTO v_run_id;
+  INSERT INTO public.onboarding_step_states (run_id, step_key, state, payload_minimized, validation_state)
+  VALUES
+    (v_run_id, 'onboarding.tenant.identity', 'completed', '{}'::jsonb, 'unverified'),
+    (v_run_id, 'onboarding.tenant.organization', 'completed', '{}'::jsonb, 'unverified'),
+    (v_run_id, 'onboarding.tenant.workspace', 'completed', '{}'::jsonb, 'unverified');
+  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  IF v_decision->>'decision' <> 'allow' OR (v_decision->>'run_id')::uuid <> v_run_id THEN
+    RAISE EXCEPTION 'ASSERTION FAILED: completed personal onboarding.tenant run expected allow, got %', v_decision;
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.onboarding_step_states
+     WHERE run_id = v_run_id
+       AND (completed_by <> v_subject OR completion_type <> 'subject' OR completed_at IS NULL OR payload_minimized <> '{}'::jsonb)
+  ) THEN
+    RAISE EXCEPTION 'ASSERTION FAILED: tenant flow completion attribution or payload minimization is incorrect';
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: personal tenant onboarding steps yield allow with server attribution and minimized payloads', v_assert;
+
+  -- Deterministic per-attempt idempotency keys serialize concurrent tabs under
+  -- the scoped unique index; the client then reads the winning active run.
+  INSERT INTO public.onboarding_runs (wizard_key, wizard_version, actor_id, subject_user_id, idempotency_key)
+  VALUES (
+    'onboarding.tenant',
+    '1.0.0',
+    v_subject,
+    v_subject,
+    'tenant-onboarding:' || v_subject::text || ':1.0.0:' || v_run_id::text
+  );
+  BEGIN
+    BEGIN
+      INSERT INTO public.onboarding_runs (wizard_key, wizard_version, actor_id, subject_user_id, idempotency_key)
+      VALUES (
+        'onboarding.tenant',
+        '1.0.0',
+        '11111111-1111-1111-1111-111111111111'::uuid,
+        '11111111-1111-1111-1111-111111111111'::uuid,
+        'tenant-onboarding:11111111-1111-1111-1111-111111111111:1.0.0:' ||
+          (SELECT id::text FROM public.onboarding_runs WHERE idempotency_key LIKE 'tenant-personal-flow%')
+      );
+    EXCEPTION WHEN unique_violation THEN
+      NULL;
+    END;
+  END;
+  SELECT count(*) INTO v_rows
+    FROM public.onboarding_runs
+   WHERE actor_id = v_subject
+     AND wizard_key = 'onboarding.tenant'
+     AND idempotency_key = 'tenant-onboarding:' || v_subject::text || ':1.0.0:' || v_run_id::text;
+  IF v_rows <> 1 THEN
+    RAISE EXCEPTION 'ASSERTION FAILED: deterministic tenant attempt key must yield exactly one run, got %', v_rows;
+  END IF;
+  v_assert := v_assert + 1;
+  RAISE NOTICE 'OK %: same subject + wizard + attempt key cannot create duplicate runs', v_assert;
+
   -- ===========================================================================
   -- 4. ORGANIZATIONAL journey with NO active org context -> unavailable, never allow.
   -- ===========================================================================
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'unavailable' OR v_decision->>'reason' <> 'org_context_missing' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: organizational journey with no org context expected unavailable/org_context_missing, got %', v_decision;
   END IF;
@@ -179,7 +270,7 @@ BEGIN
   UPDATE public.persons SET active_organization_id = v_org_a WHERE id = v_outsider;
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'blocked' OR v_decision->>'reason' <> 'org_membership_required' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: outsider with active org A expected blocked/org_membership_required, got %', v_decision;
   END IF;
@@ -201,12 +292,12 @@ BEGIN
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key, created_at)
-  VALUES ('onboarding.tenant', v_subject, v_subject, v_org_a, 'orgA-blocked', now() + interval '1 minute') RETURNING id INTO v_run_id;
+  VALUES ('onboarding.org-scoped', v_subject, v_subject, v_org_a, 'orgA-blocked', now() + interval '1 minute') RETURNING id INTO v_run_id;
   RESET ROLE;
   UPDATE public.onboarding_runs SET run_state = 'blocked' WHERE id = v_run_id;
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'blocked' OR v_decision->>'reason' <> 'run_blocked' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: org-A blocked run expected blocked/run_blocked, got %', v_decision;
   END IF;
@@ -218,7 +309,7 @@ BEGIN
   UPDATE public.onboarding_runs SET run_state = 'expired' WHERE id = v_run_id;
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'blocked' OR v_decision->>'reason' <> 'run_state_blocked' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: org-A expired run expected blocked/run_state_blocked, got %', v_decision;
   END IF;
@@ -232,7 +323,7 @@ BEGIN
   UPDATE public.onboarding_runs SET run_state = 'completed', completed_at = now() WHERE id = v_run_id;
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' NOT IN ('require_steps') THEN
     RAISE EXCEPTION 'ASSERTION FAILED: org-A completed run expected require_steps (superseded), got %', v_decision;
   END IF;
@@ -247,10 +338,10 @@ BEGIN
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key, created_at)
-  VALUES ('onboarding.tenant', v_subject, v_subject, v_org_b, 'orgB-run-1', now() - interval '2 minutes') RETURNING id INTO v_run_id;
+  VALUES ('onboarding.org-scoped', v_subject, v_subject, v_org_b, 'orgB-run-1', now() - interval '2 minutes') RETURNING id INTO v_run_id;
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key, created_at)
-  VALUES ('onboarding.tenant', v_subject, v_subject, v_org_b, 'orgB-run-2', now() - interval '1 minute') RETURNING id INTO v_run_b;
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  VALUES ('onboarding.org-scoped', v_subject, v_subject, v_org_b, 'orgB-run-2', now() - interval '1 minute') RETURNING id INTO v_run_b;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'unavailable' OR v_decision->>'reason' <> 'ambiguous_runs' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: two active runs in org B expected unavailable/ambiguous_runs, got %', v_decision;
   END IF;
@@ -266,13 +357,13 @@ BEGIN
   SET ROLE authenticated;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key)
-  VALUES ('onboarding.tenant', v_subject, v_subject, NULL, 'org-null-run') RETURNING id INTO v_run_id;
+  VALUES ('onboarding.org-scoped', v_subject, v_subject, NULL, 'org-null-run') RETURNING id INTO v_run_id;
   INSERT INTO public.onboarding_step_states (run_id, step_key, state, completed_at, verified_at, validation_state) VALUES
     (v_run_id, 'onboarding.tenant.identity', 'completed', now(), now(), 'verified'),
     (v_run_id, 'onboarding.tenant.organization', 'completed', now(), now(), 'verified'),
     (v_run_id, 'onboarding.tenant.workspace', 'completed', now(), now(), 'verified');
   -- Subject is pointed at org B (member). The NULL-org completed run must NOT match.
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' = 'allow' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: NULL target_organization_id matched org B as a wildcard: %', v_decision;
   END IF;
@@ -301,7 +392,7 @@ BEGIN
   -- transaction (now() is constant), so without it ORDER BY created_at DESC
   -- ties against the superseded orgA-delegated run and picks the wrong row.
   INSERT INTO public.onboarding_runs (wizard_key, actor_id, subject_user_id, target_organization_id, idempotency_key, created_at)
-  VALUES ('onboarding.tenant', v_delegate, v_subject, v_org_a, 'orgA-delegated-9', now() + interval '2 minutes') RETURNING id INTO v_run_id;
+  VALUES ('onboarding.org-scoped', v_delegate, v_subject, v_org_a, 'orgA-delegated-9', now() + interval '2 minutes') RETURNING id INTO v_run_id;
   SET request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
   INSERT INTO public.onboarding_step_states (run_id, step_key, state, completed_at, verified_at, validation_state) VALUES
     (v_run_id, 'onboarding.tenant.identity', 'completed', now(), now(), 'verified'),
@@ -312,7 +403,7 @@ BEGIN
   -- to A and does not extend the subject's org-B standing (which the delegate
   -- lacks — asserted in #4).
   SET request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
-  SELECT public.resolve_onboarding_readiness('onboarding.tenant', '1.0.0') INTO v_decision;
+  SELECT public.resolve_onboarding_readiness('onboarding.org-scoped', '1.0.0') INTO v_decision;
   IF v_decision->>'decision' <> 'allow' THEN
     RAISE EXCEPTION 'ASSERTION FAILED: delegate in own org-A context expected allow, got %', v_decision;
   END IF;

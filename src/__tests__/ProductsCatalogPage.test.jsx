@@ -137,6 +137,33 @@ test('shows the factual unprovisioned empty state when the catalog is not provis
   expect(screen.queryByText('Content Factory')).not.toBeInTheDocument();
 });
 
+test('shows catalog request failures with the error and a retry action', async () => {
+  const user = userEvent.setup();
+  const retry = vi.fn();
+  vi.spyOn(catalogModule, 'useNormativeCatalog').mockReturnValue({
+    status: 'error',
+    products: [],
+    subproductsByProduct: {},
+    capabilities: [],
+    platformServices: [],
+    error: 'Catalog request timed out',
+    retry,
+  });
+
+  renderWithoutProviders(
+    <MemoryRouter>
+      <TenantContext.Provider value={DEFAULT_CONTEXT_VALUE}>
+        <ProductsCatalogPage />
+      </TenantContext.Provider>
+    </MemoryRouter>,
+  );
+
+  expect(screen.getByRole('alert')).toHaveTextContent('Could not load product catalog');
+  expect(screen.getByText('Catalog request timed out')).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: 'Retry' }));
+  expect(retry).toHaveBeenCalledOnce();
+});
+
 // The Brand DNA tab must never present static demo tenants as real data.
 // No backend brand registry exists yet, so the tab shows the factual
 // unprovisioned state instead of the fictional BRAND_DNA_PROFILES list.

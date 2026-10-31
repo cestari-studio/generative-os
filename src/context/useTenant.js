@@ -63,6 +63,8 @@ export const DEFAULT_CONTEXT_VALUE = {
   refreshTenantData: async () => {},
   saveOnboardingProgress: async () => {},
   loadOnboardingProgress: async () => null,
+  recordTenantOnboardingStep: async () => {},
+  completeTenantOnboardingRun: async () => {},
   createOrUpdateCorporateTenant: async () => {},
 };
 

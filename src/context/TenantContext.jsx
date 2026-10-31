@@ -356,29 +356,31 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       const nextWsId = workspaceId !== undefined ? workspaceId : activeWsIdRef.current;
       const nextPrjId = projectId !== undefined ? projectId : activePrjIdRef.current;
       const currentUser = userRef.current;
-
-      setActiveOrganizationId(nextOrgId);
-      setActiveWorkspaceId(nextWsId);
-      setActiveProjectId(nextPrjId);
-      activeOrgIdRef.current = nextOrgId;
-      activeWsIdRef.current = nextWsId;
-      activePrjIdRef.current = nextPrjId;
-
-      if (typeof window !== 'undefined' && currentUser) {
-        try {
-          const supabase = getSupabaseBrowserClient();
-          await supabase.rpc('switch_active_context', {
-            p_organization_id: nextOrgId,
-            p_workspace_id: nextWsId,
-            p_project_id: nextPrjId,
-          });
-        } catch {
-          // Non-blocking fallback for offline/test environments
-        }
+      if (!currentUser?.id) throw new Error('Sign in before changing the active organization.');
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase.rpc('switch_active_context', {
+        p_organization_id: nextOrgId,
+        p_workspace_id: nextWsId,
+        p_project_id: nextPrjId,
+      });
+      if (error) {
+        setStatusMessage(error.message);
+        throw error;
       }
+      if (!data?.active_organization_id) throw new Error('The server did not confirm the active organization.');
+
+      const confirmedOrgId = data.active_organization_id;
+      const confirmedWsId = data.active_workspace_id ?? null;
+      const confirmedPrjId = data.active_project_id ?? null;
+      setActiveOrganizationId(confirmedOrgId);
+      setActiveWorkspaceId(confirmedWsId);
+      setActiveProjectId(confirmedPrjId);
+      activeOrgIdRef.current = confirmedOrgId;
+      activeWsIdRef.current = confirmedWsId;
+      activePrjIdRef.current = confirmedPrjId;
 
       try {
-        await loadEffectiveSettings(nextOrgId, nextWsId, nextPrjId, currentUser ? currentUser.id : null);
+        await loadEffectiveSettings(confirmedOrgId, confirmedWsId, confirmedPrjId, currentUser.id);
       } catch {
         // Fallback
       }
@@ -461,6 +463,121 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       status: onboarding.status ?? null,
       stepData: onboarding.step_data && typeof onboarding.step_data === 'object' ? onboarding.step_data : {},
     };
+  }, []);
+
+  const recordTenantOnboardingStep = useCallback(async (stepName) => {
+    const currentUser = userRef.current;
+    if (!currentUser?.id) throw new Error('Sign in before saving onboarding progress.');
+    const allowedSteps = new Set(['identity', 'organization', 'workspace']);
+    if (!allowedSteps.has(stepName)) throw new Error('Unknown tenant onboarding step.');
+
+    const supabase = getSupabaseBrowserClient();
+    const wizardKey = 'onboarding.tenant';
+    const wizardVersion = '1.0.0';
+    const stepKey = `${wizardKey}.${stepName}`;
+    const { data: activeRun, error: activeRunLookupError } = await supabase
+      .from('onboarding_runs')
+      .select('id, run_state')
+      .eq('actor_id', currentUser.id)
+      .eq('subject_user_id', currentUser.id)
+      .eq('wizard_key', wizardKey)
+      .eq('wizard_version', wizardVersion)
+      .eq('run_state', 'active')
+      .order('created_at', { ascending: false })
+      .limit(2)
+      .maybeSingle();
+    if (activeRunLookupError) throw activeRunLookupError;
+
+    let runId = activeRun?.id;
+    let runState = activeRun?.run_state;
+    if (!runId) {
+      const { data: previousRun, error: previousRunLookupError } = await supabase
+        .from('onboarding_runs')
+        .select('id, run_state')
+        .eq('actor_id', currentUser.id)
+        .eq('subject_user_id', currentUser.id)
+        .eq('wizard_key', wizardKey)
+        .eq('wizard_version', wizardVersion)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (previousRunLookupError) throw previousRunLookupError;
+      if (previousRun && previousRun.run_state !== 'completed') {
+        throw new Error(`Onboarding run is ${previousRun.run_state} and cannot accept steps.`);
+      }
+
+      // The key is stable for a given attempt. Simultaneous tabs therefore
+      // collide on the scoped unique index and resume the same run instead of
+      // creating ambiguous active runs. A completed run id starts the next key.
+      const idempotencyKey = `tenant-onboarding:${currentUser.id}:${wizardVersion}:${previousRun?.id ?? 'first'}`;
+      const { data: createdRun, error: createRunError } = await supabase
+        .from('onboarding_runs')
+        .insert({
+          wizard_key: wizardKey,
+          wizard_version: wizardVersion,
+          actor_id: currentUser.id,
+          subject_user_id: currentUser.id,
+          target_organization_id: null,
+          idempotency_key: idempotencyKey,
+        })
+        .select('id, run_state')
+        .single();
+      if (createRunError) {
+        // A concurrent tab may have created the same idempotent run.
+        const { data: retriedRun, error: retryLookupError } = await supabase
+          .from('onboarding_runs')
+          .select('id, run_state')
+          .eq('actor_id', currentUser.id)
+          .eq('subject_user_id', currentUser.id)
+          .eq('wizard_key', wizardKey)
+          .eq('wizard_version', wizardVersion)
+          .eq('idempotency_key', idempotencyKey)
+          .maybeSingle();
+        if (retryLookupError || !retriedRun) throw createRunError;
+        runId = retriedRun.id;
+        runState = retriedRun.run_state;
+      } else {
+        runId = createdRun.id;
+        runState = createdRun.run_state;
+      }
+    }
+
+    if (runState && runState !== 'active') {
+      if (runState === 'completed') return { runId, alreadyCompleted: true };
+      throw new Error(`Onboarding run is ${runState} and cannot accept steps.`);
+    }
+
+    const { error: stepError } = await supabase.from('onboarding_step_states').upsert(
+      {
+        run_id: runId,
+        step_key: stepKey,
+        state: 'completed',
+        payload_minimized: {},
+        validation_state: 'unverified',
+      },
+      { onConflict: 'run_id,step_key' },
+    );
+    if (stepError) throw stepError;
+    return { runId };
+  }, []);
+
+  const completeTenantOnboardingRun = useCallback(async () => {
+    const currentUser = userRef.current;
+    if (!currentUser?.id) throw new Error('Sign in before completing onboarding.');
+    const supabase = getSupabaseBrowserClient();
+    // Readiness is the server's completion authority. Keep the fully satisfied
+    // run active: the resolver intentionally treats a terminal run as superseded
+    // and offers a fresh journey, while an active run with every required step
+    // complete is the only state that yields `allow`.
+    const { data, error } = await supabase.rpc('resolve_onboarding_readiness', {
+      p_wizard_key: 'onboarding.tenant',
+      p_wizard_version: '1.0.0',
+    });
+    if (error) throw error;
+    if (data?.decision !== 'allow') {
+      throw new Error(`The server has not confirmed onboarding readiness (${data?.reason ?? 'unknown'}).`);
+    }
+    return data;
   }, []);
 
   const createOrUpdateCorporateTenant = useCallback(
@@ -901,6 +1018,8 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       refreshTenantData,
       saveOnboardingProgress,
       loadOnboardingProgress,
+      recordTenantOnboardingStep,
+      completeTenantOnboardingRun,
       createOrUpdateCorporateTenant,
     }),
     [
@@ -951,6 +1070,8 @@ export const TenantProvider = ({ children, initialThemeSetting, initialHeaderInv
       refreshTenantData,
       saveOnboardingProgress,
       loadOnboardingProgress,
+      recordTenantOnboardingStep,
+      completeTenantOnboardingRun,
       createOrUpdateCorporateTenant,
     ],
   );

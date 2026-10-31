@@ -7,7 +7,7 @@
 
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button, Column, Grid, InlineNotification, Layer, Loading, Stack, Tag, Tile } from '@carbon/react';
 import { ArrowLeft, Locked, Login } from '@carbon/icons-react';
@@ -37,6 +37,7 @@ NonAuthorizedState.propTypes = {
 export const ProtectedRoute = ({ children, category }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading, openSignInModal, openOnboardingFlow, activeOrganizationId } = useTenant();
 
   // Server-authoritative onboarding readiness (ADR 0001 / Fase C). The gate asks
@@ -55,7 +56,7 @@ export const ProtectedRoute = ({ children, category }) => {
       resolve();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, activeOrganizationId]);
+  }, [user, activeOrganizationId, location.key]);
 
   // Server says required steps are incomplete -> route to the onboarding flow at
   // the next required step (not the dashboard). This closes FS4's direct-route bypass.

@@ -9,12 +9,17 @@ import { test, expect, vi, describe, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useNavigate } from 'react-router';
 import { renderWithoutProviders } from '../test/test-utils';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { TenantContext, DEFAULT_CONTEXT_VALUE } from '../context/useTenant';
 import { server } from '../test/server';
 import { setupBeforeAll, setupBeforeEach, setupAfterEach, setupAfterAll } from '../test/setup';
+
+const NavigateToProducts = () => {
+  const navigate = useNavigate();
+  return <button onClick={() => navigate('/products')}>Continue after onboarding</button>;
+};
 
 // Drive the server-authoritative readiness RPC deterministically per test. Default
 // is a non-decisive envelope so the session-only gate behaves exactly as the
@@ -231,6 +236,40 @@ describe('ProtectedRoute — server-authoritative readiness gate (§11)', () => 
 
     await waitFor(() => expect(rpcMock).toHaveBeenCalled());
     await waitFor(() => expect(openOnboardingFlow).toHaveBeenCalledWith(0));
+  });
+
+  test('re-resolves server readiness after navigation so a completed onboarding can unlock the next route', async () => {
+    rpcMock
+      .mockResolvedValueOnce({
+        data: {
+          decision: 'require_steps',
+          reason: 'required_steps_incomplete',
+          next_step_key: 'onboarding.tenant.identity',
+          run_id: 'run-1',
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: { decision: 'allow', run_id: 'run-1' }, error: null });
+    const ctx = { ...DEFAULT_CONTEXT_VALUE, user: authedUser, loading: false };
+    const user = userEvent.setup();
+
+    renderWithoutProviders(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <TenantContext.Provider value={ctx}>
+          <NavigateToProducts />
+          <ProtectedRoute category="billing">
+            <div data-testid="private-after-onboarding">Private</div>
+          </ProtectedRoute>
+        </TenantContext.Provider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalledTimes(1));
+    expect(screen.queryByTestId('private-after-onboarding')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Continue after onboarding' }));
+
+    await waitFor(() => expect(rpcMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.getByTestId('private-after-onboarding')).toBeInTheDocument());
   });
 
   // §11.4 / Req #3 — a blocked decision must NOT open the onboarding flow (blocked

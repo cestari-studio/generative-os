@@ -5,8 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
+
+const initialCatalogState = () => ({
+  status: 'loading',
+  products: [],
+  subproductsByProduct: {},
+  capabilities: [],
+  platformServices: [],
+  error: null,
+});
+
+const isCatalogStoreMissing = (error) => error?.code === '42P01' || error?.code === 'PGRST205';
 
 /**
  * Reads the normative catalog (products, subproducts, capabilities, platform
@@ -18,19 +29,20 @@ import { getSupabaseBrowserClient } from '../lib/supabase.client.js';
  *   - 'ready'    — catalog present in the backend
  *   - 'unprovisioned' — the catalog store is not provisioned (tables missing
  *     or empty); the caller renders the factual empty state, never a fake.
+ *   - 'error' — a catalog request failed; the caller exposes the error and a
+ *     retry action instead of misreporting the store as unprovisioned.
  *
  * Content comes exclusively from the DB; the static genOsCatalog.js remains
  * the verified static taxonomy reference but is NOT a runtime fallback.
  */
 export function useNormativeCatalog() {
-  const [state, setState] = useState({
-    status: 'loading',
-    products: [],
-    subproductsByProduct: {},
-    capabilities: [],
-    platformServices: [],
-    error: null,
-  });
+  const [state, setState] = useState(initialCatalogState);
+  const [attempt, setAttempt] = useState(0);
+
+  const retry = useCallback(() => {
+    setState(initialCatalogState());
+    setAttempt((current) => current + 1);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,7 +61,11 @@ export function useNormativeCatalog() {
 
         const queryError = [productsRes, subsRes, capsRes, svcsRes].find((r) => r.error);
         if (queryError?.error) {
-          setState((s) => ({ ...s, status: 'unprovisioned', error: queryError.error.message }));
+          setState((s) => ({
+            ...s,
+            status: isCatalogStoreMissing(queryError.error) ? 'unprovisioned' : 'error',
+            error: queryError.error.message,
+          }));
           return;
         }
 
@@ -78,7 +94,7 @@ export function useNormativeCatalog() {
         if (!cancelled) {
           setState((s) => ({
             ...s,
-            status: 'unprovisioned',
+            status: 'error',
             error: err instanceof Error ? err.message : 'catalog query failed',
           }));
         }
@@ -88,7 +104,7 @@ export function useNormativeCatalog() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
-  return state;
+  return { ...state, retry };
 }

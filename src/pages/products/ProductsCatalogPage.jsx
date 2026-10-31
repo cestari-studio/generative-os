@@ -140,7 +140,21 @@ const ProductsCatalogPage = () => {
                 </Stack>
               </Tile>
 
-              {!catalogReady ? (
+              {catalog.status === 'error' ? (
+                <Tile className="cs--products-page__empty" role="alert">
+                  <Stack gap={3}>
+                    <h3 className="cs--products-page__empty-title">
+                      {t('productsCatalog.loadErrorTitle', 'Could not load product catalog')}
+                    </h3>
+                    <p className="cs--products-page__empty-text">
+                      {catalog.error || t('productsCatalog.loadError', 'The product catalog request failed.')}
+                    </p>
+                    <Button kind="tertiary" onClick={catalog.retry}>
+                      {t('common.retry', 'Retry')}
+                    </Button>
+                  </Stack>
+                </Tile>
+              ) : !catalogReady ? (
                 <Tile className="cs--products-page__empty">
                   <Stack gap={3}>
                     <h3 className="cs--products-page__empty-title">

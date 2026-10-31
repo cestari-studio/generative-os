@@ -78,6 +78,17 @@ COMMENT ON COLUMN public.onboarding_journey_definitions.scope IS
   'NULL target_organization_id never matches. Resolved server-side by '
   'resolve_onboarding_readiness; never client-trusted.';
 
+-- Owner decision recorded 2026-10-31: onboarding.tenant creates the initial
+-- organization/workspace context, so readiness for this self-service journey
+-- must be resolvable before the user has an active organization membership.
+-- This is a per-journey normative value; the organizational default remains
+-- fail-closed for every other journey. Personal scope does not grant membership,
+-- roles, or entitlements; provisioning and RLS continue to enforce those.
+UPDATE public.onboarding_journey_definitions
+   SET scope = 'personal'
+ WHERE wizard_key = 'onboarding.tenant'
+   AND wizard_version = '1.0.0';
+
 -- ---------------------------------------------------------------------------
 -- 2. Org-scoped readiness. SECURITY INVOKER (actor = auth.uid()); required
 --    steps + scope resolve SERVER-SIDE from the trusted definition. Decision:
