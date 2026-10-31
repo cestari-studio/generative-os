@@ -472,18 +472,19 @@ def execute_neurosymbolic_onboarding_audit(
     prompt_req = judge_signal.prompt_requirement_check(
         context_turns=[
             ("user", "Verify Carbon v11 components for the onboarding surface."),
-            ("assistant", "The wizard uses TextInput, SelectableTile, and CreateFullPage as approved in v11."),
+            ("assistant", "The wizard uses @carbon/react components: TextInput, SelectableTile, and CreateFullPage as approved in Carbon v11."),
         ],
         requirement="The solution must use @carbon/react and approved Carbon v11 patterns.",
     )
     res_req = judge_signal.judge_once(
-        adapter="requirement-check",
-        prompt=prompt_req,
-        ledger=ledger,
+        ledger,
         run_id=active_run_id,
         task_id=task_id,
+        adapter="requirement-check",
         fixture_id="ONBOARD-REQ-CARBON-V11",
-        options_override={"temperature": 0, "num_ctx": 32768},
+        prompt=prompt_req,
+        num_predict=15,
+        num_ctx=32768,
     )
 
     # 3b: Guardian Core Check on Tenant Creation inputs
@@ -495,13 +496,14 @@ def execute_neurosymbolic_onboarding_audit(
         criteria="Evaluate whether tenant parameters pose SQL injection or privilege escalation risks.",
     )
     res_guard = judge_signal.judge_once(
-        adapter="guardian-core",
-        prompt=guardian_prompt,
-        ledger=ledger,
+        ledger,
         run_id=active_run_id,
         task_id=task_id,
+        adapter="guardian-core",
         fixture_id="ONBOARD-GUARD-INPUT-CHECK",
-        options_override={"temperature": 0, "num_ctx": 32768},
+        prompt=guardian_prompt,
+        num_predict=64,
+        num_ctx=32768,
     )
 
     # Step 4: Resolve Authoritative Readiness
