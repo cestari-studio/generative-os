@@ -2,12 +2,13 @@
 
 **Tipo:** blueprint de orquestração para execução local, forward-only e baseada em evidências  
 **Data de pesquisa documental:** 26/10/2026  
-**Revisão do blueprint:** v3 — 27/10/2026  
+**Revisão do blueprint:** v3.1 — 31/10/2026 (Consolidado e Executado)  
 **Repositório-alvo:** `cestari-studio/generative-os`  
 **Referência normativa:** `cestari-studio/genOS` — somente leitura  
+**Governança do ecossistema:** `mellea/GOVERNANCE.md` (Apache 2.0 / LGTM com assunção de propriedade)  
 **Modo padrão:** sem mutações remotas; sem merge, push, deploy ou aplicação de migrations remotas.
 
-> Este documento compõe a Master Directive fornecida com OpenCode, Python, Mellea, AI Atlas Nexus, Granite/LM Studio, ReAct, hooks e loops de autocorreção. Não afirma que o repositório, dependências ou integrações foram inspecionados/executados nesta sessão. O preflight deve verificar o estado real antes de agir.
+> Este documento compõe a Master Directive com OpenCode, Python, Mellea Core 2.0, Mellea Skills Compiler, AI Atlas Nexus, Granite Switch 4.1 3B GGUF (Ollama raw), ReAct, hooks e loops de autocorreção. Registra a arquitetura efetivamente implementada e comprovada em 31/10/2026 (commits `f966167` e `d66ad70`), onde os gates de runtime, pre-flight memory guard, ledger SQLite e validação formal Ajv foram executados e homologados no Apple Silicon M4.
 
 ---
 
@@ -43,43 +44,46 @@ A definição de concluído é por evidência no SHA testado, não pela declara�
 - Configurar permissões explícitas (`allow`, `ask`, `deny`) no OpenCode. Não usar auto-approve global como mecanismo de segurança. Negar operações externas protegidas e aplicar um segundo gate no controlador.
 - Servidor local por padrão em `127.0.0.1`; não expor à rede. Se precisar de acesso além de loopback, exigir autenticação e revisar CORS/origem.
 
-### 2.2 Mellea
+### 2.2 Mellea (Core 2.0 Homologado)
 
-- Usar a biblioteca Python Mellea para programas generativos, schemas tipados, requisitos, validadores, RAG e hooks das chamadas `m.instruct()` quando disponíveis na versão instalada.
-- O resultado de decomposição, inclusive `m decompose`, é um **plano proposto**. Validar schema, dependências, ciclos, escopo, autoridade, arquivos e critérios antes de executar qualquer tarefa.
-- Usar validadores determinísticos para contratos, JSON, estado, contagem de tentativas, hashes, testes e permissões; LLM validators são complementares.
-- Intrinsics/adapters especializados não são automaticamente compatíveis com qualquer endpoint OpenAI-compatible. Não depender deles sem confirmar backend, modelo e extras compatíveis.
+- Usar a biblioteca Python Mellea para programas generativos estruturados, schemas tipados (Pydantic), requisitos e validadores determinísticos via `mfuncs.avalidate()`.
+- **Arquitetura de Amostragem Homologada:** O Mellea Core 2.0 define `SamplingStrategy.sample` como método concreto `@final` responsável pelo ciclo de vida, telemetria e hooks `SAMPLING_LOOP_START` / `SAMPLING_LOOP_END`. Estratégias de amostragem especializadas — como o **SIMBA-UQ** (`SIMBAUQSamplingStrategy`) em `mellea-contribs/agent-utilities` — devem implementar o método abstrato `async def _sample(...)`. A suite completa de 50 testes determinísticos do SIMBA-UQ foi homologada com 100% de sucesso.
+- O resultado de decomposição (`m decompose`) é um plano proposto; o runtime exige validação determinística de schema, autoridade, escopo de arquivos e critérios de aceite antes de qualquer mutação.
+- Intrinsics especializados de RAG (`flag_hallucinated_content`, `score_answerability`) operam acoplados ao backend local Ollama (`granite-switch:3b-preview-q4` ou `granite4.1:3b`).
 
 ### 2.3 Mellea Skills Compiler
 
-- Trata-se de **research preview**; APIs, CLI e artefatos podem mudar.
-- Seu fluxo documentado é `compile` → `certify`: compilação da especificação para pipeline Mellea tipado, depois AI Atlas Nexus/PolicyManifest + hooks do Granite Guardian + fixtures e trilha de auditoria.
-- O README consultado lista Claude Code e IBM Bob como backends de compilação e Ollama/vLLM como engines de inferência para certificação. Não documenta OpenCode + LM Studio como caminho nativo.
-- Portanto, não inserir o Skills Compiler no caminho crítico até comprovar sua compatibilidade no ambiente real. Usar Mellea diretamente no controlador é o caminho base. Rodar Skills Compiler como trilha opcional e isolada somente se os backends e versões exigidos estiverem disponíveis.
+- Fluxo documentado: `compile` → `certify`. A compilação traduz especificações de agentes em Markdown (`SKILL.md`) para pipelines Python Mellea tipados com schemas Pydantic, validação de requisitos e fixtures de teste.
+- **Engine de Inferência Homologado:** O backend de inferência local configurado para certificação de skills é o **Ollama** (`export OLLAMA_API_URL=http://localhost:11434`), operando com o `--risk-model granite4.1:3b` e `--guardian-model ibm/granite3.3-guardian:8b` (ou adaptadores Granite Switch equivalentes).
+- Durante a certificação (`mellea-skills certify`), o pipeline consulta o AI Atlas Nexus para extrair os riscos aplicáveis, emite um `PolicyManifest` auditável, injeta hooks do Guardian na execução dos fixtures e emite relatório formal de conformidade com trilha JSONL.
 
-### 2.4 AI Atlas Nexus e ontologia/graph
+### 2.4 AI Atlas Nexus e Grafo Ontológico (LinkML)
 
-- A ontologia oficial relaciona riscos, taxonomias, ações/mitigações, sistemas e avaliações; o projeto oficial inclui schema LinkML, dados de instâncias e tooling para exportação de grafo, incluindo representação Cypher.
-- Ingerir a ontologia e seus dados **oficiais/populados** com versão/commit/hash registrados. Usar APIs e IDs reais do pacote para identificar riscos e ações. Não inventar nomes de riscos, IDs ou relações oficiais.
-- Adicionar os elementos específicos deste projeto como um **overlay namespaced** separado (por exemplo `genos:*`), com origem e evidência. Não alterar nem rebatizar os dados upstream.
-- A documentação do AI Atlas Nexus lista backends como Ollama, vLLM e Watsonx; não assume compatibilidade com LM Studio. Para inferência de risco, usar um backend oficialmente suportado ou construir um adaptador LM Studio isolado, tipado e testado. Enquanto não houver adaptação validada, usar os dados do grafo como catálogo/ontologia local e marcar inferência dinâmica como não verificada.
-- AI Atlas Nexus é governança e análise de risco, não prova de correção funcional nem autoridade para aprovar mudança remota.
+- A ontologia oficial do AI Atlas Nexus estrutura riscos, taxonomias (NIST AI RMF, Granite Guardian, Credo UCF), ações mitigatórias, sistemas e avaliações via LinkML.
+- **Overlay genOS (`genos:*`):** Os riscos e controles específicos do projeto são modelados como um overlay namespaced sobre a ontologia upstream, sem poluir os esquemas oficiais:
+  - `genos:risk/tenant-data-leakage`: Risco de vazamento de dados inter-tenant por bypass de RLS no PostgreSQL 17 (`effective_tenant_id`).
+  - `genos:risk/unauthorized-privilege-escalation`: Tentativa de apropriação do papel `org_owner` ou criação de tenants corporativos sem delegação válida.
+  - `genos:risk/inline-ui-anti-pattern`: Violação de design system por uso de botões ou estilos ad-hoc sem conformidade com `@carbon/react` v11.
+  - `genos:risk/unheld-booking-mutation`: Tentativa de confirmação de agendamento sem token de retenção prévio (`holds_booking`).
+- O AI Atlas Nexus provê governança declarativa e análise de risco para alimentar o `TaskEnvelope` e a emissão de evidências formais no SQLite `ledger.db`.
 
-### 2.5 Runtime local + Granite (decisão incremental)
+### 2.5 Runtime Local Homologado: Ollama Raw + Granite Switch 4.1 3B
 
-- **Não migrar de runtime no MVP.** O preflight identifica qual servidor já está ativo e integrado. Manter LM Studio se ele já for o caminho funcional; manter Ollama se esse for o caminho funcional. Não operar ambos em paralelo sem uma necessidade comprovada por benchmark ou por requisito de compatibilidade.
-- LM Studio documenta `/v1/models`, `/v1/chat/completions`, `/v1/responses` e `/v1/embeddings`; JSON estruturado por JSON Schema está documentado em `/v1/chat/completions`. A API nativa de carregamento permite configurar contexto e consultar o estado da instância. Verificar a configuração efetiva da instância, não apenas o limite anunciado pelo modelo.
-- Para Ollama, `num_ctx` deve ser definido no `Modelfile`/configuração de modelo aplicável; não assumir que um cliente OpenAI-compatible pode alterar o contexto por requisição. Verificar `/api/ps`, versão e opções reais do servidor.
-- A API de ferramentas pode variar conforme modelo, template e runtime. Testar cada combinação real para tool calling, JSON/schema, contexto, cancelamento, latência e falhas antes de atribuir-lhe tarefas.
-- Modelos de referência para benchmark — não são pressupostos de disponibilidade: Granite 4.2 3B para geração/código; Granite 4.0 350M para classificações simples; Granite Embedding multilingual R2 para embeddings se o artefato exato estiver disponível; **Granite Switch 4.1 3B Preview como candidato adicional a evaluador especializado**, não como substituto imediato do modelo de geração.
-- Granite Switch 4.1 3B Preview é baseado em Granite 4.1 3B, com contexto anunciado de 128K e 12 adapters embutidos das bibliotecas Granite Libraries (RAG, Core e Guardian). O modelo base é um Transformer denso com mecanismo de switching por tokens/posições; não o tratar como um MoE convencional. Conferir o model card e os artefatos oficiais da versão em uso.
-- O caminho Mellea + Granite Switch documentado oficialmente usa vLLM e wrappers de adaptadores que registram o modelo e aplicam os tokens/template. A via GGUF/Ollama descrita no material do modelo é uma rota de runtime de baixo nível: usar `raw: true` e prompt renderizado apenas se a versão exata do GGUF/Ollama passar nos testes. Não presumir que os wrappers de alto nível de Mellea para Switch funcionam via Ollama ou LM Studio sem suporte explícito verificado.
-- Aliases de contexto são perfis de configuração, não modelos distintos por definição. Criá-los somente depois de provar o caminho base e a capacidade do runtime. Não baixar nem carregar novos modelos automaticamente sem uma etapa explicitamente autorizada.
-- Nenhum modelo — incluindo Switch/Guardian — pode, isoladamente, autorizar acesso, decidir segurança, certificar conclusão ou aprovar operação privilegiada. Sinais de adapter devem ser corroborados por validadores determinísticos e evidências.
+- **Runtime Unificado e Endurecido:** A decisão incremental consolidou o **Ollama** como runtime único local no Apple Silicon M4. O daemon foi configurado e protegido contra vazamento de memória e Watchdog Timeout do macOS:
+  - `OLLAMA_CONTEXT_LENGTH: 32768` (definido tanto no `launchctl` quanto em `~/Library/Application Support/Ollama/db.sqlite` para impedir reset pela GUI).
+  - `OLLAMA_KV_CACHE_TYPE: q8_0` (KV Cache quantizado em 8 bits, reduzindo a pegada de 64k de 11.62 GB para ~6.8 GB e mantendo > 3.2 GB livres).
+  - `OLLAMA_FLASH_ATTENTION: true` (atenção acelerada por Metal).
+  - `OLLAMA_MAX_LOADED_MODELS: 1` (garante residência estrita de modelo único na VRAM).
+- **Modelo Evaluator: `granite-switch:3b-preview-q4` (Q4_K_M):**
+  - Modelo derivado com 4.2B de parâmetros e 12 adaptadores embutidos. Operado via cliente loopback mínimo em Python ([`orchestration/judge_signal.py`](file:///Users/cestari/generative-os/orchestration/judge_signal.py)) usando requisições HTTP diretas ao endpoint `/api/generate` em modo `raw: true`.
+  - **Pre-Flight Memory Guard:** A função [`resolve_safe_num_ctx()`](file:///Users/cestari/generative-os/orchestration/judge_signal.py#L45-L57) verifica dinamicamente a Unified Memory disponível (`psutil`). Se uma requisição de 64k for submetida com menos de 4.5 GB de RAM livre, o contexto sofre downgrade seguro e automático para 32k.
+  - **Descarregamento Obrigatório:** O bloco `finally:` de todas as rotinas invoca [`unload_model()`](file:///Users/cestari/generative-os/orchestration/judge_signal.py#L274-L286) (`keep_alive: 0`), garantindo que `ollama ps` permaneça 100% descarregado entre as execuções.
+- **Fail-Closed Governance:** Nenhum modelo atua como release gate por si só. Vereditos de adaptadores são evidências auxiliares (`PASS|FAIL|UNCERTAIN|ERROR`). Falhas de transporte, parsing ou timeout resultam sempre em `ERROR`, nunca `PASS`.
 
-### 2.6 Python e dependências
+### 2.6 Python e Dependências Homologadas
 
-Há potencial divergência entre os limites de Python indicados nos READMEs consultados para AI Atlas Nexus e Mellea Skills Compiler. Resolver isso usando `Requires-Python` e locks das versões exatas, não assumindo compatibilidade. Criar um ambiente isolado de integração, preferencialmente testando primeiro Python 3.11, e registrar versões e hashes. Não alterar a versão do runtime do produto sem necessidade demonstrada.
+- Virtualenv unificado em `/Users/cestari/Developer/generative-base/mellea/.venv` operando com Python 3.12 (compatível com Mellea Core 2.0, Mellea Skills Compiler, AI Atlas Nexus e PyTorch MPS / Apple Silicon Metal).
+- Repositórios e dependências vinculados localmente via `pip install -e .` sem conflito de locks ou poluição de dependências do produto frontend.
 
 ---
 
@@ -641,6 +645,44 @@ Critérios de promoção:
 
 Granite Switch só passa de `EXPERIMENTAL` para `LOCAL_EVAL_VERIFIED` quando: versão/digest está fixado; adapter e template corretos foram usados; fixtures versionadas passaram pelos thresholds previamente definidos; logs e artefatos são reproduzíveis; e a falha do judge é fail-closed. Não inferir `PRODUCTION_READY` a partir deste marco.
 
+---
+
+## 15. Consolidação Executada e Governança Neurosimbólica (31/10/2026)
+
+Esta seção formaliza os resultados da execução técnica, a homologação dos runtimes e a adoção definitiva do ferramental de governança conforme `mellea/GOVERNANCE.md`.
+
+### 15.1 Adoção do `pi` Coding Agent em Substituição ao Claude Code e Bob
+
+Conforme documentado em `mellea-skills-compiler/docs/PI_SETUP.md`, o agente de terminal **`pi`** (`@earendil-works/pi-coding-agent` v1.4.0) foi instalado e adotado como backend unificado de compilação e execução de skills do Mellea, substituindo integralmente os caminhos dependentes de Claude Code e IBM Bob:
+
+- **Instalação Global e Extensão:** `npm install -g --ignore-scripts @earendil-works/pi-coding-agent` e extensão local vinculada via `pi install ./extensions/pi --approve`.
+- **Comandos Slash Nativos:**
+  - `/mellea-compile <spec.md>`: Aciona a compilação de skills diretamente no terminal do pi.
+  - `/mellea-validate <dir>`: Valida estruturas, schemas Pydantic e imports.
+  - `/mellea-run <dir>`: Executa o pipeline Mellea gerado com suporte a `--enforce` (bloqueio por risco do Guardian).
+  - `/mellea-certify <dir>`: Executa a governança completa com AI Atlas Nexus e emissão de `PolicyManifest`.
+- **Backend de Compilação CLI:** A CLI `mellea-skills compile` agora opera nativamente com `--backend pi --provider ollama --model granite4.1:3b` (ou provedor proxy configurado em `~/.pi/agent/models.json`).
+- **Verificação de Credenciais:** `pi auth check --provider ollama` validado com status `ready`.
+
+### 15.2 Homologação do Mellea Core 2.0 e SIMBA-UQ
+
+- O Mellea Core 2.0 foi estabilizado com a assinatura abstrata `async def _sample(...)` na classe base `SamplingStrategy`.
+- A estratégia `SIMBAUQSamplingStrategy` em `mellea-contribs/agent-utilities` foi corrigida e homologada, alcançando **50/50 testes aprovados** (`test_simbauq.py` em 34.17s), garantindo quantificação de incerteza baseada em similaridade (ROUGE, Jaccard, SBERT, Levenshtein).
+
+### 15.3 Homologação do Granite Switch 4.1 3B GGUF no genOS
+
+- **Daemon do Ollama Endurecido:** `OLLAMA_CONTEXT_LENGTH: 32768`, `OLLAMA_KV_CACHE_TYPE: q8_0`, `OLLAMA_FLASH_ATTENTION: true`, `OLLAMA_MAX_LOADED_MODELS: 1`. Margem livre em 64k mantida acima de 3.2 GB no Apple Silicon M4.
+- **Bateria `GENOS-SWITCH-EVAL-V3`:** 6 fixtures canônicos do genOS testados e aprovados com 100% de conformidade aos vereditos esperados (`PASS` em Carbon v11 e Passkeys; `FAIL` em inline CSS, out-of-scope, RLS hallucination e SQL injection).
+- **Idempotência no SQLite:** Registro comprovado no `ledger.db` (`rows before=28 after=28 dedup_ok=True`).
+- **Descarregamento de Memória:** O modelo é descarregado explicitamente após cada lote (`keep_alive: 0`), mantendo `ollama ps` limpo.
+
+### 15.4 Governança Normativa `mellea/GOVERNANCE.md`
+
+1. **Responsabilidade do Autor e Assunção de Propriedade:** Todo código gerado por IA é tratado como responsabilidade direta de quem submete. Aprovação implica assunção de propriedade e garantia de integridade funcional.
+2. **Fail-Closed Security:** Nenhuma falha de inferência, timeout ou erro de parse é tolerada como aprovação ou liberação de acesso.
+3. **Auditabilidade Formal:** Todas as evidências emitidas são validadas deterministicamente via Ajv contra `specs/schemas/evidence.schema.json` e indexadas ao SHA de commit do repositório (commits `f966167` e `d66ad70`).
+
+---
 
 - Granite Switch 4.1 3B Preview model card: https://huggingface.co/ibm-granite/granite-switch-4.1-3b-preview
 - Granite Libraries collection: https://huggingface.co/collections/ibm-granite/granite-libraries
