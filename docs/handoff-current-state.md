@@ -6,11 +6,11 @@
 
 **Branch:** `feat/complete-carbon-page-rebuild`
 
-**Application code SHA:** `b94b9acc2b8825f48621a20ac3267ecb43829720` (the handoff changes are documentation only)
+**Latest verified branch SHA:** `27e076963a0c70c3a330644923c6fd5328f030a4` (documentation-only commits after code verification SHA `2f07c3f59a851a5c86bedd01ff5bb026d5a3cdeb`)
 
 ## Executive state
 
-PR [#7](https://github.com/cestari-studio/generative-os/pull/7) is open and draft. Vercel Preview is READY for the snapshot SHA. The application has a passing protected-fetch SSR readback across the home page, three access-gated routes, and a not-found route. Supabase production has not received any of the 12 candidate onboarding/readiness migrations. No production deploy or promotion was performed for this work.
+PR [#7](https://github.com/cestari-studio/generative-os/pull/7) was open and draft at the last readback, head `27e076963a0c70c3a330644923c6fd5328f030a4`. Vercel Preview is READY for that SHA. The application has a passing protected-fetch SSR readback across the home page, three access-gated routes, and a not-found route. Supabase production has not received any of the 12 candidate onboarding/readiness migrations. No production deploy or promotion was performed for this work.
 
 This is a handoff for continued implementation and review. It does not claim release acceptance: global lint and the human accessibility gates are still open, and the Supabase migration history needs reconciliation before any migration decision.
 
@@ -18,14 +18,14 @@ This is a handoff for continued implementation and review. It does not claim rel
 
 ### GitHub
 
-- At the cross-service readback, PR #7 was draft and targeted `main` at `b94b9acc2b8825f48621a20ac3267ecb43829720`. This handoff adds documentation-only changes after that readback; inspect the current GitHub head before starting follow-up work.
-- The code changes were last verified at `2f07c3f59a851a5c86bedd01ff5bb026d5a3cdeb`; `b94b9ac` adds only documentation.
+- At the latest cross-service readback, PR #7 was draft and targeted `main` at `27e076963a0c70c3a330644923c6fd5328f030a4`. This handoff follow-up is documentation-only; inspect the current GitHub head before starting follow-up work.
+- The code changes were last verified at `2f07c3f59a851a5c86bedd01ff5bb026d5a3cdeb`; subsequent commits through `27e0769` contain documentation only.
 - Keep the PR draft until the lower stack, current CI, human review, and route acceptance evidence are complete.
 
 ### Vercel
 
 - Existing project: `generative-os`, project ID `prj_cgIw3xCnho9TNi37gH5e3VmiwtXC`.
-- Preview: [`generative-gwc4k4ni3-cestari-studio.vercel.app`](https://generative-gwc4k4ni3-cestari-studio.vercel.app), deployment `dpl_2AtzSG8dVYSJ6MFXY4vsaHHLPyma`, READY for `b94b9acc2b8825f48621a20ac3267ecb43829720`.
+- Preview: [`generative-5lno08ydr-cestari-studio.vercel.app`](https://generative-5lno08ydr-cestari-studio.vercel.app), deployment `dpl_D298ut8xdYspSGyVoXsfN5hUq8W9`, READY for `27e076963a0c70c3a330644923c6fd5328f030a4`.
 - Protected fetch returned `/` 200, `/dashboard` 200, `/products` 200, `/knowledge` 200, and `/nonexistent-route` 404. Each response had a server-rendered root and the expected title. The three protected routes showed “Access Gate Active.”
 - No production deployment, promotion, or domain change was made for this work.
 
