@@ -527,3 +527,45 @@ Current local verification after the catalog correction: `npm run test` PASS
 `git diff --check` still reports trailing whitespace in the pre-existing
 onboarding certification artifacts; the changed catalog files and this ledger
 entry pass targeted formatting and whitespace checks.
+
+## Cross-service read-back (2026-10-31, authenticated, read-only)
+
+The user confirmed that the authentication token is stored in Keychain. The
+existing Vercel CLI session authenticated as `octavio-4895`; no token value was
+read into this ledger. Vercel deployment `dpl_FQYWQNMQUC7o4sumkv6QBXe2aAuc`
+for commit `2f07c3f59a851a5c86bedd01ff5bb026d5a3cdeb` is Preview / READY at
+`generative-i4e8a17mu-cestari-studio.vercel.app`. This replaces the older
+`6962b7a` observation above: the current served title is `genOS | Cestari
+Studio`, and the authenticated SSR checks on `/`, `/dashboard`, `/products`,
+`/knowledge`, and `/nonexistent-route` returned 200, 200, 200, 200, 404 with a
+nonempty root; protected routes showed the access gate. No production deploy,
+promotion, or domain change was performed.
+
+Supabase read-only migration listing for project `ldjfjmihdvdmltrptngf`
+(`generative-os`) returned 24 remote IDs. Comparing against this checkout's 36
+local migration files: 21 IDs are shared, 15 are local-only, and 3 are
+remote-only (`20261024064601`, `20261025141955`, `20261025142026`). The 12
+migrations below, all local-only, are the onboarding/readiness candidate set;
+the broader 15-file drift means `db push` is unsafe until the full histories
+are reconciled. No remote migration was applied.
+
+| Order | Migration | SHA-256 |
+| --- | --- | --- |
+| 1 | `20261026120000_journey_ledger_onboarding_runs.sql` | `f73ba74d2c031e44e5a5584dde12f09a031e424861f71067488147048771a5f1` |
+| 2 | `20261026130000_pagbank_rpc_service_role_only.sql` | `ce5d3899887998c78409d7471304f433533dbcec54fde4953625c41b95cd868f` |
+| 3 | `20261026130100_rpc_grants_remove_anon_excess.sql` | `99a6fc44746a12965e0023463c79e7dee68c5a6261a7d70fe3672b6404023374` |
+| 4 | `20261026140000_provision_corporate_tenant_safe.sql` | `2cd80a47adc6fe476ea701d7cb92f44b08b08618c4b5f93c2f05c783a42d2c8d` |
+| 5 | `20261026150000_onboarding_actor_subject_delegation.sql` | `06a1b2709d8ee1dc197b874e1f0d3841f7cc4a3f2d99c6f3e776a78b096b1ad8` |
+| 6 | `20261026160000_helper_rpc_anon_revocation.sql` | `b43ad2e835c1cf2d5bac6e5756fb30683fd2cbc59a488e61038312c2e86fb4ae` |
+| 7 | `20261026170000_readiness_blocked_decision.sql` | `f2b9373316b9bd66ae78ab92fa67f3bd97a51a8ca71ceb1f644f540121ae2905` |
+| 8 | `20261026180000_red_team_p1_fixes.sql` | `a4a87f4ac2badb72948e023f826478d01d1d5f7733963c155311ff4f7e27e433` |
+| 9 | `20261026190000_readiness_org_scoping.sql` | `c152e6f3052dcdc18aba7b482bc4d41b8bcfe6d3466fe8d5a953f5d25ac386af` |
+| 10 | `20261026200000_p2_time_state_integrity.sql` | `59b97718c8b1eb47c31ce28351acd4c9525131a281e520dccd2ab8be10881b69` |
+| 11 | `20261026210000_legacy_corporate_tenant_restrict.sql` | `94f88bdc52521815644d96e29d063db16b7a5fddf2f4cb7a1b8b4202e292e361` |
+| 12 | `20261026220000_validate_active_context_hierarchy.sql` | `aba5453e0694179a5de9e3dd70974a799cd36a1fdfb8af6c2dc2039d18a90584` |
+
+Local disposable-Postgres verification covered 11/11 SQL suites (including the
+personal-scope onboarding readiness and active-context checks). The exact SQL
+suite counts and constraints are recorded in the task evidence. Production
+approval is still pending for this exact project, migration set, and code SHA;
+the read-back and validation procedure must be repeated after any approval.
