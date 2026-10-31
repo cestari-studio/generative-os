@@ -1,0 +1,33 @@
+{
+  "blockers": [],
+  "commit_sha": "74d04374861addbd792cbe747caf3df846f89157",
+  "evidence_class": "validation.local",
+  "generator_version": "orchestration/0.1.0",
+  "maturity": "NORMATIVE_ONLY",
+  "recorded_at": "2026-10-27T21:05:21.541Z",
+  "spec_key": "judge.switch.hallucination_detection",
+  "spec_version": "0.1.0",
+  "verdicts": {
+    "config_version": "ollama-raw/num_ctx=8192/temp=0/v1",
+    "findings": [
+      {
+        "adapter": "hallucination_detection",
+        "error_class": null,
+        "eval_count": 65,
+        "fixture_id": "T2-moon",
+        "latency_ms": 5442,
+        "score_value": "unfaithful",
+        "verdict": "FAIL"
+      }
+    ],
+    "model_id": "granite-switch-4.1-3b-preview",
+    "model_revision": "9e52f1c054d05e35e8032a338672a9bba4ed999c",
+    "run_id": "run-20261027-180513",
+    "summary": {
+      "ERROR": 0,
+      "FAIL": 1,
+      "PASS": 0,
+      "UNCERTAIN": 0
+    }
+  }
+}
