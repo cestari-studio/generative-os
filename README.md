@@ -1,167 +1,63 @@
-# generative-os
+# genOS
 
-![Screen capture of the app home screen](public/home-page.jpg)
+genOS is Cestari Studio's generative operational system. This repository contains the Carbon Design System web application, Supabase-backed product services, and the local execution and evidence tooling used to build the system.
 
-This project is a Private Generative OS template based on the Carbon Design System, maintained by cestari-studio.
+The repository is under active development. The current release candidate is PR [#7](https://github.com/cestari-studio/generative-os/pull/7), which remains a draft. See [the current handoff](docs/handoff-current-state.md) before continuing work.
 
-It is intended to be helping, not dictating. If you don't know exactly what to use, feel free to take this as a starting point. You can of course swap anything in this stack with your preferred tool if you want to.
+## Run locally
 
-## Get started
+Requires Node.js 24 and npm 11 (the package manager version is recorded in `package.json`).
 
-1. Instantiate this template locally without the git history, specifying the name of the folder for the repository.
+```bash
+npm ci
+cp .env.example .env.local
+```
 
-   ```bash
-   npx degit https://github.com/carbon-design-system/carbon-react-router-starter generative-os
-   ```
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local` to the intended Supabase project's URL and publishable key, then run:
 
-   NOTE: In addition to starting with a clean history `degit` avoids the accidental creation of external repositories.
+```bash
+npm run dev
+```
 
-2. Switch to the new folder
+The browser bundle may contain only publishable Supabase coordinates. Never put a Supabase `service_role` key, payment provider token, or webhook secret in a `VITE_*` variable. Do not use the reference project's credentials or database.
 
-   ```bash
-   cd new-folder
-   ```
+## Build and quality commands
 
-3. Install the dependencies. _Requires Node 24_
+```bash
+npm run build
+npm run preview
+npm run test
+npm run check:branding
+npm run check:matrices
+npm run check:carbon-patterns
+npm run test:browser-smoke
+```
 
-   ```bash
-   nvm i # Optional, but desirable to make sure you have the supported version
-   npm i
-   ```
+PostgreSQL security changes have named disposable-database suites such as `npm run test:readiness-org-scoping-sql` and `npm run test:switch-active-context-sql`. Run the suites relevant to a change against disposable PostgreSQL with RLS enforced. Never reset or test shared Supabase using an owner or superuser role.
 
-4. Run the template
+The repository-wide `npm run lint` is currently not green; see the handoff for the observed formatting and spelling failures. Do not use formatting commands that rewrite unrelated files.
 
-   ```bash
-   npm run dev
-   ```
+## System boundaries
 
-→ Good, you're already set up!
+- **Web:** Vite + React Router with server-side rendering; deploy previews through the existing Vercel `generative-os` project.
+- **Persistence and identity:** the Supabase project `ldjfjmihdvdmltrptngf` is the only target. The sibling `cestari-studio/genOS` repository is read-only reference material; its database `jkespoegdpkdcrxsxwry` is never a target.
+- **Authorization:** authenticated identity, active membership, policy/entitlement, and PostgreSQL RLS. Client metadata is not authority.
+- **AI execution tooling:** `orchestration/` is local controller/evidence tooling, not application runtime. Local model and audit artifacts must redact credentials and personal data. Model judgments are evidence inputs, never authorization or release approval.
+- **MVP boundary:** chat with AI is out of scope. Delivery order is Edge Functions and real persistence, auditable actions and actors, entitled Granite access, then chat.
 
-Create a production build with `npm run build`, but be aware that a server runtime is needed as this project uses server-side rendering.
+## Project documentation
 
-### Running production
+- [Operational rules for agents](AGENTS.md)
+- [Current state and next steps](docs/handoff-current-state.md)
+- [Release evidence ledger](docs/release-evidence-ledger.md)
+- [Owner approval packets](docs/owner-approval-packets.md)
+- [Master directive](docs/ui-rebuild/master-directive.md)
+- [AI execution blueprint v3](docs/ui-rebuild/generative-os-ai-execution-blueprint-v3.md)
+- [UI route/page matrix](docs/ui-rebuild/route-page-matrix.md)
+- [AI execution controller notes](orchestration/README.md)
 
-1. Build the project
+## Change and release policy
 
-   ```bash
-   npm run build
-   ```
+Changes are prepared on feature branches and reviewed in draft pull requests. A green local check or Preview does not authorize a merge, production deployment, Supabase migration, promotion, secret change, or domain change. Those actions require separate explicit owner approval for the exact target and operation. Migrations are forward-only and additive.
 
-2. Run the production build
-   1. Without compression
-
-   ```bash
-   npm run preview
-   ```
-
-   2. With compression, best for performance.
-
-   ```bash
-   npm run preview:prod
-   ```
-
-### Before connecting to GitHub
-
-If you are not familiar with and have never configured your device to work with git, npm, node, ssh etc. then you might want to find a friendly developer to help with your setup. You will at a minimum need:
-
-- Node 24
-- Git
-- SSH
-- NPM
-- Your command line connected to git via ssh.
-
-### Connecting to GitHub
-
-1. Create a new repository on github.com/cestari-studio/generative-os.
-   1. Set the repository name
-   2. Choose the visibility (private recommended for commercial use)
-   3. Click "Create repository".
-2. Connect your repository.
-   1. Before the git instructions.
-
-   ```bash
-   git init
-   git add .
-   git commit -m 'feat: initial commit'
-   ```
-
-   2. Then the instructions to push and existing repository from the command line, which will look something like the following:
-
-   ```bash
-   git remote add origin git@github.com:cestari-studio/generative-os.git
-   git branch -M main
-   git push -u origin main
-   ```
-
-## How does this work
-
-### Philosophy
-
-This project is driven by a few principles:
-
-- Fast to instantiate, easy to understand
-- Usable by a large set of projects
-- Opinionated but not dictating
-- Performance and accessibility oriented
-
-Ultimately, we want to save you time by avoiding you weeks of research to build a simple base stack to create a first iteration from.
-
-### Documentation
-
-While the ultimate documentation is the code, it is, like all languages, possible to write some very complex stories. In creating this project, we have tried to document inline complexity and where we deviate from standard practices or configurations. If you find something confusing, then we consider this a bug and would ask that you raise an issue.
-
-Where documenting inline is not possible or impractical, we have added explanations in the [docs](./docs) folder.
-
-### Project structure
-
-- **Carbon inclusion:** right now, this project embeds the latest version of Carbon core, but not yet Carbon for IBM Products or Carbon for IBM Cloud. Contributions in this direction would be welcome.
-
-- **CSS and SCSS:** Based on Carbon, this project makes extensive use of SCSS. To improve the loading experience and avoid layout shifts and flash of unstyled content, we decided to load the SCSS from the `index.html` file. If you have a case where you load a lot of CSS under very dynamic conditions, you might decide to use an `import` statement inside one of your React components. However, be aware that this should stay as an exception, as the styles will be delayed after the component has been loaded.
-
-- **Server-side rendering:** Server-side rendering is a critical component for most applications to improve their performance. This means here that **the project is separated in two parts - client-side and server-side**.
-
-- **Internationalization (i18n):** This project uses [i18next](https://www.i18next.com/) for multi-language support. German is included as an example.
-
-  Translation files are stored in `src/locales/` as JSON files, one per language (e.g., `de.json` for German). These files are bundled into the application at build time using `vite-plugin-i18next-loader`, which means no additional network requests are needed to load translations.
-
-  The i18n setup is split between server and client. The server configuration lives in `src/i18n.server.js` and the client configuration in `src/i18n.client.js`. When a user visits the application, the server reads the `Accept-Language` header from their browser to determine their preferred language. The server then renders the page with the appropriate translations and passes the translation state to the client. The client loads this state before React hydration to ensure consistency. You can find detailed comments explaining this process in `src/entry-client.jsx`.
-
-  To add a new language, create a JSON file in `src/locales/` named with the language code (e.g., `fr.json` for French). Then add that language code to the `supportedLngs` array in both `src/i18n.client.js` and `src/i18n.server.js`.
-
-  In your components, use the `useTranslation` hook to access translations. The `t` function takes a translation key and an English fallback: `const { t } = useTranslation(); t('greeting', 'Hello')`. English text stays inline in your code as the default, while other languages are defined in their respective JSON files.
-
-  To switch languages programmatically, use the `i18n` instance from the same hook: `const { i18n } = useTranslation(); i18n.changeLanguage('de')`.
-
-- **Quality and productivity helpers:** This project contains quite a few helpers to help with consistency, productivity, and speed. For example, it has templates for unit and end-to-end testing. It also contains linters so your team doesn't have to lose time on code formatting.
-  With time, we plan to add more helpers to help you monitor your accessibility and front-end performance.
-
-### Testing
-
-This project comes with a pre-configured testing setup using React Testing Library, MSW (Mock Service Worker), and Vitest to make unit and integration tests easy to write and run.
-
-#### Setup
-
-- The test configuration is located in `vite.config.js`, which sets up Vitest with globals, a JSDOM environment, and points to the setup file `src/test/setup.js`.
-
-- This file handles mocking network requests and manages server startup and teardown. It also handles mocking browser features missing in JSDOM.
-
-- The `src/test/server.js` wraps the server with msw's setupServer function and injects networking utils from `src/test/networking.js` that track each outgoing network request and help debugging unit tests.
-
-#### Writing Tests
-
-Add your test files to `src/__test__/*.test.jsx`, import the necessary methods from React Testing Library and MSW and use `render` and `screen` to render your components and interact with them. Use MSW handlers (defined in `src/test/server.js`) to mock API responses for your components.
-
-#### Running Tests
-
-For test execution, run:
-`npm run test`
-
-The Vitest runner will also handle test coverage reports automatically.
-
-## Keeping this up to date
-
-We will do our best to update this template on a regular basis. However, if you want to help us, don't hesitate to make your own pull request so we can keep this reliable to use.
-
-## Report problems
-
-Please open an [issue](issues) if you have a bug to report.
+Preserve Apache-2.0 licensing, copyright notices, and upstream attribution when changing the Carbon starter-derived files.
